@@ -1,0 +1,70 @@
+{
+  "skill_name": "ml-platform",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add a new tab called 'Feature Importance' to the Model Evaluation page. It should show a horizontal bar chart of the top 20 feature importances from the LightGBM champion model (loaded from models/use_case_A/final_model.pkl). Use the existing PALETTE colours and the house chart style.",
+      "expected_output": "A Python patch script (or direct edit) that: (1) adds 'tab_fi' to the st.tabs() call in page_model_evaluation, (2) inside the tab loads the pkl, extracts feature_importances_, and renders a go.Bar horizontal chart with the correct BG/FONT colours and width='stretch', (3) passes ast.parse() syntax check.",
+      "assertions": [
+        {
+          "name": "adds tab_fi variable",
+          "check": "Output code contains 'tab_fi' as a tab variable"
+        },
+        {
+          "name": "uses go.Bar with orientation='h'",
+          "check": "Chart code uses go.Bar and orientation='h' or 'horizontal'"
+        },
+        {
+          "name": "uses width='stretch' not use_container_width",
+          "check": "plotly_chart call uses width='stretch', not use_container_width"
+        },
+        {
+          "name": "no plt import",
+          "check": "Output does not introduce plt.subplots or st.pyplot"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The Post-Processing EDA page crashes with: TypeError: Cannot perform reduction 'mean' with string dtype. The error is on the line that calls _stats() inside the Raw vs Processed tab. Diagnose and fix it.",
+      "expected_output": "Explanation that shared_num only filters by df_fe numeric dtype but df_raw may have the same column as string (before encoding). Fix: add _raw_num_cols = set(df_raw.select_dtypes(include='number').columns) and intersect shared_num with it. Provides a working Python patch.",
+      "assertions": [
+        {
+          "name": "correct root cause identified",
+          "check": "Response explains the column is numeric in FE but string in raw"
+        },
+        {
+          "name": "uses select_dtypes on df_raw",
+          "check": "Fix code calls df_raw.select_dtypes(include='number')"
+        },
+        {
+          "name": "patch is syntactically valid",
+          "check": "Code block passes basic Python syntax check"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want to add Use Case D — Customer Churn Prediction (Telco dataset, binary classification, target column 'Churn', metric ROC-AUC) to the platform. What files do I need to create or edit, and can you scaffold the USE_CASE_META and USE_CASE_SCRIPTS entries for me?",
+      "expected_output": "Clear list of steps: (1) create use_case_D_churn/01–05_*.py, (2) add 'D' to USE_CASE_SCRIPTS dict with placeholder paths, (3) add 'D' to USE_CASE_META with correct fields, (4) add entries to _PROFILING_SRC and _FE_EDA_SRC. Provides ready-to-paste Python dict entries with correct field names (title, icon, tag, target='Churn', task='Binary Classification', metric='ROC-AUC', model_dir, data_dir, report_dir, status='scaffolded').",
+      "assertions": [
+        {
+          "name": "USE_CASE_META entry has all required fields",
+          "check": "Provided dict contains: title, icon, tag, target, task, metric, model_dir, data_dir, report_dir, status"
+        },
+        {
+          "name": "target column is 'Churn'",
+          "check": "target field is set to 'Churn'"
+        },
+        {
+          "name": "status set to scaffolded",
+          "check": "status field is 'scaffolded' since scripts don't exist yet"
+        },
+        {
+          "name": "mentions ensure_utf8 for new scripts",
+          "check": "Response mentions ensure_utf8() must be called before logging.basicConfig() in new scripts"
+        }
+      ]
+    }
+  ]
+}

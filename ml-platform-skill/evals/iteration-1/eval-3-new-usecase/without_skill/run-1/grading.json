@@ -1,0 +1,30 @@
+{
+  "summary": {
+    "pass_rate": 0.75,
+    "passed": 3,
+    "failed": 1,
+    "total": 4
+  },
+  "expectations": [
+    {
+      "text": "USE_CASE_META entry has all 10 required fields",
+      "passed": true,
+      "evidence": "All fields present"
+    },
+    {
+      "text": "target field is set to 'Churn'",
+      "passed": true,
+      "evidence": "target='Churn' found"
+    },
+    {
+      "text": "status is 'scaffolded' in ready-to-paste dict (not 'complete')",
+      "passed": false,
+      "evidence": "Dict has status=\"complete\"; scaffolded only in prose"
+    },
+    {
+      "text": "mentions ensure_utf8() before logging.basicConfig()",
+      "passed": true,
+      "evidence": "ensure_utf8 mentioned"
+    }
+  ]
+}

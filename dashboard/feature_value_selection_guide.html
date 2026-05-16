@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<h2 class="sr-only">Feature Value Selection Guide — data-driven recommendations for DSF504 Use Cases A, B, and C NLP</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f8f9fa;color:#1a1a2e;font-size:13px}
+.header{background:#1a1a2e;color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px}
+.header h1{font-size:15px;font-weight:700}
+.header p{font-size:11px;color:#aaa;margin-top:2px}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #e0e0e0;padding:0 16px;gap:4px;overflow-x:auto}
+.tab{padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-size:12px;font-weight:600;color:#666;white-space:nowrap;transition:all .15s}
+.tab.active{color:#1E88E5;border-bottom-color:#1E88E5}
+.tab:hover:not(.active){color:#333}
+.content{display:none;padding:16px;max-height:620px;overflow-y:auto}
+.content.active{display:block}
+
+/* cards */
+.section-title{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#888;margin:16px 0 8px;border-bottom:1px solid #eee;padding-bottom:4px}
+.card{background:#fff;border-radius:6px;padding:12px 14px;margin-bottom:10px;border-left:4px solid #ccc;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card.red{border-left-color:#E53935} .card.orange{border-left-color:#FB8C00}
+.card.blue{border-left-color:#1E88E5} .card.green{border-left-color:#43A047}
+.card.purple{border-left-color:#8E24AA}
+.card-header{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.card-title{font-weight:700;font-size:12px}
+.badge{padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700;margin-left:auto}
+.badge.critical{background:#E5393520;color:#E53935}
+.badge.high{background:#FB8C0020;color:#FB8C00}
+.badge.medium{background:#1E88E520;color:#1E88E5}
+.card p{color:#444;line-height:1.55;font-size:12px}
+.card code{background:#f0f4ff;color:#1E88E5;padding:1px 5px;border-radius:3px;font-size:11px;font-family:monospace}
+
+/* data table */
+.dtable{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0}
+.dtable th{background:#f5f5f5;padding:5px 8px;text-align:left;font-weight:600;color:#555;border-bottom:1px solid #e0e0e0}
+.dtable td{padding:5px 8px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+.dtable tr:hover td{background:#fafafa}
+.bar-cell{position:relative;padding:4px 8px}
+.bar-bg{position:absolute;left:0;top:2px;bottom:2px;border-radius:0 3px 3px 0;opacity:.25}
+.bar-val{position:relative;font-weight:600}
+.pill{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700}
+
+/* recommendation box */
+.rec{background:#f0f7ff;border:1px solid #bbdefb;border-radius:6px;padding:10px 12px;margin:8px 0;font-size:12px;line-height:1.5}
+.rec strong{color:#1E88E5}
+.warn{background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:8px 12px;margin:6px 0;font-size:11px;color:#5d4037}
+.cite{font-size:10px;color:#888;font-style:italic;margin-top:6px}
+
+/* framework */
+.fw-row{display:flex;gap:8px;margin:8px 0}
+.fw-box{flex:1;background:#fff;border-radius:6px;padding:10px 12px;border-top:3px solid #ccc;box-shadow:0 1px 3px rgba(0,0,0,.06);min-width:130px}
+.fw-box h4{font-size:11px;font-weight:700;margin-bottom:6px}
+.fw-box ul{list-style:none;padding:0}
+.fw-box ul li{font-size:11px;color:#555;padding:2px 0}
+.fw-box ul li::before{content:"→ ";color:#888}
+
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:700;color:#fff;margin-right:6px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1>Feature Value Selection — Data-Driven Recommendations</h1>
+    <p>Based on actual distribution analysis of DSF504 datasets (Use Cases A, B, C NLP)</p>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="show('framework')">🧭 Decision Framework</div>
+  <div class="tab" onclick="show('uca')">🚨 Use Case A — Fraud</div>
+  <div class="tab" onclick="show('ucb')">💳 Use Case B — Credit</div>
+  <div class="tab" onclick="show('ucnlp')">📰 Use Case C — NLP</div>
+  <div class="tab" onclick="show('general')">📐 General Principles</div>
+</div>
+
+<!-- FRAMEWORK TAB -->
+<div id="framework" class="content active">
+  <p style="color:#555;margin-bottom:12px;font-size:12px">A structured 5-step process for deciding which feature values to keep, transform, or discard.</p>
+
+  <div class="fw-row">
+    <div class="fw-box" style="border-top-color:#E53935">
+      <h4 style="color:#E53935"><span class="step-num" style="background:#E53935">1</span>Detect Anomalies</h4>
+      <ul>
+        <li>Domain impossibilities (age=0, util=50,708)</li>
+        <li>Sentinel / error codes (96, 98 in DPD)</li>
+        <li>Impossible negatives</li>
+        <li>Constant & near-zero variance cols</li>
+      </ul>
+    </div>
+    <div class="fw-box" style="border-top-color:#FB8C00">
+      <h4 style="color:#FB8C00"><span class="step-num" style="background:#FB8C00">2</span>Measure Skew</h4>
+      <ul>
+        <li>Skewness |s| > 1 → log/sqrt transform</li>
+        <li>|s| > 5 → Winsorise first, then log</li>
+        <li>Bimodal → split into indicator + value</li>
+        <li>Heavy tail vs. outlier vs. error</li>
+      </ul>
+    </div>
+    <div class="fw-box" style="border-top-color:#1E88E5">
+      <h4 style="color:#1E88E5"><span class="step-num" style="background:#1E88E5">3</span>Target Linkage</h4>
+      <ul>
+        <li>Compute default/fraud rate per bin</li>
+        <li>Monotonic → keep raw or binned</li>
+        <li>Non-monotonic → flag as interaction</li>
+        <li>Flat → candidate for removal</li>
+      </ul>
+    </div>
+    <div class="fw-box" style="border-top-color:#43A047">
+      <h4 style="color:#43A047"><span class="step-num" style="background:#43A047">4</span>Choose Treatment</h4>
+      <ul>
+        <li>Clip: known physical bounds</li>
+        <li>Winsorise: statistical extreme</li>
+        <li>Log1p: right skew, all positive</li>
+        <li>Indicator: missingness = signal</li>
+      </ul>
+    </div>
+    <div class="fw-box" style="border-top-color:#8E24AA">
+      <h4 style="color:#8E24AA"><span class="step-num" style="background:#8E24AA">5</span>Validate on Val</h4>
+      <ul>
+        <li>Apply train-set stats only</li>
+        <li>Check clip bounds don't break val</li>
+        <li>Verify no leakage introduced</li>
+        <li>Retrain baseline, compare AUC</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title">Value Treatment Decision Tree</div>
+  <table class="dtable">
+    <tr><th>Condition</th><th>Diagnosis</th><th>Recommended Treatment</th><th>Leakage risk</th></tr>
+    <tr><td>Value outside physical domain</td><td>Data error / sentinel</td><td>Clip to valid range or create separate category</td><td>None</td></tr>
+    <tr><td>Value is known error code (e.g. 96, 98)</td><td>Encoding artefact</td><td>Analyse target rate before clamping to 0 — may carry signal</td><td>None</td></tr>
+    <tr><td>Extreme right tail (p99 >> p95)</td><td>Outlier or valid extreme</td><td>Winsorise at p99 train-only; add <code>is_extreme</code> flag</td><td>Low</td></tr>
+    <tr><td>Value = 0 but should be positive</td><td>Missing encoded as 0</td><td>Treat as missing; impute + create <code>is_zero</code> flag</td><td>None</td></tr>
+    <tr><td>High skew (|skew| > 5)</td><td>Log-normal distribution</td><td><code>log1p</code> transform; keeps relative order, compresses tail</td><td>None</td></tr>
+    <tr><td>Bimodal distribution</td><td>Two populations mixed</td><td>Create binary split feature + keep continuous</td><td>None if train-only</td></tr>
+    <tr><td>Near-zero variance (std &lt; 0.01)</td><td>Near-constant</td><td>Drop — adds noise without signal</td><td>None</td></tr>
+    <tr><td>Flat event rate across bins</td><td>No predictive power</td><td>Drop or deprioritise; verify with permutation importance</td><td>None</td></tr>
+    <tr><td>Target rate computed on full data</td><td>Target encoding</td><td>Compute on train fold only; apply to val/test</td><td><strong>HIGH</strong> if done wrong</td></tr>
+  </table>
+</div>
+
+<!-- USE CASE A TAB -->
+<div id="uca" class="content">
+  <div class="section-title">TransactionAmt — skew 15.98, range $0.25–$31,936</div>
+
+  <table class="dtable">
+    <tr><th>Decile</th><th>Amount Range</th><th>Fraud Rate</th><th>Signal</th><th>Recommendation</th></tr>
+    <tr>
+      <td>D0 (bottom 10%)</td><td>$0 – $26</td>
+      <td><div class="bar-cell"><div class="bar-bg" style="width:56%;background:#E53935"></div><div class="bar-val" style="color:#E53935">5.6%</div></div></td>
+      <td><span class="pill" style="background:#E5393520;color:#E53935">⬆ High risk</span></td>
+      <td>Micro-transactions are fraud-prone — preserve, flag with <code>is_micro_tx</code> (&lt;$26)</td>
+    </tr>
+    <tr>
+      <td>D3</td><td>$49 – $58</td>
+      <td><div class="bar-cell"><div class="bar-bg" style="width:19%;background:#43A047"></div><div class="bar-val" style="color:#43A047">1.9%</div></div></td>
+      <td><span class="pill" style="background:#43A04720;color:#43A047">⬇ Lowest risk</span></td>
+      <td>Mid-range amounts are safest. No special treatment needed.</td>
+    </tr>
+    <tr>
+      <td>D7</td><td>$117 – $160</td>
+      <td><div class="bar-cell"><div class="bar-bg" style="width:43%;background:#FB8C00"></div><div class="bar-val" style="color:#FB8C00">4.3%</div></div></td>
+      <td><span class="pill" style="background:#FB8C0020;color:#FB8C00">⬆ Watch</span></td>
+      <td>Elevated — common gift card / reload amount range</td>
+    </tr>
+    <tr>
+      <td>D9 (top 10%)</td><td>$276 – $31,936</td>
+      <td><div class="bar-cell"><div class="bar-bg" style="width:51%;background:#E53935"></div><div class="bar-val" style="color:#E53935">5.1%</div></div></td>
+      <td><span class="pill" style="background:#E5393520;color:#E53935">⬆ High risk</span></td>
+      <td>Large transactions are fraud-prone — flag with <code>is_large_tx</code> (&gt;$276)</td>
+    </tr>
+  </table>
+
+  <div class="rec">
+    <strong>U-shaped fraud pattern:</strong> fraud peaks at both extremes (very small AND very large amounts). This calls for:
+    (1) <code>log1p(TransactionAmt)</code> to compress the extreme right tail while preserving ordering;
+    (2) binary flags <code>is_micro_tx</code> (≤$26) and <code>is_large_tx</code> (≥$276) to expose the non-linearity directly to linear models.
+  </div>
+  <div class="warn">⚠️ Never clip TransactionAmt — the extreme values ($276–$31,936) carry genuine fraud signal (5.1% rate). Clipping would destroy it.</div>
+
+  <div class="section-title">V-Columns (339 Vesta-engineered features)</div>
+  <div class="card blue">
+    <div class="card-header"><span>📊</span><span class="card-title">Top discriminative features: V257 (ρ=0.383), V246 (ρ=0.367)</span><span class="badge medium">High value</span></div>
+    <p>V-columns are already engineered by Vesta. Focus value-selection on:
+    <br>• Drop columns with <code>std &lt; 0.01</code> (near-constant) — adds noise
+    <br>• Drop columns where <code>% identical value &gt; 99%</code>
+    <br>• Keep all V-columns with |ρ| &gt; 0.05 with the fraud target
+    <br>• Do <strong>not</strong> clip V-column values — their scale encodes Vesta's proprietary risk signals</p>
+  </div>
+
+  <div class="section-title">Temporal Values — TransactionDT</div>
+  <div class="card orange">
+    <div class="card-header"><span>⏰</span><span class="card-title">Extract cyclic time features from epoch seconds</span><span class="badge high">High value</span></div>
+    <p>Fraud rate peaks at 2–4 AM (∼8% vs ∼3% daytime). Derive:
+    <br>• <code>tx_hour = (TransactionDT // 3600) % 24</code> → then <code>sin/cos</code> encoding
+    <br>• <code>tx_day_of_week = (TransactionDT // 86400) % 7</code>
+    <br>• Keep raw <code>TransactionDT</code> for tree models (they split on raw values natively)</p>
+    <p class="cite">Why sin/cos: a linear model sees hour 23 and hour 0 as far apart (distance=23). With cyclic encoding the distance is 1/24.</p>
+  </div>
+</div>
+
+<!-- USE CASE B TAB -->
+<div id="ucb" class="content">
+  <div class="section-title">RevolvingUtil — max=50,708 (physically impossible above 1.0)</div>
+  <table class="dtable">
+    <tr><th>Value Range</th><th>Count</th><th>Default Rate</th><th>Interpretation</th><th>Treatment</th></tr>
+    <tr>
+      <td>0 – 1.0 (normal)</td><td>117,348</td>
+      <td><div class="bar-cell"><div class="bar-bg" style="width:60%;background:#43A047"></div><div class="bar-val" style="color:#43A047">6.0%</div></div></td>
+      <td>Valid utilisation ratio</td><td>Keep as-is</td>
+    </tr>
+    <tr>
+      <td>1.0 – 2.0 (over-limit)</td><td>2,360</td>
+      <td><div class="bar-cell"><div class="bar-bg" style="width:100%;background:#E53935"></div><div class="bar-val" style="color:#E53935">40.0% ⚠️</div></div></td>
+      <td>Maxed-out / over-limit — <strong>real distress signal</strong></td><td>Preserve — <strong>do not clip to 1.0</strong></td>
+    </tr>
+    <tr>
+      <td>2.0 – 10.0</td><td>102</td>
+      <td><div class="bar-cell"><div class="bar-bg" style="width:80%;background:#E53935"></div><div class="bar-val" style="color:#E53935">30.4%</div></div></td>
+      <td>Severely over-limit</td><td>Flag as <code>is_severely_overlimit</code></td>
+    </tr>
+    <tr>
+      <td>&gt; 10.0 (extreme)</td><td>190</td>
+      <td><div class="bar-cell"><div class="bar-bg" style="width:89%;background:#FB8C00"></div><div class="bar-val" style="color:#FB8C00">8.9%</div></div></td>
+      <td>Data entry errors (50,708 is not a credit ratio)</td><td>Winsorise to p99=1.094 after separating 1–10 band</td>
+    </tr>
+  </table>
+  <div class="rec">
+    <strong>Critical insight:</strong> RevolvingUtil values between 1.0 and 2.0 have a <strong>40% default rate</strong> — 6.7× the baseline. This is the single most predictive value range in the dataset. A naive clip to [0,1] would destroy this signal entirely. Recommended approach:
+    <br>→ Create <code>is_over_limit</code> flag (util &gt; 1.0) before clipping
+    <br>→ Separately winsorise values &gt; 10.0 (data errors) to p99
+    <br>→ Final: <code>RevolvingUtil_clipped = min(util, 1.094)</code> + <code>is_over_limit</code> binary
+  </div>
+
+  <div class="section-title">DPD Error Codes — Values 96 & 98 in DPD_30_59, DPD_60_89, DPD_90plus</div>
+  <table class="dtable">
+    <tr><th>Group</th><th>Rows</th><th>Default Rate</th><th>Finding</th></tr>
+    <tr>
+      <td>Clean values (0–12)</td><td>119,786</td>
+      <td><div class="bar-cell"><div class="bar-bg" style="width:66%;background:#43A047"></div><div class="bar-val" style="color:#43A047">6.6%</div></div></td>
+      <td>Normal credit behaviour</td>
+    </tr>
+    <tr>
+      <td>Error codes (≥ 96)</td><td>214</td>
+      <td><div class="bar-cell"><div class="bar-bg" style="width:100%;background:#E53935"></div><div class="bar-val" style="color:#E53935">54.7% ⚠️</div></div></td>
+      <td><strong>8.3× higher default rate</strong> — these are high-risk borrowers, not data noise</td>
+    </tr>
+  </table>
+  <div class="rec">
+    <strong>Revised recommendation:</strong> DPD error codes (96/98) should <em>not</em> be naively clamped to 0. The 54.7% default rate reveals they represent borrowers with extreme delinquency histories. Treat them as a separate high-risk category:
+    <br>→ <code>is_dpd_extreme</code> = 1 where any DPD ≥ 96 (captures the 54.7% signal)
+    <br>→ Then clamp the numeric value: <code>DPD_clipped = min(DPD, 12)</code> to avoid tree splits on the meaningless 96/98 literal number
+  </div>
+
+  <div class="section-title">Age — Monotonic negative relationship with default</div>
+  <table class="dtable">
+    <tr><th>Age Band</th><th>Default Rate</th><th>Implication</th></tr>
+    <tr><td>&lt; 39</td><td style="color:#E53935;font-weight:700">10.4%</td><td>Highest risk — younger borrowers, less credit history</td></tr>
+    <tr><td>39 – 48</td><td style="color:#FB8C00;font-weight:700">8.3%</td><td>Elevated</td></tr>
+    <tr><td>48 – 56</td><td>7.2%</td><td>Near baseline</td></tr>
+    <tr><td>56 – 65</td><td style="color:#43A047;font-weight:700">4.5%</td><td>Lower risk</td></tr>
+    <tr><td>&gt; 65</td><td style="color:#43A047;font-weight:700">2.5%</td><td>Lowest risk — older borrowers, stable histories</td></tr>
+  </table>
+  <div class="rec">
+    <strong>Age=0 (1 row):</strong> impute with median age (≈52). Monotonic relationship means age can be used as-is for tree models. For logistic regression, consider binning into the 5 bands above as dummy variables to capture the non-linear rate change between &lt;39 and 65+.
+  </div>
+
+  <div class="section-title">MonthlyIncome — Monotonic negative relationship, extreme right tail</div>
+  <div class="card orange">
+    <div class="card-header"><span>💰</span><span class="card-title">p99=$25,000 but max=$3,008,750 — 120× ratio</span><span class="badge high">Winsorise</span></div>
+    <p>Clear monotonic signal: $0–$3k → 9.1% default, $9k+ → 4.5% default. Extreme outliers (&gt;$25k) have an 8.9% default rate — <em>above</em> average — suggesting some values may represent annual income mistakenly entered as monthly.
+    <br>• Winsorise at p99 ($25,000) using train-set statistics
+    <br>• Create <code>income_band</code> ordinal feature (5 bands matching the quintle boundaries above)
+    <br>• For the 19.8% missing: use age-band median imputation, then create <code>is_income_missing</code> flag</p>
+  </div>
+
+  <div class="section-title">DebtRatio — Non-monotonic at extreme values</div>
+  <div class="card red">
+    <div class="card-header"><span>⚠️</span><span class="card-title">Max=329,664 — mathematically impossible as a ratio</span><span class="badge critical">Critical</span></div>
+    <p>The highest debt ratio bin (&gt;3.66) paradoxically shows <em>lower</em> default (5.5%) than the second-highest bin (9.9%). This occurs because extreme DebtRatio values arise when monthly income ≈ 0 (e.g., unemployed) — the ratio is undefined/meaningless, not actually extreme debt.
+    <br>• Winsorise at p99 (≈4,977) using train statistics
+    <br>• Create <code>is_debtration_extreme</code> (DebtRatio &gt; 1.0) — signals debt exceeds income
+    <br>• Consider <code>abs_debt = DebtRatio × MonthlyIncome</code> as a more meaningful derived feature</p>
+  </div>
+</div>
+
+<!-- NLP TAB -->
+<div id="ucnlp" class="content">
+  <div class="section-title">Sentence Length — How long sentences affect feature quality</div>
+  <table class="dtable">
+    <tr><th>Class</th><th>Count</th><th>p10 words</th><th>Median words</th><th>p90 words</th><th>Implication</th></tr>
+    <tr><td><span class="pill" style="background:#E5393520;color:#E53935">Negative</span></td><td>104</td><td>10</td><td>17</td><td>28</td><td>Shorter — "loss", "decline" used concisely</td></tr>
+    <tr><td><span class="pill" style="background:#FB8C0020;color:#FB8C00">Neutral</span></td><td>1,346</td><td>11</td><td>19</td><td>30</td><td>Longest — factual reporting uses more words</td></tr>
+    <tr><td><span class="pill" style="background:#43A04720;color:#43A047">Positive</span></td><td>815</td><td>10</td><td>17</td><td>29</td><td>Similar to negative in length</td></tr>
+  </table>
+
+  <div class="section-title">TF-IDF Value Selection</div>
+  <div class="card blue">
+    <div class="card-header"><span>📝</span><span class="card-title">min_df and max_df control which token values enter the vocabulary</span><span class="badge medium">Key parameter</span></div>
+    <p><strong>min_df=2</strong> (recommended): removes hapax legomena — tokens that appear in only 1 sentence. With 2,264 sentences, a token appearing once contributes 0 information for generalisation and inflates dimensionality.
+    <br><strong>max_df=0.95</strong>: removes tokens present in 95%+ of sentences — financial boilerplate ("company", "said", "year") that appears regardless of sentiment.
+    <br><strong>sublinear_tf=True</strong>: replaces raw term frequency <em>tf</em> with <em>log(1+tf)</em> — prevents "profit profit profit" from dominating "profit grew by 30%".</p>
+  </div>
+
+  <div class="card green">
+    <div class="card-header"><span>🔢</span><span class="card-title">Vocabulary size: 5,000 features vs. 2,264 sentences</span><span class="badge medium">Dimension choice</span></div>
+    <p>With only 2,264 training sentences, a 5,000-token vocabulary gives ∼2.2 samples per feature — borderline for regularised models. Recommendations by model type:
+    <br>• Logistic Regression (with L2): 5,000 is fine — L2 penalises irrelevant dimensions
+    <br>• LightGBM: 5,000 is fine — tree models ignore irrelevant features via splitting
+    <br>• Naive Bayes: reduce to 3,000 — NB struggles more with large sparse vocabularies
+    <br>• If FinBERT unavailable: increase to 8,000 to compensate for semantic loss</p>
+    <p class="cite">Rule of thumb: vocabulary_size ≤ 2–3× training samples for unregularised models (Zhang & LeCun, 2015).</p>
+  </div>
+
+  <div class="section-title">Loughran-McDonald Word List Values</div>
+  <div class="card purple">
+    <div class="card-header"><span>📚</span><span class="card-title">Finance-domain lexicon outperforms Harvard GI for financial text</span><span class="badge medium">Domain-specific</span></div>
+    <p><strong>Which word list values to use:</strong>
+    <br>• <strong>lm_positive / lm_negative</strong>: raw counts. Note that "liability", "loss", "risk" appear in neutral filings — use ratio (<code>lm_pos / (lm_neg + 1)</code>) to measure directional tilt
+    <br>• <strong>lm_uncertainty</strong> ("may", "could", "approximately"): useful for distinguishing neutral from positive — high uncertainty language ≈ neutral regardless of positive word count
+    <br>• <strong>lm_modal_strong</strong> ("will", "shall", "must"): high confidence forward statements signal positive outlook
+    <br>• <strong>Exclude</strong>: Harvard GI negative words — "liability", "cost", "tax" are classified negative by Harvard but are neutral in financial reporting context (Loughran & McDonald, 2011)</p>
+  </div>
+
+  <div class="section-title">FinBERT Token Truncation</div>
+  <div class="card orange">
+    <div class="card-header"><span>✂️</span><span class="card-title">All sentences fit within 512-token limit — no truncation needed</span><span class="badge high">Confirmed safe</span></div>
+    <p>Max sentence length in the dataset is under 100 tokens (words × ∼1.3 subword ratio). FinBERT's 512-token limit is never hit. However:
+    <br>• Use <code>[CLS]</code> token embedding (position 0) — this is the classification head's representation
+    <br>• Do <strong>not</strong> mean-pool all tokens — FinBERT was fine-tuned with CLS pooling for sentiment
+    <br>• Batch size: 32 on GPU, reduce to 8 on CPU to avoid OOM on the 768-dim forward pass</p>
+  </div>
+</div>
+
+<!-- GENERAL PRINCIPLES TAB -->
+<div id="general" class="content">
+  <div class="section-title">The 6 Universal Rules of Feature Value Selection</div>
+
+  <div class="card red">
+    <div class="card-header"><span class="step-num" style="background:#E53935">1</span><span class="card-title">Never clip before measuring target rate per range</span><span class="badge critical">Most common mistake</span></div>
+    <p>The data showed: RevolvingUtil 1–2 has 40% default rate. A "clip to [0,1]" would have destroyed the most predictive value range in the entire dataset. Always compute event rate per value band <em>before</em> deciding on clipping bounds.</p>
+  </div>
+
+  <div class="card red">
+    <div class="card-header"><span class="step-num" style="background:#E53935">2</span><span class="card-title">Compute all statistics on training data only</span><span class="badge critical">Leakage</span></div>
+    <p>Clip bounds, Winsorisation percentiles, imputation medians, frequency-encoding maps, TF-IDF vocabulary — all must be computed on the training fold and <em>applied</em> to validation/test. Re-computing on the full dataset is data leakage and inflates validation performance.</p>
+  </div>
+
+  <div class="card orange">
+    <div class="card-header"><span class="step-num" style="background:#FB8C00">3</span><span class="card-title">Error codes are information, not noise</span><span class="badge high">Common pitfall</span></div>
+    <p>DPD 96/98 rows had a 54.7% default rate. An "unknown" or "not applicable" sentinel value often marks a specific sub-population (e.g., borrowers with no credit history, commercial accounts). Create a binary flag for the sentinel, then clamp the numeric field.</p>
+  </div>
+
+  <div class="card orange">
+    <div class="card-header"><span class="step-num" style="background:#FB8C00">4</span><span class="card-title">Distinguish outlier types before treating</span><span class="badge high">Treatment varies</span></div>
+    <p>Three different outlier types require three different treatments:
+    <br>• <strong>Domain violation</strong> (age=0, util=50,708): clip to physically valid range
+    <br>• <strong>Measurement error</strong> (income=$3M): Winsorise at p99 train-only, add flag
+    <br>• <strong>Valid extreme</strong> (transaction=$31,936): keep — may carry disproportionate signal</p>
+  </div>
+
+  <div class="card blue">
+    <div class="card-header"><span class="step-num" style="background:#1E88E5">5</span><span class="card-title">Monotonic relationships → keep raw; non-monotonic → create interaction</span><span class="badge medium">Target linkage</span></div>
+    <p>Age → default rate is cleanly monotonic (10.4% → 2.5%) — keep age as numeric. NumOpenLoans is non-monotonic (highest default at &lt;4 loans, then drops, then rises) — this signals an interaction with revolving vs. installment loan type. Create <code>has_no_loans</code> flag + raw count.</p>
+  </div>
+
+  <div class="card blue">
+    <div class="card-header"><span class="step-num" style="background:#1E88E5">6</span><span class="card-title">Missingness pattern is a feature, not a problem</span><span class="badge medium">Signal extraction</span></div>
+    <p>MonthlyIncome missing (19.8%) is not random — lower-income borrowers are more likely to leave income blank. Create <code>is_income_missing</code> before imputing, and verify the missing rows have a different target rate. In fraud detection, a missing device fingerprint often indicates a burner device.</p>
+    <p class="cite">Saar-Tsechansky & Provost (2007) — Handling Missing Values when Applying Classification Models.</p>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

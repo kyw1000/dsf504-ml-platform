@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "scaffold-use-case-d",
+  "prompt": "Add Use Case D — Customer Churn (Telco, target='Churn', metric ROC-AUC). What files to create/edit? Scaffold USE_CASE_META and USE_CASE_SCRIPTS entries.",
+  "assertions": [
+    {"name": "USE_CASE_META has all required fields", "text": "Provided dict has: title, icon, tag, target, task, metric, model_dir, data_dir, report_dir, status"},
+    {"name": "target is 'Churn'", "text": "target field is set to 'Churn'"},
+    {"name": "status is 'scaffolded'", "text": "status field is 'scaffolded' since no scripts exist yet"},
+    {"name": "mentions ensure_utf8", "text": "Response mentions ensure_utf8() must be called before logging.basicConfig() in new scripts"}
+  ]
+}

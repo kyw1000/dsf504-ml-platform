@@ -1,0 +1,11 @@
+{
+  "eval_id": 1,
+  "eval_name": "feature-importance-tab",
+  "prompt": "Add a new 'Feature Importance' tab to Model Evaluation page showing top-20 LightGBM importances as a horizontal bar chart using house chart style.",
+  "assertions": [
+    {"name": "adds tab_fi variable", "text": "Code includes a new tab variable (e.g. tab_fi) in the st.tabs() call"},
+    {"name": "uses go.Bar horizontal", "text": "Chart uses go.Bar with orientation='h' or plotly horizontal bar"},
+    {"name": "width='stretch' not use_container_width", "text": "plotly_chart call uses width='stretch', not use_container_width=True"},
+    {"name": "no plt introduced", "text": "Solution does not import matplotlib.pyplot or call plt.subplots / st.pyplot"}
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "summary": {
+    "pass_rate": 0.5,
+    "passed": 2,
+    "failed": 2,
+    "total": 4
+  },
+  "expectations": [
+    {
+      "text": "adds tab_fi variable as a tab",
+      "passed": true,
+      "evidence": "Found 'tab_fi'"
+    },
+    {
+      "text": "uses go.Bar with orientation='h' (not px.bar)",
+      "passed": false,
+      "evidence": "Uses px.bar or missing orientation='h'"
+    },
+    {
+      "text": "plotly_chart call uses width='stretch' (not deprecated use_container_width in code)",
+      "passed": false,
+      "evidence": "Missing width='stretch' or use_container_width found in code block"
+    },
+    {
+      "text": "no plt.subplots or st.pyplot introduced",
+      "passed": true,
+      "evidence": "No matplotlib pyplot"
+    }
+  ]
+}

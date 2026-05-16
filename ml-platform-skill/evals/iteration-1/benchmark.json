@@ -1,0 +1,283 @@
+{
+  "metadata": {
+    "skill_name": "ml-platform",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-05-13T21:46:33Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "adds tab_fi variable as a tab",
+          "passed": true,
+          "evidence": "Found 'tab_fi'"
+        },
+        {
+          "text": "uses go.Bar with orientation='h' (not px.bar)",
+          "passed": true,
+          "evidence": "go.Bar + orientation='h' found"
+        },
+        {
+          "text": "plotly_chart call uses width='stretch' (not deprecated use_container_width in code)",
+          "passed": true,
+          "evidence": "width='stretch' in code, no use_container_width in code blocks"
+        },
+        {
+          "text": "no plt.subplots or st.pyplot introduced",
+          "passed": true,
+          "evidence": "No matplotlib pyplot"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "correctly identifies root cause (column numeric in FE but string in raw)",
+          "passed": true,
+          "evidence": "Explains dtype mismatch"
+        },
+        {
+          "text": "fix uses df_raw.select_dtypes(include='number') \u2014 not a pd.to_numeric workaround",
+          "passed": true,
+          "evidence": "select_dtypes fix in AFTER/patch block"
+        },
+        {
+          "text": "patch code is syntactically plausible Python",
+          "passed": true,
+          "evidence": "Contains Python code block"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "USE_CASE_META entry has all 10 required fields",
+          "passed": true,
+          "evidence": "All fields present"
+        },
+        {
+          "text": "target field is set to 'Churn'",
+          "passed": true,
+          "evidence": "target='Churn' found"
+        },
+        {
+          "text": "status is 'scaffolded' in ready-to-paste dict (not 'complete')",
+          "passed": false,
+          "evidence": "Dict has status=\"complete\"; scaffolded only in prose"
+        },
+        {
+          "text": "mentions ensure_utf8() before logging.basicConfig()",
+          "passed": true,
+          "evidence": "ensure_utf8 mentioned"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "adds tab_fi variable as a tab",
+          "passed": true,
+          "evidence": "Found 'tab_fi'"
+        },
+        {
+          "text": "uses go.Bar with orientation='h' (not px.bar)",
+          "passed": false,
+          "evidence": "Uses px.bar or missing orientation='h'"
+        },
+        {
+          "text": "plotly_chart call uses width='stretch' (not deprecated use_container_width in code)",
+          "passed": false,
+          "evidence": "Missing width='stretch' or use_container_width found in code block"
+        },
+        {
+          "text": "no plt.subplots or st.pyplot introduced",
+          "passed": true,
+          "evidence": "No matplotlib pyplot"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "correctly identifies root cause (column numeric in FE but string in raw)",
+          "passed": true,
+          "evidence": "Explains dtype mismatch"
+        },
+        {
+          "text": "fix uses df_raw.select_dtypes(include='number') \u2014 not a pd.to_numeric workaround",
+          "passed": false,
+          "evidence": "Fix uses pd.to_numeric or select_dtypes not in fix code"
+        },
+        {
+          "text": "patch code is syntactically plausible Python",
+          "passed": true,
+          "evidence": "Contains Python code block"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "USE_CASE_META entry has all 10 required fields",
+          "passed": true,
+          "evidence": "All fields present"
+        },
+        {
+          "text": "target field is set to 'Churn'",
+          "passed": true,
+          "evidence": "target='Churn' found"
+        },
+        {
+          "text": "status is 'scaffolded' in ready-to-paste dict (not 'complete')",
+          "passed": false,
+          "evidence": "Dict has status=\"complete\"; scaffolded only in prose"
+        },
+        {
+          "text": "mentions ensure_utf8() before logging.basicConfig()",
+          "passed": true,
+          "evidence": "ensure_utf8 mentioned"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.9167,
+        "stddev": 0.1443,
+        "min": 0.75,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.6389,
+        "stddev": 0.1273,
+        "min": 0.5,
+        "max": 0.75
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.28",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

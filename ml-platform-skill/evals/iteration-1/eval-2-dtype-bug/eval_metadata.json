@@ -1,0 +1,10 @@
+{
+  "eval_id": 2,
+  "eval_name": "dtype-mean-bug-diagnosis",
+  "prompt": "Post-Processing EDA crashes: TypeError: Cannot perform reduction 'mean' with string dtype. Diagnose and fix.",
+  "assertions": [
+    {"name": "correct root cause", "text": "Identifies that column is numeric in df_fe (FE parquet) but string in df_raw (raw parquet)"},
+    {"name": "fix uses df_raw.select_dtypes", "text": "Fix filters shared_num using df_raw.select_dtypes(include='number')"},
+    {"name": "syntactically valid fix", "text": "Provided code block is valid Python (correct syntax, no obvious errors)"}
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 3,
+    "failed": 0,
+    "total": 3
+  },
+  "expectations": [
+    {
+      "text": "correctly identifies root cause (column numeric in FE but string in raw)",
+      "passed": true,
+      "evidence": "Explains dtype mismatch"
+    },
+    {
+      "text": "fix uses df_raw.select_dtypes(include='number') \u2014 not a pd.to_numeric workaround",
+      "passed": true,
+      "evidence": "select_dtypes fix in AFTER/patch block"
+    },
+    {
+      "text": "patch code is syntactically plausible Python",
+      "passed": true,
+      "evidence": "Contains Python code block"
+    }
+  ]
+}
