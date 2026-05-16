@@ -15,6 +15,9 @@ from __future__ import annotations
 import os
 import sys
 import subprocess
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="overflow")
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="invalid value")
 import logging
 import datetime
 from pathlib import Path
@@ -1479,14 +1482,21 @@ def page_post_processing_eda(uc_key: str) -> None:
                     _fv = df_fe[col].dropna()
 
                     def _stats(s):
+                        sf = s.astype("float64")  # cast to float64 to avoid int overflow
+                        def _safe(fn):
+                            try:
+                                v = fn(sf)
+                                return float(v) if (v == v and abs(v) < 1e18) else float("nan")
+                            except Exception:
+                                return float("nan")
                         return {
-                            "n":     len(s),
-                            "mean":  float(s.mean()),
-                            "std":   float(s.std()),
-                            "min":   float(s.min()),
-                            "median":float(s.median()),
-                            "max":   float(s.max()),
-                            "skew":  float(s.skew()) if len(s) > 2 else 0.0,
+                            "n":     len(sf),
+                            "mean":  _safe(lambda x: x.mean()),
+                            "std":   _safe(lambda x: x.std()),
+                            "min":   _safe(lambda x: x.min()),
+                            "median":_safe(lambda x: x.median()),
+                            "max":   _safe(lambda x: x.max()),
+                            "skew":  _safe(lambda x: x.skew()) if len(sf) > 2 else 0.0,
                             "null%": round((1 - len(s) / max(len(df_raw), 1)) * 100, 2),
                         }
 
