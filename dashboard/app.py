@@ -2522,19 +2522,31 @@ st.markdown(
         margin-bottom:-2px;
         font-size:0.80rem;
         white-space:nowrap;
-        color:#1A237E;
+        color:#1A237E !important;
         cursor:pointer;
         font-weight:500;
         transition:background 0.12s, color 0.12s;
     }
+    div[data-testid="stRadio"] div[role="radiogroup"] > label p {
+        color:#1A237E !important;
+        font-size:0.80rem;
+        margin:0;
+    }
     div[data-testid="stRadio"] div[role="radiogroup"] > label:hover {
-        background:#E8EAF6; color:#1A237E;
+        background:#E8EAF6;
+    }
+    div[data-testid="stRadio"] div[role="radiogroup"] > label:hover p {
+        color:#1A237E !important;
     }
     div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) {
-        background:#3949AB;
-        border-color:#3949AB;
-        border-bottom-color:#3949AB;
-        color:#FFFFFF;
+        background:#3949AB !important;
+        border-color:#3949AB !important;
+        border-bottom-color:#3949AB !important;
+        color:#FFFFFF !important;
+        font-weight:700;
+    }
+    div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) p {
+        color:#FFFFFF !important;
         font-weight:700;
     }
     div[data-testid="stRadio"] div[role="radiogroup"] > label > div:first-child {
