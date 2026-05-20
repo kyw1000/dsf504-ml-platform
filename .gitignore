@@ -49,3 +49,9 @@ desktop.ini
 patch_*.py
 rescue_*.py
 fix_*.py
+
+# ── Partial/incomplete downloads ──────────────────────────────────────────────
+*.crdownload
+*.part
+*.tmp
+Unconfirmed*.crdownload
