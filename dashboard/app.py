@@ -18,6 +18,12 @@ import subprocess
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning, message="overflow")
 warnings.filterwarnings("ignore", category=RuntimeWarning, message="invalid value")
+warnings.filterwarnings("ignore", message=".*InconsistentVersionWarning.*")
+try:
+    from sklearn.exceptions import InconsistentVersionWarning
+    warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
+except ImportError:
+    pass  # sklearn < 1.2 does not expose this exception class
 import logging
 import datetime
 from pathlib import Path
@@ -133,6 +139,36 @@ st.markdown(
     }}
     /* Dividers */
     hr {{ border-color: {ACCENT}33; }}
+    /* ── Layout tightening ── */
+    /* Small top gap so nav pills aren't clipped by the toolbar */
+    div[data-testid="stMainBlockContainer"] {{
+        padding-top: 1rem !important;
+    }}
+    /* Shrink gap between nav radio strip and page content */
+    div[data-testid="stRadio"] {{
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }}
+    div[data-testid="stRadio"] > div:first-child {{
+        margin-bottom: 0 !important;
+    }}
+    /* Remove extra padding Streamlit adds below horizontal rules */
+    div[data-testid="stMarkdown"] hr {{
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
+    }}
+    /* Sidebar image: pull image up, remove below whitespace */
+    section[data-testid="stSidebar"] [data-testid="stImage"] {{
+        margin-top: -1rem !important;
+        margin-bottom: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }}
+    section[data-testid="stSidebar"] [data-testid="stImage"] img {{
+        display: block;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -183,6 +219,30 @@ USE_CASE_SCRIPTS: dict = {
         4: "use_case_E_insurance/04_model_training.py",
         5: "use_case_E_insurance/05_hyperparameter_tuning.py",
         6: "use_case_E_insurance/06_ethics_explainability.py",
+    },
+    "D": {
+        1: "use_case_D_churn/01_data_loading.py",
+        2: "use_case_D_churn/02_eda_analysis.py",
+        3: "use_case_D_churn/03_feature_engineering.py",
+        4: "use_case_D_churn/04_model_training.py",
+        5: "use_case_D_churn/05_hyperparameter_tuning.py",
+        6: "use_case_D_churn/06_ethics_explainability.py",
+    },
+    "F": {
+        1: "use_case_F_esg/01_data_loading.py",
+        2: "use_case_F_esg/02_eda_analysis.py",
+        3: "use_case_F_esg/03_feature_engineering.py",
+        4: "use_case_F_esg/04_model_training.py",
+        5: "use_case_F_esg/05_hyperparameter_tuning.py",
+        6: "use_case_F_esg/06_ethics_explainability.py",
+    },
+    "G": {
+        1: "use_case_G_advisory/01_data_loading.py",
+        2: "use_case_G_advisory/02_eda_analysis.py",
+        3: "use_case_G_advisory/03_feature_engineering.py",
+        4: "use_case_G_advisory/04_model_training.py",
+        5: "use_case_G_advisory/05_hyperparameter_tuning.py",
+        6: "use_case_G_advisory/06_ethics_explainability.py",
     },
 }
 
@@ -285,25 +345,25 @@ USE_CASE_META: dict = {
         "model_dir":  "use_case_D",
         "data_dir":   "kkbox_churn",
         "report_dir": "use_case_D",
-        "status":     "scaffolded",
-        "champion":   "champion.pkl",
+        "status":     "active",
+        "champion":   "lgbm_optuna_champion.pkl",
     },
     "F": {
         "title":      "ESG & Greenwashing Risk",
         "icon":       "🌱",
-        "tag":        "SEC EDGAR ESG",
-        "target":     "esg_label",
+        "tag":        "ClimateBERT + Synthetic ESG",
+        "target":     "greenwashing_risk",
         "task":       "Multi-class Classification",
         "metric":     "F1 (macro)",
         "model_dir":  "use_case_F",
         "data_dir":   "sec_esg",
         "report_dir": "use_case_F",
-        "status":     "scaffolded",
+        "status":     "active",
         "champion":   "champion.pkl",
     },
     "G": {
-        "title":      "Robo-Advisory & Portfolio AI",
-        "icon":       "🤖",
+        "title":      "AmEx Credit Default Prediction",
+        "icon":       "💳",
         "tag":        "AmEx Default Prediction",
         "target":     "target",
         "task":       "Binary Classification",
@@ -311,14 +371,138 @@ USE_CASE_META: dict = {
         "model_dir":  "use_case_G",
         "data_dir":   "amex_default",
         "report_dir": "use_case_G",
-        "status":     "scaffolded",
-        "champion":   "champion.pkl",
+        "status":     "active",
+        "champion":   "lgbm_optuna_champion.pkl",
     },
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ── Per-use-case config dicts ─────────────────────────────────────────────────
 # ══════════════════════════════════════════════════════════════════════════════
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ── Dataset introductions (Data Studio header card) ───────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+
+_DATASET_INFO: dict = {
+    "A": {
+        "url":   "https://www.kaggle.com/c/ieee-fraud-detection",
+        "label": "Kaggle — IEEE-CIS Fraud Detection",
+        "intro": (
+            "The **IEEE-CIS Fraud Detection** dataset was released by Vesta Corporation for the 2019 Kaggle "
+            "competition. It contains **~590,000 real-world e-commerce transactions** with 394 features "
+            "spanning transaction metadata (amount, card type, email domain), device fingerprints, and 339 "
+            "anonymised V-features derived from Vesta's proprietary fraud-detection system.  \n"
+            "The binary target `isFraud` marks roughly **3.5% of transactions** as fraudulent — a severe "
+            "28:1 class imbalance that makes standard accuracy a useless metric. The primary evaluation "
+            "metric used in the competition and in this platform is **ROC-AUC**."
+        ),
+    },
+    "B": {
+        "url":   "https://www.kaggle.com/c/GiveMeSomeCredit",
+        "label": "Kaggle — Give Me Some Credit",
+        "intro": (
+            "The **Give Me Some Credit** dataset, released by FICO and hosted on Kaggle, contains "
+            "**150,000 anonymised U.S. borrowers** described by 11 financial features including revolving "
+            "credit utilisation, age, number of open credit lines, delinquency history, debt ratio, and "
+            "monthly income.  \n"
+            "The binary target `SeriousDlqin2yrs` indicates whether the borrower experienced a "
+            "90+ day delinquency within two years — approximately **6.7% of borrowers**, yielding a 14:1 "
+            "imbalance. The primary metric is **ROC-AUC**, which mirrors how lenders operationally use "
+            "credit scores: to rank-order applicants by risk, not to apply a fixed cut-off."
+        ),
+    },
+    "C_nlp": {
+        "url":   "https://huggingface.co/datasets/financial_phrasebank",
+        "label": "HuggingFace — Financial PhraseBank",
+        "intro": (
+            "The **Financial PhraseBank** dataset (Malo et al., 2014) contains **4,840 English sentences** "
+            "drawn from financial news articles and annotated by 16 domain experts for sentiment. Each "
+            "sentence is labelled **Positive**, **Neutral**, or **Negative** based on its expected effect on "
+            "stock price.  \n"
+            "This platform uses the `sentences_allagree` split — the highest-quality subset where all "
+            "annotators agreed on the label. Class distribution is roughly 37% Positive, 35% Neutral, "
+            "28% Negative. The primary metric is **macro-F1**, which weights each class equally "
+            "regardless of frequency — important since Negative is the smallest class."
+        ),
+    },
+    "C_markets": {
+        "url":   "https://www.kaggle.com/c/optiver-realized-volatility-prediction",
+        "label": "Kaggle — Optiver Realized Volatility Prediction",
+        "intro": (
+            "The **Optiver Realized Volatility Prediction** dataset was published for a 2021 Kaggle "
+            "competition by Optiver, a global market-making firm. It contains **high-frequency limit "
+            "order book (LOB) snapshots** for 112 NASDAQ-listed stocks across 3,830 10-minute trading "
+            "windows.  \n"
+            "Each window provides bid/ask prices and sizes at multiple depth levels, alongside trade "
+            "flow data. The regression target is **realized volatility** — the root mean squared return "
+            "computed from 1-second log-returns in the subsequent 10-minute window. The evaluation "
+            "metric is **RMSPE** (Root Mean Squared Percentage Error), which penalises proportional "
+            "errors equally regardless of absolute volatility level."
+        ),
+    },
+    "D": {
+        "url":   "https://www.kaggle.com/c/kkbox-churn-prediction-challenge",
+        "label": "Kaggle — KKBox Music Streaming Churn",
+        "intro": (
+            "The **KKBox Churn Prediction Challenge** dataset (Kaggle 2017) covers subscribers of KKBox, "
+            "Asia's leading music streaming service. The training set contains **~2.4 million subscriber "
+            "records** with behavioural features derived from listening logs, transaction history, and "
+            "membership metadata.  \n"
+            "The binary target `is_churn` indicates whether a subscriber did not renew within 30 days "
+            "of expiry — approximately **8.4% churn rate**, yielding an 11:1 imbalance. The primary "
+            "metric is **ROC-AUC**. This use case illustrates how engagement signals "
+            "(listening depth, skip rate, catalogue breadth) outperform raw demographics in subscription "
+            "churn modelling."
+        ),
+    },
+    "E": {
+        "url":   "https://www.kaggle.com/c/porto-seguro-safe-driver-prediction",
+        "label": "Kaggle — Porto Seguro Safe Driver Prediction",
+        "intro": (
+            "The **Porto Seguro Safe Driver Prediction** dataset (Kaggle 2017) was provided by Porto "
+            "Seguro, one of Brazil's largest auto and homeowner insurers. It contains **~600,000 "
+            "anonymised insurance policies** described by 57 features — all obfuscated with categorical "
+            "(`_cat`), binary (`_bin`), and continuous prefixes.  \n"
+            "The binary target indicates whether the policyholder filed a claim — approximately "
+            "**3.6% positive rate**, a 27:1 imbalance. The evaluation metric is the **Normalized Gini "
+            "Coefficient** (= 2 × ROC-AUC − 1), which is directly proportional to AUC but scaled to "
+            "[0, 1]. The heavy anonymisation makes domain knowledge secondary to systematic feature "
+            "interaction search."
+        ),
+    },
+    "F": {
+        "url":   "https://huggingface.co/climatebert/distilroberta-base-climate-detector",
+        "label": "HuggingFace — ClimateBERT + Synthetic ESG",
+        "intro": (
+            "The **ESG Greenwashing Risk** dataset combines outputs from **ClimateBERT** "
+            "(a RoBERTa model fine-tuned on climate disclosure text) with a synthetic ESG corpus "
+            "designed to simulate real-world sustainability reporting patterns. Each record represents "
+            "a company disclosure excerpt scored across environmental commitment, regulatory compliance, "
+            "and third-party verification dimensions.  \n"
+            "The three-class target (`Low`, `Medium`, `High` greenwashing risk) reflects the degree "
+            "of gap between stated ESG claims and verifiable evidence. The primary metric is "
+            "**macro-F1**. This is a multiclass classification use case — SHAP values are computed "
+            "per class and averaged for global feature importance."
+        ),
+    },
+    "G": {
+        "url":   "https://www.kaggle.com/c/amex-default-prediction",
+        "label": "Kaggle — American Express Default Prediction",
+        "intro": (
+            "The **American Express Default Prediction** dataset (Kaggle 2022) is one of the largest "
+            "tabular ML datasets publicly available. It contains **~5.5 million rows** representing "
+            "monthly credit card statement snapshots for ~460,000 customers, described by **190 "
+            "anonymised features** across five categories: delinquency (D), spend (S), payment (P), "
+            "balance (B), and risk (R).  \n"
+            "The binary target indicates whether the customer defaulted within 18 months. The "
+            "evaluation metric is the **AmEx Metric** — a weighted combination of Normalized Gini "
+            "(AUC-based) and the default rate captured in the top 4% of predictions, reflecting the "
+            "lender's real-world focus on early identification of the highest-risk customers."
+        ),
+    },
+}
 
 _PROFILING_SRC: dict = {
     "A": {
@@ -371,6 +555,26 @@ _PROFILING_SRC: dict = {
         "outlier_csv": "reports/use_case_E/outlier_report.csv",
         "target_png":  "reports/use_case_E/target_distribution.png",
     },
+    "D": {
+        "col_summary": "reports/use_case_D/train_column_summary.csv",
+        "raw":         "data/kkbox_churn/train_raw.parquet",
+        "target":      "is_churn",
+        "corr_csv":    "reports/use_case_D/feature_target_correlation.csv",
+        "corr_png":    "reports/use_case_D/correlation_heatmap.png",
+        "missing_png": "reports/use_case_D/missing_heatmap.png",
+        "outlier_csv": "reports/use_case_D/outlier_report.csv",
+        "target_png":  "reports/use_case_D/target_distribution.png",
+    },
+    "G": {
+        "col_summary": "reports/use_case_G/train_column_summary.csv",
+        "raw":         "data/amex_default/train_raw.parquet",
+        "target":      "target",
+        "corr_csv":    "reports/use_case_G/feature_target_correlation.csv",
+        "corr_png":    "reports/use_case_G/feature_target_correlation.png",
+        "missing_png": "reports/use_case_G/missing_by_group.png",
+        "outlier_csv": "reports/use_case_G/outlier_report.csv",
+        "target_png":  "reports/use_case_G/target_distribution.png",
+    },
 }
 
 _FE_EDA_SRC: dict = {
@@ -379,6 +583,8 @@ _FE_EDA_SRC: dict = {
         "raw":           "data/ieee_fraud/train_transaction.parquet",
         "feat_list":     "reports/use_case_A/engineered_features_list.csv",
         "fe_summary":    "reports/use_case_A/engineered_feature_summary.png",
+        "raw_vs_proc":   "reports/use_case_A/raw_vs_processed_distributions.png",
+        "report_dir":    "reports/use_case_A",
         "target":        "isFraud",
         "target_labels": {0: "Legitimate", 1: "Fraud"},
     },
@@ -386,7 +592,9 @@ _FE_EDA_SRC: dict = {
         "train_fe":      "data/gmsc_credit/train_fe.parquet",
         "raw":           "data/gmsc_credit/cs-training.parquet",
         "feat_list":     None,
-        "fe_summary":    "reports/use_case_B/engineered_features.png",
+        "fe_summary":    "reports/use_case_B/engineered_feature_summary.png",
+        "raw_vs_proc":   "reports/use_case_B/raw_vs_processed_distributions.png",
+        "report_dir":    "reports/use_case_B",
         "target":        "SeriousDlqin2yrs",
         "target_labels": {0: "No Default", 1: "Default"},
     },
@@ -394,7 +602,9 @@ _FE_EDA_SRC: dict = {
         "train_fe":      None,
         "raw":           "data/financial_phrasebank/sent_train.csv",
         "feat_list":     None,
-        "fe_summary":    None,
+        "fe_summary":    "reports/use_case_C_nlp/engineered_feature_summary.png",
+        "raw_vs_proc":   "reports/use_case_C_nlp/raw_vs_processed_distributions.png",
+        "report_dir":    "reports/use_case_C_nlp",
         "target":        "label",
         "target_labels": {0: "Bearish", 1: "Neutral", 2: "Bullish"},
     },
@@ -403,6 +613,8 @@ _FE_EDA_SRC: dict = {
         "raw":           "data/optiver_volatility/book_train.parquet",
         "feat_list":     "reports/use_case_C_markets/engineered_features_list.csv",
         "fe_summary":    "reports/use_case_C_markets/engineered_feature_summary.png",
+        "raw_vs_proc":   "reports/use_case_C_markets/raw_vs_processed_distributions.png",
+        "report_dir":    "reports/use_case_C_markets",
         "target":        "target",
         "target_labels": {},
     },
@@ -411,9 +623,195 @@ _FE_EDA_SRC: dict = {
         "raw":           "data/porto_seguro/train.parquet",
         "feat_list":     "reports/use_case_E/engineered_features_list.csv",
         "fe_summary":    "reports/use_case_E/engineered_feature_summary.png",
+        "raw_vs_proc":   "reports/use_case_E/raw_vs_processed_distributions.png",
+        "report_dir":    "reports/use_case_E",
         "target":        "target",
         "target_labels": {0: "No Claim", 1: "Claim"},
     },
+    "D": {
+        "train_fe":      "data/kkbox_churn/train_fe.parquet",
+        "raw":           "data/kkbox_churn/train_raw.parquet",
+        "feat_list":     "reports/use_case_D/engineered_features_list.csv",
+        "fe_summary":    "reports/use_case_D/engineered_feature_summary.png",
+        "raw_vs_proc":   "reports/use_case_D/raw_vs_processed_distributions.png",
+        "report_dir":    "reports/use_case_D",
+        "target":        "is_churn",
+        "target_labels": {0: "Retained", 1: "Churned"},
+    },
+    "G": {
+        "train_fe":      "data/amex_default/train_fe.parquet",
+        "raw":           "data/amex_default/train_raw.parquet",
+        "feat_list":     "reports/use_case_G/engineered_features_list.csv",
+        "fe_summary":    "reports/use_case_G/engineered_feature_summary.png",
+        "raw_vs_proc":   "reports/use_case_G/raw_vs_processed_distributions.png",
+        "report_dir":    "reports/use_case_G",
+        "target":        "target",
+        "target_labels": {0: "No Default", 1: "Default"},
+    },
+}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ── EDA-based feature engineering recommendations (Data Preparation tab) ──────
+# ══════════════════════════════════════════════════════════════════════════════
+
+_EDA_RECOMMENDATIONS: dict = {
+    "A": [
+        "**Class imbalance (3.5% fraud, 28:1 ratio):** Apply SMOTE *only inside training folds*. "
+        "Never oversample before the train/val split — synthetic fraud samples in the validation "
+        "set produce optimistically biased AUC estimates.",
+        "**V-feature sparsity:** For V-features with >80% missingness, the binary missing indicator "
+        "(`fe_miss_*`) is more predictive than any imputed value. Prioritise creating flags before "
+        "imputing, especially for sub-groups V35–V52.",
+        "**High-cardinality categoricals:** `card1` (~18K unique values), `addr1` (~4K), and "
+        "email domains are too high-cardinality for one-hot encoding. Use **frequency encoding** — "
+        "replace each category with its training-set occurrence count. This captures rarity as a "
+        "continuous anomaly signal without a dimensionality explosion.",
+        "**Amount non-linearity:** Raw `TransactionAmt` spans 5 orders of magnitude ($0.25–$31,937). "
+        "Apply `log1p` to compress the tail. Also engineer `amt / card1_mean_amt` — the ratio of "
+        "a transaction to the card's history is far more informative than the absolute amount.",
+        "**Temporal patterns:** Extract hour-of-day and day-of-week from `TransactionDT` "
+        "(a timedelta in seconds, not a Unix timestamp). Late-night (10pm–6am) and weekend flags "
+        "capture well-documented fraudster behavioural patterns.",
+    ],
+    "B": [
+        "**Class imbalance (6.7%, 14:1 ratio):** Use `scale_pos_weight=14` in XGBoost and "
+        "`is_unbalance=True` in LightGBM. Supplement with SMOTE inside CV folds for Logistic "
+        "Regression, which does not natively handle imbalance.",
+        "**Delinquency aggregation:** The six raw past-due count columns are individually noisy "
+        "but collectively informative. Create a severity-weighted sum (90-day events × 3, "
+        "60-day × 2, 30-day × 1) to compress them into one strong signal aligned with FICO's "
+        "own credit-risk hierarchy.",
+        "**RevolvingUtilization outliers:** Values above 1.0 (sometimes up to 50,892) are "
+        "over-limit accounts, not data errors. Clip to [0.0, 1.5] before engineering. Apply a "
+        "squared transform (`util²`) to capture the accelerating default risk above 80% utilisation.",
+        "**MonthlyIncome missingness (19.8% MAR):** Impute with training-set median — not mean, "
+        "which is distorted by the high-income right tail. Add a binary `fe_income_missing` flag, "
+        "which is itself predictive (higher-earners self-select into not disclosing income).",
+        "**Delinquency artefacts (values 96 and 98):** These are credit bureau special codes, "
+        "not literal delinquency counts. Recode values ≥ 90 to a capped value and add a "
+        "`fe_extreme_dpd` flag before any numeric processing.",
+    ],
+    "C_nlp": [
+        "**TF-IDF dimensionality:** Use a `max_features` cap (e.g., 3,000–5,000 unigrams) to "
+        "prevent the vocabulary from overwhelming the tree models. Financial language is "
+        "domain-constrained — most sentiment signal lives in a small core vocabulary.",
+        "**FinBERT scores dominate:** FinBERT's `positive`, `neutral`, and `negative` soft "
+        "probabilities are the single strongest feature group. Engineer the **sentiment margin** "
+        "= `finbert_positive − finbert_negative` as a single signed score for binary sentiment "
+        "separability.",
+        "**Near-balanced classes:** Macro-F1 is the right metric here, not accuracy. Still apply "
+        "class weights (`class_weight='balanced'`) in Logistic Regression to give the minority "
+        "Negative class equal gradient influence.",
+        "**Label noise ceiling:** Inter-annotator agreement in FinPhrasebank is ~75%. A model "
+        "achieving F1 > 0.80 is already approaching the human-agreement ceiling — don't over-tune "
+        "expecting further gains.",
+        "**Text statistics as auxiliary features:** `word_count`, `char_count`, and `avg_word_len` "
+        "add signal orthogonal to TF-IDF. Short, punchy sentences tend to be more extreme in "
+        "sentiment; long, qualified sentences tend to be neutral.",
+    ],
+    "C_markets": [
+        "**Log-price returns:** Compute `log_return = ln(P_t / P_{t-1})` from WAP (Weighted "
+        "Average Price) at each second. Raw price levels are non-stationary — returns are "
+        "stationary and directly comparable across stocks and time windows.",
+        "**Order book imbalance:** Bid/ask size imbalance = `(bid_size − ask_size) / "
+        "(bid_size + ask_size)` captures supply/demand pressure. Persistent imbalance in one "
+        "direction predicts near-term price movement and hence volatility.",
+        "**Realized volatility features:** Engineer volatility of volatility (vol-of-vol) from "
+        "rolling realized vol estimates across sub-windows. High vol-of-vol regimes (market "
+        "stress) warrant different model behaviour than low vol-of-vol (calm markets).",
+        "**Stock-level normalisation:** Raw volatility levels vary 5–10× across stocks. "
+        "Normalise features by each stock's trailing average (z-score within stock × time) "
+        "before training a single cross-sectional model.",
+        "**RMSPE sensitivity:** RMSPE penalises proportional errors — a 10% error on a low-vol "
+        "stock costs as much as a 10% error on a high-vol stock. Log-transforming the target "
+        "converts RMSPE minimisation to MSE minimisation, enabling standard gradient boosting.",
+    ],
+    "D": [
+        "**Auto-renewal as the strongest signal:** EDA shows `auto_renew_rate` has the strongest "
+        "negative correlation with churn. Engineer interaction features between auto-renewal "
+        "and plan type — auto-renew on a discounted plan is a weaker retention signal than "
+        "auto-renew on a full-price plan.",
+        "**Engagement rate features:** Raw listen counts (`num_25`, `num_100`) are scale-dependent "
+        "— a user with 1,000 plays of 25% completions is different from one with 10 plays. "
+        "Convert to **engagement rates** bounded [0, 1]: `completion_rate = num_100 / "
+        "(num_25 + num_50 + num_75 + num_985 + num_100 + 1)`.",
+        "**Age outliers and MNAR missingness:** `bd` (age) has 34% missing and values of 0, "
+        "negatives, and 200+. Hard-clip to [7, 80], impute with training median, and add "
+        "`fe_age_missing` flag. Younger users (<25) have higher churn — add a `fe_young_user` "
+        "binary feature.",
+        "**Discount-driven churn signal:** Users acquired via promotions churn when the "
+        "promotion ends. Engineer `fe_is_discounted` from `plan_list_price > actual_amount` "
+        "and interact it with `plan_days_mean` — short-plan discounted subscribers are the "
+        "highest-risk subgroup.",
+        "**Class imbalance (8.4%, 11:1):** Apply SMOTE inside CV folds. LightGBM's "
+        "`is_unbalance=True` handles gradient weighting at the split level. Monitor "
+        "precision-recall trade-off at inference time — the business cost of missing a "
+        "churner differs from the cost of a false retention alert.",
+    ],
+    "E": [
+        "**Full feature anonymisation:** All 57 features are obfuscated (`ps_car_*`, "
+        "`ps_ind_*`, `ps_reg_*`, `ps_calc_*`). The `_calc_` prefix features are computed "
+        "from other features and should be dropped or carefully examined for leakage "
+        "— Porto Seguro stated post-competition that calc features added little signal.",
+        "**Binary and categorical encoding:** `_bin` suffix features are already binary. "
+        "`_cat` suffix features have a −1 sentinel for missing — encode −1 explicitly "
+        "rather than imputing, as the absence of a category value may be informative.",
+        "**Severe class imbalance (3.6%, 27:1):** The Normalized Gini metric rewards AUC "
+        "improvement across all thresholds. Use `scale_pos_weight ≈ 27` in XGBoost. "
+        "Avoid optimising accuracy — a model predicting all-zero achieves 96.4% accuracy "
+        "with zero business value.",
+        "**Pairwise feature interactions:** With 57 anonymous features, manual domain-driven "
+        "engineering is not possible. Instead, engineer second-order interactions for the "
+        "top-10 SHAP features identified in Step 2 EDA — products and ratios between "
+        "high-importance feature pairs often add measurable lift.",
+        "**Missing value encoding:** Features with −1 sentinels should have a binary "
+        "`fe_miss_<feature>` flag added before replacing −1 with 0 or the training median. "
+        "The missingness pattern itself may be correlated with claim probability.",
+    ],
+    "F": [
+        "**Three-class target:** Greenwashing risk is `Low / Medium / High`. Use "
+        "`class_weight='balanced'` and optimise **macro-F1**. The Medium class is hardest "
+        "to separate — it sits between concrete commitments (Low) and clear gaps (High).",
+        "**ClimateBERT scores as primary features:** The pre-trained ClimateBERT embeddings "
+        "already encode domain knowledge about climate disclosure language. Treat them as "
+        "fixed features rather than fine-tuning — the synthetic dataset is too small for "
+        "full fine-tuning without overfitting.",
+        "**Regulatory gap features:** Engineer `fe_has_target` (mentions specific emission "
+        "reduction targets), `fe_has_timeline` (mentions specific dates), and "
+        "`fe_has_third_party` (mentions external audit or certification) as binary signals "
+        "for commitment verifiability — the absence of these is a greenwashing indicator.",
+        "**Multiclass SHAP interpretation:** LightGBM's `predict` returns a 3-D SHAP "
+        "array `(n_samples, n_features, n_classes)`. Slice per class before plotting: "
+        "`[sv[:,:,k] for k in range(3)]`. Report both per-class and mean |SHAP| importance.",
+        "**Text length as a signal:** Longer disclosures with more specific language "
+        "correlate with Low greenwashing risk. Short, vague disclosures with high ESG "
+        "buzzword density are a High-risk pattern. Add `word_count` and "
+        "`buzzword_density` as auxiliary features.",
+    ],
+    "G": [
+        "**Temporal aggregation across monthly statements:** Each customer has up to 13 "
+        "monthly snapshots. Aggregate to the customer level with summary statistics "
+        "(mean, std, min, max, last value, trend slope) per feature. The **trend** "
+        "(is utilisation rising or falling over the past 3 months?) is often more "
+        "predictive than the level alone.",
+        "**Feature category signals:** The AmEx feature categories encode domain knowledge: "
+        "D-features (delinquency) are the strongest default predictors; "
+        "B-features (balance) capture exposure; P-features (payment) capture behaviour; "
+        "S-features (spend) capture activity. Prioritise D and B features in initial "
+        "feature selection.",
+        "**High missingness in late statements:** Customers who default early have fewer "
+        "statement months — missingness is MNAR (correlated with the target). Add "
+        "`fe_statement_count` and `fe_months_active` as explicit features rather than "
+        "treating them as nuisance missing data.",
+        "**AmEx metric optimisation:** The AmEx metric weights the top 4% of predictions "
+        "heavily (the Gini component captures overall ranking, but the D-rate at top 4% "
+        "captures precision at the decision boundary used by credit risk teams). "
+        "Calibrate the classification threshold to maximise performance in the top decile.",
+        "**n_jobs=1 required:** The bash sandbox hangs with parallel fitting. All sklearn "
+        "estimators and LightGBM must use `n_jobs=1` — this is already enforced in the "
+        "pipeline scripts.",
+    ],
 }
 
 _FE_GUIDANCE: dict = {
@@ -425,6 +823,83 @@ _FE_GUIDANCE: dict = {
             ("Aggregation Features", ["fe_card1_txn_count", "fe_card1_mean_amt", "fe_card1_std_amt"]),
             ("Amount Ratios", ["fe_amt_to_card1_mean", "fe_amt_log", "fe_amt_binned"]),
         ],
+        "stage_notes": {
+            "Missing Value Flags": (
+                "**Why treat missingness as a signal in fraud detection?**\n\n"
+                "The IEEE-CIS dataset contains 339 V-features (V1–V339) derived from Vesta's proprietary "
+                "fraud system. These features are intentionally sparse — each sub-group has a different "
+                "missingness pattern because they are only populated for specific card or transaction types.\n\n"
+                "- **`fe_miss_addr1` / `fe_miss_addr2`** — billing and shipping address missingness is "
+                "itself a fraud signal. Fraudulent transactions frequently lack a valid shipping address "
+                "or use mismatched addresses, making the absence of these fields informative.\n"
+                "- **`fe_miss_dist1` / `fe_miss_D2`** — distance fields are null when the cardholder's "
+                "location cannot be resolved. Missing distance data correlates with card-not-present fraud "
+                "where the physical location of the transaction is obscured.\n\n"
+                "*Academic basis: Bahnsen et al. (2016) show that missingness indicators in payment fraud "
+                "datasets carry statistically significant predictive power independent of the feature values "
+                "themselves — the pattern of what is unknown is as important as what is known.*"
+            ),
+            "Transaction Time Features": (
+                "**Why does time matter for fraud detection?**\n\n"
+                "Fraudsters operate with behavioural patterns that are distinctly different from legitimate "
+                "cardholders. Time-of-day and day-of-week encode these patterns directly.\n\n"
+                "- **`fe_hour`** — hour of transaction (extracted from `TransactionDT`). Fraud rates spike "
+                "during late-night hours (midnight–4am) when cardholders are unlikely to monitor their "
+                "accounts and when automated fraud scripts run.\n"
+                "- **`fe_dow`** — day of week. Weekends show different fraud patterns (higher card-not-present "
+                "fraud) vs weekdays (higher account-takeover fraud during business hours).\n"
+                "- **`fe_is_weekend`** — binary flag. Weekend transactions have a different merchant mix "
+                "(more e-commerce, less in-store) which affects the fraud distribution.\n"
+                "- **`fe_is_night`** (10pm–6am) — direct capture of the high-risk nocturnal window.\n\n"
+                "*TransactionDT is a timedelta in seconds, not a Unix timestamp. All time features are "
+                "derived by modular arithmetic: hour = (TransactionDT // 3600) % 24.*"
+            ),
+            "Frequency Encoding": (
+                "**Why does frequency encoding detect anomalous transactions?**\n\n"
+                "Frequency encoding replaces a high-cardinality categorical (card number, zip code, email domain) "
+                "with how often that value appears in the training set. This captures a critical insight: "
+                "**a card seen 10,000 times is a high-volume legitimate card; a card seen twice is unusual**.\n\n"
+                "- **`fe_card1_freq`** — frequency of the card1 identifier. A card used rarely is either "
+                "new (higher risk) or a synthetic/temporary card number (very high risk).\n"
+                "- **`fe_addr1_freq`** — frequency of the billing zip code. Zip codes that appear rarely "
+                "are anomalous; legitimate billing addresses repeat across transactions.\n"
+                "- **`fe_P_email_freq`** — purchaser email domain frequency. Disposable email domains "
+                "(guerrillamail, mailinator) appear very rarely and strongly signal fraud.\n\n"
+                "**Why not one-hot encode?** `card1` has ~18K unique values — one-hot would add 18K binary "
+                "columns. Frequency encoding captures the rarity signal in a single continuous feature "
+                "with no dimensionality explosion."
+            ),
+            "Aggregation Features": (
+                "**Why aggregate transaction history per card?**\n\n"
+                "Individual transactions carry limited context. A $500 transaction looks different "
+                "when the card typically spends $25 vs when it typically spends $600.\n\n"
+                "- **`fe_card1_txn_count`** — number of transactions by this card in the training window. "
+                "Very low counts (1–2) suggest a newly-issued or compromised card number.\n"
+                "- **`fe_card1_mean_amt`** — average transaction amount per card. This establishes the "
+                "cardholder's normal spending level.\n"
+                "- **`fe_card1_std_amt`** — standard deviation of amounts. High variance indicates "
+                "erratic spending — either a business card or a compromised account being tested.\n\n"
+                "**Data leakage caution:** These aggregates are computed from the full training set "
+                "and must be computed separately for train and validation splits to avoid future leakage "
+                "from validation transactions contaminating the train-set statistics."
+            ),
+            "Amount Ratios": (
+                "**Why relative amounts rather than absolute amounts?**\n\n"
+                "A $1,000 transaction is normal for some cards and suspicious for others. "
+                "Normalising by card history converts an absolute amount into an anomaly score.\n\n"
+                "- **`fe_amt_to_card1_mean`** = TransactionAmt / fe_card1_mean_amt. A ratio > 5 means "
+                "the transaction is 5× the card's typical amount — a strong fraud signal regardless of "
+                "the absolute dollar value.\n"
+                "- **`fe_amt_log`** = log1p(TransactionAmt). Raw amounts span $0.25–$31,937 — "
+                "a 5-order-of-magnitude range. Log-transform compresses this to a model-friendly scale "
+                "while preserving the ordering.\n"
+                "- **`fe_amt_binned`** — quantile bin of the transaction amount (low/medium/high/very high). "
+                "Allows tree-based models to find amount thresholds that are meaningful at a population level "
+                "rather than per-card.\n\n"
+                "*Pozzolo et al. (2018) demonstrate that amount-relative-to-history is consistently among "
+                "the top-3 features in production fraud models across card networks.*"
+            ),
+        },
         "description": "IEEE-CIS fraud features focus on temporal patterns, cardinality-based frequency encoding, and transaction amount anomalies relative to historical card behaviour.",
     },
     "B": {
@@ -434,6 +909,68 @@ _FE_GUIDANCE: dict = {
             ("Debt & Income Ratios", ["fe_debt_income_ratio", "fe_monthly_income_log"]),
             ("Loan Counts", ["fe_total_loans", "fe_loan_density"]),
         ],
+        "stage_notes": {
+            "Delinquency Aggregation": (
+                "**Why aggregate delinquency events rather than use raw counts?**\n\n"
+                "The Give Me Some Credit dataset contains six delinquency features tracking how many "
+                "times a borrower was 30-, 60-, or 90-days past due. These raw counts have very skewed "
+                "distributions — most borrowers have zero delinquencies, while a small number have "
+                "extreme counts that are likely data-entry artefacts (value of 96 or 98 appearing "
+                "hundreds of times).\n\n"
+                "- **`fe_total_dpd`** = sum of all past-due event counts. Aggregating creates a single "
+                "composite delinquency signal — borrowers with more total events are higher risk "
+                "regardless of which bucket (30/60/90 day) they fell into.\n"
+                "- **`fe_dpd_severity`** = weighted sum giving 90-day events 3× weight vs 30-day. "
+                "A 90-day delinquency is categorically more serious than a 30-day one — severity "
+                "weighting captures the credit bureau's own risk hierarchy.\n"
+                "- **`fe_any_delinquency`** — binary flag. Even a single past-due event is a "
+                "meaningful signal; this binary captures the threshold effect.\n\n"
+                "*FICO and VantageScore models both weight recency and severity of delinquency more "
+                "heavily than count alone — our severity-weighted feature approximates this logic.*"
+            ),
+            "Utilisation Ratios": (
+                "**Why square the revolving utilisation ratio?**\n\n"
+                "`RevolvingUtilizationOfUnsecuredLines` measures how much of a borrower's available "
+                "revolving credit is being used. It is already bounded [0, 1] in theory — but the "
+                "raw dataset contains values > 1 (over-limit accounts) up to 50,892, requiring clipping.\n\n"
+                "- **`fe_util_sq`** = RevolvingUtilisation² (after clipping to [0, 1.5]). "
+                "The relationship between utilisation and default risk is non-linear — the marginal "
+                "risk increase accelerates sharply above 80% utilisation. Squaring captures this "
+                "convexity without requiring a polynomial feature expansion.\n"
+                "- **`fe_high_util`** — binary flag for utilisation > 0.8. This threshold corresponds "
+                "to the credit bureau 'near-maxed' threshold, above which default rates roughly double.\n\n"
+                "**Leakage check:** Utilisation is computed from the borrower's current state — "
+                "it is a contemporaneous feature, not a future-looking one. No leakage risk."
+            ),
+            "Debt & Income Ratios": (
+                "**Why log-transform income and compute a debt-income ratio?**\n\n"
+                "`MonthlyIncome` is heavily right-skewed (mean ~$6,670, max > $3.5M) and has "
+                "19.8% missing values — the highest missingness of any feature in this dataset.\n\n"
+                "- **`fe_monthly_income_log`** = log1p(MonthlyIncome). Log-transform compresses the "
+                "right tail and makes the feature approximately normal — important for Logistic "
+                "Regression and neural approaches in the comparison.\n"
+                "- **`fe_debt_income_ratio`** = DebtRatio / (MonthlyIncome + 1). The raw DebtRatio "
+                "column is ambiguous (some values > 1 suggest it encodes total debt, not a ratio). "
+                "Dividing by income recovers a true affordability signal: how many months of income "
+                "does the borrower's debt represent?\n\n"
+                "**Missing income imputation:** MonthlyIncome is Missing At Random (MAR) — higher-income "
+                "borrowers are less likely to leave income blank. Training-set median imputation is "
+                "used (not mean, which would be distorted by the high-income tail)."
+            ),
+            "Loan Counts": (
+                "**Why does the number of open credit lines predict default?**\n\n"
+                "- **`fe_total_loans`** = NumberOfOpenCreditLinesAndLoans + NumberRealEstateLoansOrLines. "
+                "A borrower with many open lines has higher total exposure. However, the relationship "
+                "with default is non-monotonic — a small number of loans indicates limited credit "
+                "access, while a very large number signals over-extension.\n"
+                "- **`fe_loan_density`** = fe_total_loans / (age + 1). Normalises by age — a 60-year-old "
+                "with 15 credit lines is less concerning than a 25-year-old with 15 credit lines, "
+                "because the older borrower has had decades to accumulate them responsibly.\n\n"
+                "*Thomas et al. (2002) — Credit Scoring and Its Applications — identify credit line "
+                "proliferation as a leading indicator of borrower stress in the 12–24 months before "
+                "default, particularly when combined with high utilisation.*"
+            ),
+        },
         "description": "Credit features aggregate delinquency history, compute non-linear utilisation ratios, and derive debt-to-income proxies to capture repayment capacity.",
     },
     "C_nlp": {
@@ -443,6 +980,78 @@ _FE_GUIDANCE: dict = {
             ("Text Statistics", ["char_count", "word_count", "avg_word_len"]),
             ("Special Token Flags", ["has_ticker", "has_hashtag", "has_number"]),
         ],
+        "stage_notes": {
+            "TF-IDF Unigrams": (
+                "**Why does sparse bag-of-words still work for financial sentiment?**\n\n"
+                "TF-IDF (Term Frequency–Inverse Document Frequency) represents each headline as a "
+                "sparse vector where each dimension is a vocabulary word, weighted by how often it "
+                "appears in this document relative to all documents. Despite being a simple approach, "
+                "it performs surprisingly well on financial text because financial language is "
+                "domain-constrained — a small vocabulary of terms ('profit', 'loss', 'acquisition', "
+                "'downgrade') carries most of the sentiment signal.\n\n"
+                "- **TF-IDF dimensions** — after stop-word removal and min-frequency filtering, "
+                "typically 2,000–5,000 vocabulary terms remain. Each document becomes a sparse "
+                "vector in this space.\n"
+                "- **Why unigrams only?** Bigrams (two-word phrases) can capture 'not profitable' "
+                "vs 'profitable', but they increase dimensionality dramatically. For short financial "
+                "headlines (avg ~8 words), unigrams capture most of the signal.\n"
+                "- **IDF weighting** down-weights common financial filler words ('the company said') "
+                "and up-weights rare but informative terms ('restructuring', 'covenant breach').\n\n"
+                "*Loughran & McDonald (2011) demonstrate that a domain-specific financial vocabulary "
+                "outperforms general-purpose sentiment lexicons precisely because financial language "
+                "repurposes common words — 'liability' is negative in general English but neutral "
+                "in accounting contexts.*"
+            ),
+            "Sentiment Lexicon Scores": (
+                "**Why use FinBERT rather than VADER or TextBlob for financial sentiment?**\n\n"
+                "General-purpose sentiment models are trained on product reviews, tweets, and news — "
+                "they systematically misclassify financial text. FinBERT is a BERT model fine-tuned "
+                "on financial communications (earnings calls, analyst reports, regulatory filings).\n\n"
+                "- **`finbert_positive`** — probability score that the text expresses a positive "
+                "financial outlook. High scores correlate with earnings beats, revenue growth, "
+                "and positive guidance.\n"
+                "- **`finbert_negative`** — probability score for negative sentiment. Captures "
+                "language around profit warnings, legal exposure, and management departures.\n"
+                "- **`finbert_neutral`** — factual/neutral probability. Many financial headlines are "
+                "purely informational ('Company X reports Q3 results') — neutral classification "
+                "prevents forcing these into positive or negative bins.\n\n"
+                "**Computational note:** Full FinBERT inference is run offline in Step 1 and stored "
+                "as pre-computed scores. Running inference inside the dashboard would be too slow "
+                "for interactive use."
+            ),
+            "Text Statistics": (
+                "**Why include raw text statistics as features?**\n\n"
+                "The way a sentiment is expressed carries signal beyond the words themselves. "
+                "Short, punchy headlines ('Stock crashes') carry different sentiment certainty "
+                "than long, hedged statements.\n\n"
+                "- **`char_count`** — character count. Very short headlines (< 20 chars) are often "
+                "ambiguous; very long ones (> 150 chars) are usually factual reports.\n"
+                "- **`word_count`** — word count. Sentiment intensity tends to decay with headline "
+                "length — short, direct statements are more extreme.\n"
+                "- **`avg_word_len`** — average word length. Financial jargon skews toward longer "
+                "words ('restructuring', 'restatement') — high average word length correlates "
+                "with technical/neutral content.\n\n"
+                "These features are cheap to compute and act as calibration signals for the "
+                "model — they help distinguish 'I can't tell the sentiment' from 'this is neutral'."
+            ),
+            "Special Token Flags": (
+                "**Why flag tickers, hashtags, and numbers separately?**\n\n"
+                "Financial text contains structured entities that carry sentiment context. "
+                "These flags extract that structure explicitly rather than relying on TF-IDF "
+                "to learn it implicitly.\n\n"
+                "- **`has_ticker`** — presence of a stock ticker symbol (e.g. $AAPL, MSFT). "
+                "Headlines mentioning specific tickers are more likely to be company-specific "
+                "news (more extreme sentiment) vs market-wide commentary (more neutral).\n"
+                "- **`has_hashtag`** — social media source indicator. Hashtag-prefixed headlines "
+                "come from Twitter/X and exhibit different sentiment distributions vs newswire "
+                "sources.\n"
+                "- **`has_number`** — presence of a numeric quantity (percentages, dollar amounts, "
+                "share prices). Quantitative headlines ('EPS up 23%') tend to be more factual "
+                "and easier to classify correctly.\n\n"
+                "*Das & Chen (2007) show that entity-type features improve financial sentiment "
+                "classification F1 by 4–7 percentage points over text-only features.*"
+            ),
+        },
         "description": "NLP features combine TF-IDF bag-of-words with FinBERT sentiment scores and hand-crafted linguistic features for financial text classification.",
     },
     "C_markets": {
@@ -452,6 +1061,76 @@ _FE_GUIDANCE: dict = {
             ("Cross-Book Aggregates", ["fe_stock_mean_rv", "fe_rv_vs_stock_mean"]),
             ("Ratio Features", ["fe_volatility_spread_ratio", "fe_rv_l2_ratio"]),
         ],
+        "stage_notes": {
+            "Book Features": (
+                "**Why does the order book predict realised volatility?**\n\n"
+                "The limit order book records every pending buy and sell order at each price level. "
+                "The imbalance between buy and sell pressure — captured through the Weighted Average "
+                "Price (WAP) — is a leading indicator of near-term price movement and therefore "
+                "realised volatility.\n\n"
+                "- **`fe_book_rv`** — realised volatility computed from WAP log-returns within the "
+                "10-minute book window. This is the core signal: how much did the mid-price move "
+                "within the current bucket?\n"
+                "- **`fe_log_book_rv`** — log1p transform of fe_book_rv. Realised volatility is "
+                "right-skewed and approximately log-normal — log-transform improves model fit and "
+                "reduces the influence of volatility spikes.\n"
+                "- **`fe_wap_mean`** — mean WAP across the 10-minute window. Price level itself "
+                "is not directly predictive, but WAP stability (low variance relative to mean) "
+                "signals low-volatility regimes.\n\n"
+                "*WAP = (BidPrice1 × AskSize1 + AskPrice1 × BidSize1) / (BidSize1 + AskSize1). "
+                "This size-weighted mid-price is more informative than the simple mid-price because "
+                "it reflects order book depth — a tight spread with large size is more stable than "
+                "the same spread with thin size.*"
+            ),
+            "Trade Features": (
+                "**Why are trade-derived features complementary to book features?**\n\n"
+                "Book features capture pending orders (intention); trade features capture executed "
+                "transactions (realised activity). Together they reflect both supply-demand imbalance "
+                "and actual market participation.\n\n"
+                "- **`fe_lr_std`** — standard deviation of log-returns from trade prices. This is "
+                "the purest direct measure of realised volatility from the trade side. High `fe_lr_std` "
+                "means prices jumped significantly between consecutive trades.\n"
+                "- **`fe_spread`** — mean bid-ask spread (AskPrice1 − BidPrice1). Spread is the "
+                "market maker's compensation for bearing inventory risk — wide spreads indicate "
+                "high uncertainty about true value (and thus higher volatility).\n"
+                "- **`fe_log_spread`** — log1p(fe_spread). Spread distributions are also right-skewed; "
+                "log-transform aligns them with the log-normal volatility distribution.\n\n"
+                "**Microstructure insight:** Spread and volatility are jointly determined in market "
+                "microstructure theory (Kyle 1985, Glosten-Milgrom 1985) — they rise together in "
+                "response to information asymmetry."
+            ),
+            "Cross-Book Aggregates": (
+                "**Why does market-wide volatility improve single-stock forecasts?**\n\n"
+                "Individual stock volatility is partly idiosyncratic (news, earnings) and partly "
+                "systematic (market-wide risk-on/risk-off). Cross-book features capture the "
+                "systematic component.\n\n"
+                "- **`fe_stock_mean_rv`** — mean realised volatility across all stocks in the same "
+                "10-minute bucket. If the whole market is volatile, any single stock is more likely "
+                "to be volatile too — this is the beta effect.\n"
+                "- **`fe_rv_vs_stock_mean`** — ratio of this stock's fe_book_rv to fe_stock_mean_rv. "
+                "A ratio > 1 means this stock is more volatile than the market average right now — "
+                "a signal of stock-specific news or illiquidity.\n\n"
+                "*The Optiver competition winners (2021) consistently found cross-stock features "
+                "among their top-10 most important — the market context explains ~20–30% of "
+                "individual stock volatility variance.*"
+            ),
+            "Ratio Features": (
+                "**Why compute spread-to-volatility and L2 ratios?**\n\n"
+                "Ratios normalise features that are meaningful only in context. An absolute spread "
+                "of $0.01 is tight for a $10 stock but wide for a $1,000 stock.\n\n"
+                "- **`fe_volatility_spread_ratio`** = fe_book_rv / (fe_spread + 1e-8). This captures "
+                "the relationship between price movement and market maker compensation. When volatility "
+                "exceeds the spread, the market maker is losing money — spreads widen rapidly, "
+                "creating a feedback loop that amplifies volatility.\n"
+                "- **`fe_rv_l2_ratio`** — ratio of current-bucket realised volatility to the L2 "
+                "(preceding) bucket's volatility. Volatility is strongly autocorrelated (GARCH effects); "
+                "this ratio captures whether volatility is accelerating or decelerating within the "
+                "current session.\n\n"
+                "*Andersen & Bollerslev (1998) establish that realised volatility computed from "
+                "high-frequency returns is the most accurate ex-post measure of latent volatility — "
+                "our features operationalise this insight at the 10-minute horizon.*"
+            ),
+        },
         "description": "Optiver volatility features are derived from limit order book (WAP, bid-ask spread) and trade data (log-returns std dev) to predict realized volatility over 10-minute windows.",
     },
     "E": {
@@ -461,7 +1140,957 @@ _FE_GUIDANCE: dict = {
             ("Feature Group Counts", ["fe_num_ind_features", "fe_num_reg_features"]),
             ("Ratio & Interaction Terms", ["fe_calc_cv", "fe_ind_mean_ratio"]),
         ],
+        "stage_notes": {
+            "Missing Value Flags": (
+                "**Why are -1 values in Porto Seguro actually missing indicators?**\n\n"
+                "Porto Seguro's dataset uses **-1 as a sentinel value for missing data** — not NaN. "
+                "This encoding is common in insurance data systems where null values can't be stored "
+                "in fixed-schema databases. Treating -1 as a numeric value would be catastrophically "
+                "wrong — a car with `ps_car_03_cat = -1` doesn't have a category value of -1; "
+                "it has no recorded category at all.\n\n"
+                "- **`ps_car_03_cat_missing`** — 69.1% of records have -1 here. This is the most "
+                "missing feature in the dataset. The missingness pattern itself is informative: "
+                "certain vehicle types (commercial, classic) may never have this attribute recorded.\n"
+                "- **`ps_car_05_cat_missing`** — 44.8% missing. Second most missing feature. "
+                "These two car category fields together create a 'data completeness' dimension "
+                "that correlates with claim risk.\n\n"
+                "*All -1 values are converted to NaN before any processing. Missing-flag columns "
+                "are created first, then NaN values are imputed with the training-set mode for "
+                "categoricals and median for numerics.*"
+            ),
+            "Calc Feature Aggregates": (
+                "**Why aggregate the 'calc' feature group?**\n\n"
+                "Porto Seguro's anonymised features are organised into groups by prefix: `ind_` "
+                "(individual/personal), `reg_` (regional), `car_` (vehicle), `calc_` (calculated). "
+                "The `calc_` group (features ps_calc_01 through ps_calc_20) are continuous computed "
+                "features whose individual meaning is unknown — but their aggregate behaviour "
+                "can be modelled.\n\n"
+                "- **`fe_calc_mean`** — mean of all calc features per row. A high mean value "
+                "may reflect higher overall exposure across multiple risk dimensions simultaneously.\n"
+                "- **`fe_calc_sum`** — sum of calc features. Captures the total 'load' across "
+                "all calculated risk factors for this policyholder.\n"
+                "- **`fe_calc_std`** — standard deviation of calc features per row. High within-row "
+                "std means the policyholder has a very uneven profile — high on some risk dimensions, "
+                "low on others. This heterogeneity may signal elevated claim risk.\n\n"
+                "**Why aggregate anonymised features?** Even without knowing what each feature means, "
+                "the statistical properties of a group of features encode structure. This is the "
+                "'meta-feature' approach used by many top Kaggle competitors on anonymised datasets."
+            ),
+            "Feature Group Counts": (
+                "**Why count non-missing features per group?**\n\n"
+                "In insurance data, the completeness of a policyholder's record is itself "
+                "a risk signal — policyholders who provide complete information tend to be "
+                "more careful and risk-aware.\n\n"
+                "- **`fe_num_ind_features`** — count of non-missing `ind_` features. Individual "
+                "attribute completeness correlates with the policyholder's engagement with the "
+                "underwriting process.\n"
+                "- **`fe_num_reg_features`** — count of non-missing `reg_` features. Regional "
+                "data completeness varies by geography — some regions have better data infrastructure.\n\n"
+                "**Why this works as a feature:** The missing data mechanism in Porto Seguro is "
+                "Missing Not At Random (MNAR) — certain risk profiles systematically have less "
+                "data recorded. The count of missing features is therefore a proxy for the "
+                "underlying risk profile, not just random noise."
+            ),
+            "Ratio & Interaction Terms": (
+                "**Why compute coefficient of variation and interaction terms?**\n\n"
+                "- **`fe_calc_cv`** = fe_calc_std / (fe_calc_mean + 1e-8). The coefficient of "
+                "variation normalises dispersion by magnitude — a std of 2 means something very "
+                "different when the mean is 1 vs when it is 100. CV captures whether a "
+                "policyholder's risk profile is consistently high, consistently low, or erratic.\n"
+                "- **`fe_ind_mean_ratio`** = mean of `ind_` features / (mean of `reg_` features + 1e-8). "
+                "The ratio of personal-attribute risk to regional risk captures whether the "
+                "individual is high-risk relative to their geographic context. A high-risk person "
+                "in a low-risk region is structurally different from a high-risk person in a "
+                "high-risk region.\n\n"
+                "*Interaction terms require careful leakage management: both numerator and denominator "
+                "means are computed from training data only and applied to validation, preventing "
+                "the interaction from encoding any target-correlated information from the val set.*"
+            ),
+        },
         "description": "Porto Seguro features aggregate calc, ind, reg, and car feature groups, add missing-flag indicators, and engineer interaction ratios to capture claim-risk patterns.",
+    },
+    "D": {
+        "stages": [
+            ("Engagement Ratios", ["fe_completion_rate", "fe_skip_rate", "fe_deep_listen_rate", "fe_variety_ratio"]),
+            ("Listening Activity", ["fe_log_secs", "fe_log_days_log", "fe_secs_per_song"]),
+            ("Subscription Plan", ["fe_is_discounted", "fe_discount_depth", "fe_is_long_plan", "fe_plan_days_log", "fe_txn_count_log"]),
+            ("Renewal & Cancel", ["fe_auto_renew", "fe_cancel_rate"]),
+            ("Demographics", ["fe_age", "fe_age_bucket_young", "fe_age_bucket_senior", "fe_is_male", "fe_is_female", "fe_city_risk", "fe_reg_channel_risk"]),
+        ],
+        "stage_notes": {
+            "Engagement Ratios": (
+                "**Why engagement ratios?** Raw song counts are meaningless in isolation — a user who plays "
+                "1,000 songs but skips 95% of them is far less engaged than one who plays 200 and completes them all.\n\n"
+                "- **`fe_completion_rate`** = num_100 / total songs played. Captures *quality* of listening. "
+                "Users who listen through full tracks are invested in the platform.\n"
+                "- **`fe_skip_rate`** = num_25 / total songs. Detects active disengagement — a high skip rate "
+                "signals that content is not matching the user's preferences.\n"
+                "- **`fe_deep_listen_rate`** combines the 75%, 98.5% and 100% completion buckets into a single "
+                "'committed listening' signal, capturing users who nearly or fully complete tracks.\n"
+                "- **`fe_variety_ratio`** = unique songs / total songs. Measures catalogue breadth — "
+                "users who explore widely tend to build platform habits that increase switching costs.\n\n"
+                "*Academic basis: Verbeke et al. (2012) show engagement depth is the single strongest predictor "
+                "of subscription churn across digital streaming platforms.*"
+            ),
+            "Listening Activity": (
+                "**Why log-transforms?** `total_secs_mean` and `log_days` are strongly right-skewed — "
+                "a small number of power-users dominate the upper tail. Applying log1p compresses the tail, "
+                "removes skew, and makes features more linearly separable for Logistic Regression while also "
+                "helping gradient boosters by reducing the scale disparity between features.\n\n"
+                "- **`fe_log_secs`** = log1p(total_secs_mean). Transforms raw listening volume into a "
+                "scale-invariant engagement signal.\n"
+                "- **`fe_log_days_log`** = log1p(log_days). Reflects *recency and consistency* of engagement — "
+                "a user active on only 2 of the last 30 days is structurally different from one active on 25 days.\n"
+                "- **`fe_secs_per_song`** = total_secs_mean / (num_unq_mean + 1). Captures average track depth — "
+                "distinguishing users who play albums through from those who skim playlists."
+            ),
+            "Subscription Plan": (
+                "**Why plan signals?** The plan dimension captures the *commercial relationship* between user and platform.\n\n"
+                "- **`fe_is_discounted`** flags promotional pricing — users who joined via discounts may churn "
+                "when the promotion expires (price-sensitive segment).\n"
+                "- **`fe_discount_depth`** = (list_price − actual_paid) / list_price. Quantifies *how deeply* "
+                "discounted the subscription is — heavy promotions signal higher churn risk post-discount.\n"
+                "- **`fe_is_long_plan`** (plan ≥ 30 days) separates committed subscribers from trial/weekly "
+                "users, who churn at dramatically higher rates.\n"
+                "- **`fe_plan_days_log`** and **`fe_txn_count_log`** are log-transformed for the same skewness "
+                "reason as listening activity. Transaction count reflects tenure — a user with 12+ transactions "
+                "has demonstrated repeated willingness to pay."
+            ),
+            "Renewal & Cancel": (
+                "**The most direct churn signals available in this dataset.**\n\n"
+                "- **`fe_auto_renew`** is the customer's own *explicit* signal about future commitment. "
+                "Users who disable auto-renew have already indicated intent to leave. In KKBox v2 data, "
+                "auto-renew rate shows the largest mean difference between groups: churned ~0.51 vs retained ~0.89.\n"
+                "- **`fe_cancel_rate`** captures historical cancellation behaviour across all past transactions. "
+                "Users who have cancelled before are statistically more likely to churn again — past behaviour "
+                "is one of the strongest predictors in subscription churn literature (Burez & Van den Poel, 2009).\n\n"
+                "Both features are computed as per-user means across `transactions_v2.csv`, preserving the "
+                "temporal signal without introducing data leakage from future transactions."
+            ),
+            "Demographics": (
+                "**Why target-encoding instead of one-hot?**\n\n"
+                "`city` (22 unique values) and `registered_via` (6 registration channels) are high-cardinality "
+                "categoricals. One-hot encoding adds dimensions without capturing the monotonic relationship "
+                "with churn. Instead, each category is replaced with its *mean churn rate computed from the "
+                "training set only* — this is **target encoding**.\n\n"
+                "- **`fe_city_risk`** — mean churn rate per city in the train set. Cities with poor connectivity "
+                "or strong competitor presence show systematically higher churn.\n"
+                "- **`fe_reg_channel_risk`** — mean churn rate per registration channel. Users who registered "
+                "via certain promotional channels (registered_via = 9) show materially different retention curves.\n"
+                "- **`fe_age`** — clipped to [7, 80] to remove data-entry errors (0s, negatives, implausibly "
+                "high values make up ~34% of `bd`). Imputed with training median.\n"
+                "- **Age buckets** (`fe_age_bucket_young` <25, `fe_age_bucket_senior` ≥45) allow the model "
+                "to capture non-linear age effects without polynomial expansion.\n"
+                "- **Gender dummies** handle the ~33% missing gender entries via an implicit 'unknown' group "
+                "(users who are neither fe_is_male=1 nor fe_is_female=1).\n\n"
+                "*Critical constraint: target encoding rates are computed from training data only and applied "
+                "to the validation set — applying them to validation before computing rates would constitute leakage.*"
+            ),
+        },
+        "description": "KKBox churn features focus on listening engagement quality (completion rate, deep-listen ratio), subscription renewal behaviour, and target-encoded demographic signals to capture retention risk.",
+    },
+    "F": {
+        "stages": [
+            ("TF-IDF Text Features", ["tfidf_emission", "tfidf_carbon", "tfidf_renewable", "tfidf_net_zero"]),
+            ("Text Statistics", ["fe_text_len", "fe_word_count", "fe_avg_word_len", "fe_claim_density"]),
+            ("ESG Gap Features", ["fe_avg_gap_clipped", "fe_e_gap_clipped", "fe_s_gap_clipped", "fe_gap_cv", "fe_max_gap"]),
+            ("ESG Score Features", ["fe_composite_esg", "fe_esg_low", "fe_esg_high", "fe_e_score_norm"]),
+            ("Financial & Interaction", ["fe_log_market_cap", "fe_log_emissions", "fe_emissions_high",
+                                         "fe_claim_x_gap", "fe_gap_x_emissions", "fe_sector_risk_te"]),
+        ],
+        "stage_notes": {
+            "TF-IDF Text Features": (
+                "**Why TF-IDF for greenwashing detection?**\n\n"
+                "TF-IDF converts each disclosure sentence into a sparse numeric vector where each dimension "
+                "represents a vocabulary word, weighted by how informative it is across all documents.\n\n"
+                "For greenwashing detection, TF-IDF captures the *language patterns* that distinguish "
+                "genuine environmental commitments from marketing boilerplate:\n"
+                "- **`tfidf_emission`** — sentences mentioning 'emission' in specific, quantified terms "
+                "('reduced Scope 1 emissions by 34%') vs vague claims predict Low vs High risk differently.\n"
+                "- **`tfidf_net_zero`** — 'net zero' is a high-commitment claim. Companies making this "
+                "claim with low actual ESG scores are the clearest greenwashing signal.\n"
+                "- **`tfidf_renewable`** — renewable energy claims are common greenwashing territory; "
+                "the model learns which combinations of renewable language + low E scores predict High risk.\n"
+                "- **Chi-squared feature selection** (top 200 of 2,000) retains only TF-IDF features "
+                "with statistically significant association with the greenwashing risk label.\n\n"
+                "*Loughran & McDonald (2011) demonstrate that domain-specific vocabulary outperforms generic "
+                "sentiment lexicons for corporate disclosure analysis — chi-squared TF-IDF selection "
+                "approximates this domain-specific approach without requiring pre-labelled wordlists.*"
+            ),
+            "Text Statistics": (
+                "**Why measure how text is written, not just what it says?**\n\n"
+                "Greenwashing language has structural signatures beyond keyword frequency. "
+                "The way companies write about sustainability encodes credibility signals.\n\n"
+                "- **`fe_text_len`** / **`fe_word_count`** — Very short vague sentences ('We are green.') "
+                "differ structurally from specific commitments ('Scope 1 emissions decreased 34% vs. "
+                "2019 baseline, validated under ISO 14064-3').\n"
+                "- **`fe_avg_word_len`** — Technical ESG terms (decarbonisation, biodiversity, TCFD-aligned) "
+                "are longer words. High average word length correlates with substantive rather than "
+                "marketing content.\n"
+                "- **`fe_claim_density`** = climate keywords / word count. A sentence crammed with "
+                "sustainability buzzwords from a low-ESG company is the canonical greenwashing "
+                "pattern — high claim density + high gap = high risk."
+            ),
+            "ESG Gap Features": (
+                "**The core greenwashing signal: the gap between self-reported and independently-assessed ESG scores.**\n\n"
+                "ESG rating agencies (MSCI, Sustainalytics, ISS) assess companies independently. "
+                "Companies also self-report ESG scores in their annual and sustainability reports. "
+                "The gap between these figures is the operational definition of score inflation.\n\n"
+                "- **`fe_avg_gap_clipped`** — Average gap across E, S, G pillars, clipped to 0 "
+                "(negative gaps = company understates ESG quality, not greenwashing). "
+                "This is the single strongest greenwashing signal in the model.\n"
+                "- **`fe_gap_cv`** — Coefficient of variation of E/S/G gaps. High CV means "
+                "the company inflates some pillars much more than others — selective greenwashing "
+                "(e.g. inflating E scores while honestly reporting S) is still greenwashing.\n"
+                "- **`fe_max_gap`** — Maximum single-pillar gap. Even if the average is moderate, "
+                "a single pillar gap > 30 points is a red flag.\n\n"
+                "*Escrig-Olmedo et al. (2019) document average divergence of 20–40 points between "
+                "major ESG rating agencies — our gap features operationalise this measurement divergence.*"
+            ),
+            "ESG Score Features": (
+                "**Why include absolute ESG scores alongside the gap features?**\n\n"
+                "The gap features tell us *how much* a company inflates its scores. The absolute "
+                "score features tell us *from where they are inflating*. A company with an assessed "
+                "score of 20 inflating to 50 is categorically different from one with a score of "
+                "65 inflating to 75 — same gap, very different greenwashing risk.\n\n"
+                "- **`fe_composite_esg`** — Assessed composite ESG score (0–100). Controls for "
+                "baseline ESG quality when interpreting the size of the gap.\n"
+                "- **`fe_esg_low`** (< 40) — Binary flag for genuinely poor-ESG companies. "
+                "These companies making environmental claims carry the highest greenwashing risk.\n"
+                "- **`fe_esg_high`** (≥ 70) — Binary flag for genuinely strong-ESG companies. "
+                "Their environmental claims are more likely substantiated and verifiable."
+            ),
+            "Financial & Interaction": (
+                "**Why include financial size, emissions, and interaction terms?**\n\n"
+                "Greenwashing risk is not uniform across company size and carbon intensity:\n\n"
+                "- **`fe_log_emissions`** — Emissions intensity (tCO₂e/$M revenue) is the most direct "
+                "measure of environmental impact. High-emission companies making strong environmental "
+                "claims warrant extra scrutiny — they have the most to hide.\n"
+                "- **`fe_emissions_high`** (intensity > 500 tCO₂e/$M) — Binary flag for high-carbon "
+                "industries (Energy, Utilities, Materials). These sectors account for the majority of "
+                "documented greenwashing cases in academic literature.\n"
+                "- **`fe_claim_x_gap`** = env_claim_label × fe_avg_gap_clipped — Interaction term "
+                "capturing the joint effect of making claims AND having inflated scores. Only sentences "
+                "that both make environmental claims AND belong to high-gap companies get non-zero values.\n"
+                "- **`fe_sector_risk_te`** — Sector target encoding (mean greenwashing risk per sector "
+                "from training data only). Captures the base rate of greenwashing by industry "
+                "without the dimensionality of one-hot encoding.\n\n"
+                "*Critical anti-leakage rule: sector target encoding is computed from training data only. "
+                "Using validation/test sector risk rates would allow future information to influence "
+                "the encoded feature, causing optimistic evaluation results.*"
+            ),
+        },
+        "description": "ESG greenwashing features fuse real disclosure text (TF-IDF + text statistics) with "
+                       "structured score inflation signals (ESG gap features) and financial context to distinguish "
+                       "substantiated environmental commitments from marketing claim inflation.",
+    },
+    "G": {
+        "stages": [
+            ("Denoise Preprocessing",      ["np.floor(x*100)/100 applied to all 190 numeric features"]),
+            ("All-Statement Aggregates",   ["D_39__mean", "B_1__last", "P_2__std", "R_1__max", "S_3__sum"]),
+            ("Diff Features",              ["D_39__diff_last_first", "B_1__diff_last_mean", "P_2__diff_last_first"]),
+            ("Last-3/6 Statement Stats",   ["B_1__last3_mean", "D_39__last6_std", "P_2__last3_min"]),
+            ("Rank Features",              ["D_39__user_rank", "B_1__global_rank", "R_1__user_rank"]),
+            ("Categorical Encoding",       ["D_63__ord", "D_64__ord", "D_63__freq", "D_64__freq"]),
+            ("Missingness Flags",          ["fe_stmt_count", "fe_last_miss_count", "fe_all_null_count"]),
+        ],
+        "stage_notes": {
+            "Denoise Preprocessing": (
+                "**Why denoise with np.floor(x×100)/100?**\n\n"
+                "A key finding shared by both the 1st and 3rd place winners: AmEx numeric features "
+                "contain floating-point precision noise — values like 0.12300000000000001 that "
+                "should conceptually be 0.123. This artefact arises from how the data was generated "
+                "and stored.\n\n"
+                "**Impact on downstream features:**\n"
+                "- **Rank features**: without denoising, two nearly-identical values receive different "
+                "ranks, creating spurious distinctions. After floor-rounding, true ties are correctly "
+                "identified.\n"
+                "- **Diff features**: floating-point artefacts create non-zero diffs for features that "
+                "should be unchanged between statements. Denoising makes diff=0 actually mean "
+                "'no change occurred'.\n"
+                "- **Last-3/6 statistics**: reduced variance from removed noise makes these "
+                "window statistics more stable and reliable.\n\n"
+                "*This is a two-line preprocessing step (applied before all other feature engineering) "
+                "that contributed meaningfully to all top-3 solutions' final scores.*"
+            ),
+            "All-Statement Aggregates": (
+                "**Why aggregate the 13-month time series per customer?**\n\n"
+                "The raw AmEx data is a time series: each customer has up to 13 monthly statement rows. "
+                "Machine learning models need a flat feature vector (one row per customer). The "
+                "aggregation step transforms the variable-length sequence into a fixed-length "
+                "representation.\n\n"
+                "**Six statistics per feature (mean, std, min, max, last, sum):**\n"
+                "- **last** (most recent statement): consistently the most predictive statistic — "
+                "it captures the customer's current financial state at the point closest to the "
+                "default outcome. Competition SHAP analysis shows 'last' features dominate importance.\n"
+                "- **mean**: the customer's typical (long-run) financial level — separates "
+                "chronically stressed customers from temporarily stressed ones.\n"
+                "- **std**: financial volatility — high variance in balance or delinquency signals "
+                "unstable financial behaviour independent of the level.\n"
+                "- **min / max**: capture extreme events — a single maximum delinquency event or "
+                "minimum payment may be more predictive than the average.\n"
+                "- **sum**: total accumulated delinquency or total payment over 13 months provides "
+                "a count-based view of behavioural intensity.\n\n"
+                "*This group alone generates 6 × 190 = 1,140 features and forms the foundation "
+                "of all top competition solutions.*"
+            ),
+            "Diff Features": (
+                "**Why compute last−first and last−mean difference features?**\n\n"
+                "The 3rd place solution ('feature engineering is all you need') identified diff features "
+                "as the single largest and most important feature group (2,604 of 5,034 total features). "
+                "The key insight: **trends matter more than levels for predicting imminent default**.\n\n"
+                "- **last − first** = total change over the 13-month window\n"
+                "  - Positive D_39 diff = delinquency days accumulated (deteriorating)\n"
+                "  - Negative P_2 diff = payment amounts declined over time (cash-flow stress)\n"
+                "  - Positive B_1 diff = balance grew over time (increasing debt burden)\n\n"
+                "- **last − mean** = recent deviation from the customer's own average\n"
+                "  - Captures whether the customer's recent behaviour represents a departure from "
+                "their own historical baseline — a personalised anomaly score.\n"
+                "  - A customer who was stable for 10 months but deteriorated in the final 3 "
+                "will show a large positive diff vs their mean for delinquency features.\n\n"
+                "*Economic analogy: the velocity and acceleration of financial distress, not just "
+                "the current position, predict when a customer will reach the default threshold.*"
+            ),
+            "Last-3/6 Statement Stats": (
+                "**Why use only recent statements for a second set of aggregates?**\n\n"
+                "The 1st place solution explicitly separated 'all data' aggregates from "
+                "'last 3 rows data' aggregates, treating them as distinct feature groups. "
+                "The 3rd place solution called these '1,116 last 3/6M features'.\n\n"
+                "**The recency effect in credit:**\n"
+                "- A customer who was delinquent 12 months ago but clean for the past 3 months "
+                "is a different risk profile than one who has been consistently delinquent.\n"
+                "- Last-3 features capture the short-term trend window — if a customer is "
+                "deteriorating, the signal will be stronger in last-3 than in the full 13-month mean.\n"
+                "- Last-6 features provide a medium-term window that smooths noise from the "
+                "last-3 while still emphasising recency.\n\n"
+                "**What these features add over 'last' alone:**\n"
+                "- last-3 std captures volatility in the recent window (erratic recent behaviour)\n"
+                "- last-3 min/max capture recent extremes that may not appear in 13-month stats\n"
+                "- Combined with diff features, these form a complete picture of recent financial trajectory."
+            ),
+            "Rank Features": (
+                "**Why compute rank-based features?**\n\n"
+                "The 1st place solution included both global rank and user-based rank as a "
+                "dedicated feature group alongside standard aggregates.\n\n"
+                "- **Global rank** (percentile in the training population):\n"
+                "  Converts heterogeneous feature scales to a uniform [0,1] space. "
+                "  A balance of $15,000 might be in the 90th percentile of the population, "
+                "  but a raw value of 15,000 isn't directly comparable to a risk score of 0.8. "
+                "  Ranking makes all features comparable and reduces LightGBM's sensitivity "
+                "  to outliers.\n\n"
+                "- **User-based rank** (where is the last value in the customer's own history):\n"
+                "  Personalised anomaly detection — if a customer's last balance is higher "
+                "  than any of their previous 12 balances, their user-rank = 1.0 (maximum). "
+                "  This is a powerful default signal that is invisible in absolute terms "
+                "  but obvious in percentile terms.\n\n"
+                "**Anti-leakage note:** Global rank percentiles are computed from the training set "
+                "and applied to the validation/test set — never fit on combined data."
+            ),
+            "Categorical Encoding": (
+                "**Encoding D_63 and D_64: the two categorical features**\n\n"
+                "The AmEx dataset has 190 numeric features and only 2 categorical: D_63 and D_64. "
+                "These encode account status and product type respectively.\n\n"
+                "**Why use last-value + frequency encoding:**\n"
+                "- **Last value** (ordinal encoding): some customers change category over the "
+                "13 months (e.g., account status transitions). The most recent category "
+                "reflects the current account type, which is most relevant to default prediction.\n"
+                "- **Frequency encoding**: replaces category with its relative frequency in the "
+                "population. Rare category values may represent unusual account types with "
+                "non-typical default rates. A customer in a rare category is an anomaly.\n\n"
+                "**Why not one-hot encode?**\n"
+                "D_63 has 3 levels, D_64 has 2 levels — one-hot would add only 3 binary "
+                "columns. However, frequency + ordinal encoding captures more information "
+                "(rarity signal) in fewer columns, consistent with the competition approach."
+            ),
+            "Missingness Flags": (
+                "**Why are missingness patterns informative for credit default?**\n\n"
+                "AmEx features have structural missing values — not random data gaps but "
+                "systematic patterns tied to account type, product features, and customer behaviour.\n\n"
+                "- **fe_stmt_count**: customers with fewer than 13 statements are either new "
+                "accounts (higher inherent risk) or accounts that closed before the window "
+                "ended (a default signal itself). Statement count is among the simplest yet "
+                "most predictive features.\n"
+                "- **fe_last_miss_count**: number of missing features in the most recent "
+                "statement. A sudden increase in missing values in the last statement may "
+                "indicate account suspension or product change — potential default precursors.\n"
+                "- **fe_all_null_count**: features that are never observed for a customer "
+                "indicate they don't have certain credit products or activities. This profile "
+                "information is meaningful for risk segmentation.\n"
+                "- **fe_nuniq_D_* / fe_nuniq_B_***: number of unique values seen across "
+                "statements. Low unique-value counts suggest the customer has had stable "
+                "(or stagnant) financial activity — the distribution of activity matters.\n\n"
+                "*The 3rd place solution's '132 bin feature unique' group is the competition "
+                "equivalent of these missingness/uniqueness features.*"
+            ),
+        },
+        "description": "AmEx features use winner-inspired time-series aggregation: denoise → "
+                       "all-statement stats (mean/std/min/max/last) → diff features (trend) → "
+                       "last-3/6 recency stats → rank transforms → categorical encoding → "
+                       "missingness flags. Each group contributes unique signal about customer "
+                       "financial health and default trajectory.",
+    },
+}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ── Per-use-case EDA insights (shown alongside charts in Data Studio) ─────────
+# ══════════════════════════════════════════════════════════════════════════════
+_EDA_INSIGHTS: dict = {
+    "D": {
+        "target": (
+            "**📊 Class Imbalance — KKBox Churn v2**\n\n"
+            "The dataset contains approximately **8.4% churned subscribers** and 91.6% retained — "
+            "a roughly 11:1 imbalance ratio.\n\n"
+            "**Why this matters for modelling:**\n"
+            "- A naïve classifier that always predicts 'Retained' achieves 91.6% accuracy but "
+            "**zero business value** — it never identifies a subscriber at risk.\n"
+            "- **Accuracy is a misleading metric** here. The primary metric is **ROC-AUC**: it measures "
+            "rank ordering (can the model score churners higher than retainers?) independently of "
+            "the threshold chosen.\n"
+            "- **SMOTE oversampling** is applied *only inside training folds* to synthetically balance "
+            "the minority class. It is never applied to validation or test data to avoid distributional leakage.\n"
+            "- **`scale_pos_weight`** in XGBoost and **`is_unbalance=True`** in LightGBM further "
+            "compensate for imbalance during tree-split decisions.\n\n"
+            "**Business framing:** Even a 1% improvement in recall (catching more churners) translates "
+            "directly to retained subscribers and avoided revenue loss — correctly modelling the minority "
+            "class is the entire commercial objective of this use case."
+        ),
+        "correlation": (
+            "**🔗 Key Correlation Signals — KKBox Churn**\n\n"
+            "| Feature | Direction | Interpretation |\n"
+            "|---|---|---|\n"
+            "| `auto_renew_rate` | Strong negative | Users who auto-renew rarely churn — this is the clearest single retention signal |\n"
+            "| `cancel_rate` | Strong positive | Historical cancellations predict future churn — past behaviour is the best predictor |\n"
+            "| `total_secs_mean` | Negative | More listening time = stronger habit formation = lower churn |\n"
+            "| `num_100_mean` | Negative | Track completions signal genuine platform engagement |\n"
+            "| `plan_days_mean` | Negative | Longer-plan subscribers have made a greater financial commitment |\n"
+            "| `discount_rate` | Positive | Discount-driven subscribers churn when promotions end |\n"
+            "| `num_25_mean` | Positive | High skip rate signals disengagement |\n\n"
+            "**What to watch for in the heatmap:**\n"
+            "- `num_25_mean` and `num_50_mean` are often strongly correlated (both capture partial listens) "
+            "— SHAP will arbitrate which one carries more unique information.\n"
+            "- `total_secs_mean` and `num_unq_mean` may show moderate correlation — listening duration "
+            "and catalogue breadth are related but distinct signals.\n"
+            "- Transaction aggregates (`txn_count`, `plan_days_mean`, `auto_renew_rate`) will cluster "
+            "together as they all derive from the same source table."
+        ),
+        "missing": (
+            "**❓ Missing Value Patterns — KKBox Churn**\n\n"
+            "Missing values arise primarily from the **left-join merge** across four source tables: "
+            "not every subscriber in `train_v2.csv` has activity in every file during the v2 observation window.\n\n"
+            "| Column | Est. % Missing | Mechanism | Treatment in Step 3 |\n"
+            "|---|---|---|---|\n"
+            "| `bd` (age) | ~34% | MNAR — younger users less likely to provide age | Clipped to [7,80], imputed with train median, age-bucket flags added |\n"
+            "| `gender` | ~33% | MNAR — voluntary field | Encoded as 'unknown', then one-hot via `fe_is_male` / `fe_is_female` |\n"
+            "| Log aggregates | Varies | MAR — users inactive in v2 window | Imputed with 0 (no listening = no activity signal) |\n"
+            "| Transaction aggregates | Varies | MAR — users with no v2 transactions | Imputed with train-set medians |\n\n"
+            "**Critical anti-leakage rule:** All imputation statistics (medians, churn-rate encodings) are "
+            "computed from the **training split only** and then applied identically to the validation split. "
+            "Fitting imputers on combined train+val data is one of the most common causes of "
+            "over-optimistic evaluation results in subscription churn models."
+        ),
+        "outlier": (
+            "**🔺 Outlier Handling — KKBox Churn**\n\n"
+            "| Feature | Issue | Treatment in Step 3 |\n"
+            "|---|---|---|\n"
+            "| `bd` (age) | Values of 0, negatives, 200+ are clear data-entry errors | Hard-clip to [7, 80] before any other processing |\n"
+            "| `total_secs_mean` | Extreme power-users (>100K secs/day) distort the distribution | Log-transform (`fe_log_secs`) compresses the right tail |\n"
+            "| `plan_list_price` | Zero-price entries = free trials | `fe_is_discounted` distinguishes free vs. paid plans |\n"
+            "| `num_25/50/75/985/100` | Heavy right skew in raw counts | Converted to bounded ratios [0,1] — engagement rates are scale-invariant |\n"
+            "| `cancel_rate` | Bounded [0,1] by construction | No treatment needed |\n\n"
+            "**Why we keep outliers rather than remove them:** Tree-based models (LightGBM, XGBoost, "
+            "Random Forest) are naturally robust to outliers in the feature space — they split on "
+            "thresholds, not distances. Removing extreme power-users would discard genuinely informative "
+            "observations about the retained-user population tail."
+        ),
+    },
+    "A": {
+        "target": (
+            "**📊 Class Imbalance — IEEE-CIS Fraud Detection**\n\n"
+            "The IEEE-CIS dataset contains approximately **3.5% fraudulent transactions** — "
+            "a roughly 28:1 imbalance ratio, more severe than most fraud datasets.\n\n"
+            "**Why this matters for modelling:**\n"
+            "- At 3.5% fraud rate, a classifier that always predicts 'Legitimate' achieves "
+            "96.5% accuracy with **zero fraud caught** — accuracy is a completely useless metric here.\n"
+            "- The primary competition metric is **ROC-AUC**, which measures the model's ability "
+            "to rank fraudulent transactions above legitimate ones across all possible thresholds.\n"
+            "- **SMOTE** is applied *inside training folds only* to synthetically up-sample the "
+            "minority (fraud) class. Applying SMOTE before the train/val split would introduce "
+            "synthetic fraud samples into the validation set, causing optimistic AUC estimates.\n"
+            "- **`scale_pos_weight`** in XGBoost (≈ 28) and **`is_unbalance=True`** in LightGBM "
+            "further compensate for imbalance at the split-criterion level.\n\n"
+            "**Business framing:** Card fraud causes ~$33 billion in annual losses globally "
+            "(Nilson Report 2023). Even a 1% improvement in fraud recall — catching more true "
+            "fraud — directly translates to millions in prevented losses at scale."
+        ),
+        "correlation": (
+            "**🔗 Key Correlation Signals — IEEE-CIS Fraud**\n\n"
+            "| Feature | Direction | Interpretation |\n"
+            "|---|---|---|\n"
+            "| `TransactionAmt` | Positive (non-linear) | Fraud spikes at round-number amounts and very high values |\n"
+            "| `card1_freq` | Negative | Cards seen many times are established; low-frequency cards are new or compromised |\n"
+            "| `addr1_freq` | Negative | Rare billing zip codes are anomalous |\n"
+            "| `fe_hour` (2–4am) | Positive | Late-night transactions have 2–3× baseline fraud rate |\n"
+            "| `fe_amt_to_card1_mean` | Positive | Transactions far above the card's average amount signal fraud |\n"
+            "| `P_emaildomain` (certain domains) | Positive | Disposable email providers strongly predict fraud |\n"
+            "| `card4` (card type) | Mixed | Certain card network types show higher fraud prevalence |\n\n"
+            "**What to watch for in the heatmap:**\n"
+            "- Many V-features are highly correlated with each other (they come from the same Vesta "
+            "sub-system). SHAP will show which V-features carry unique information after controlling "
+            "for correlated features.\n"
+            "- `TransactionAmt` correlations with V-features may be spurious — investigate with "
+            "partial dependence plots rather than raw Pearson correlation."
+        ),
+        "missing": (
+            "**❓ Missing Value Patterns — IEEE-CIS Fraud**\n\n"
+            "The most challenging missing data pattern in this dataset is the V-features (V1–V339). "
+            "These features are derived from Vesta's fraud system and are only populated for specific "
+            "transaction types — their missingness is structural, not random.\n\n"
+            "| Column Group | Est. % Missing | Mechanism | Treatment in Step 3 |\n"
+            "|---|---|---|---|\n"
+            "| V1–V11 (sub-group 1) | ~5% | MCAR — minor system gaps | Binary flag + median imputation |\n"
+            "| V12–V34 (sub-group 2) | ~26% | MAR — card type dependent | Binary flag + median imputation |\n"
+            "| V35–V52 (sub-group 3) | ~87% | MNAR — only for specific card types | Binary flag (missingness IS the signal) |\n"
+            "| `addr2` | ~13% | MAR — international transactions | Binary flag + mode imputation |\n"
+            "| `dist1` | ~59% | MAR — card-not-present transactions | Binary flag + 0 imputation |\n"
+            "| `D2`–`D15` (timing) | Varies | MAR — depends on merchant type | Binary flag + median imputation |\n\n"
+            "**Critical insight:** For the high-missingness V-features (>80%), the binary missing "
+            "indicator is more predictive than the imputed value itself — the *fact* that this "
+            "feature is absent tells you more about the transaction type than any value you could fill in."
+        ),
+        "outlier": (
+            "**🔺 Outlier Handling — IEEE-CIS Fraud**\n\n"
+            "| Feature | Issue | Treatment in Step 3 |\n"
+            "|---|---|---|\n"
+            "| `TransactionAmt` | Range $0.25–$31,937 — 5 orders of magnitude | log1p transform (`fe_amt_log`) |\n"
+            "| `dist1` | Distance values up to 10,119 km — extreme right tail | log1p transform |\n"
+            "| `C1`–`C14` (count fields) | Heavy right skew; some values > 10,000 | log1p transform for count features |\n"
+            "| `D1`–`D15` (delta days) | Values up to 640 days — legitimate long-term cards | No treatment; tree models handle naturally |\n"
+            "| V-features | Complex distributions; some bimodal | Standardise after flag+impute |\n\n"
+            "**Why keep outliers?** Fraudulent transactions are themselves outliers — unusually large "
+            "amounts, unusual frequencies, unusual times. Removing statistical outliers would "
+            "preferentially remove fraud cases, destroying exactly the signal we need to learn."
+        ),
+    },
+    "B": {
+        "target": (
+            "**📊 Class Imbalance — Give Me Some Credit (Credit Risk)**\n\n"
+            "The Give Me Some Credit dataset contains approximately **6.7% serious delinquencies** "
+            "(90+ days past due within 2 years) — a roughly 14:1 imbalance ratio.\n\n"
+            "**Why this matters for modelling:**\n"
+            "- Credit risk models must balance two types of error: **Type I (false positive)** = "
+            "rejecting a creditworthy applicant; **Type II (false negative)** = approving a "
+            "borrower who will default. These errors have very different business costs.\n"
+            "- **ROC-AUC** is the primary metric — it evaluates the model's ability to rank "
+            "higher-risk borrowers above lower-risk borrowers, which is exactly what a lender "
+            "needs for cut-off score decisions.\n"
+            "- **`scale_pos_weight`** ≈ 14 in XGBoost gives the minority class 14× the gradient "
+            "weight, compensating for its underrepresentation in the training set.\n\n"
+            "**Business framing:** A 1% improvement in identifying high-risk borrowers before "
+            "approval can reduce a lender's charge-off rate by hundreds of basis points — "
+            "directly improving net interest margin and capital adequacy ratios under Basel III."
+        ),
+        "correlation": (
+            "**🔗 Key Correlation Signals — Give Me Some Credit**\n\n"
+            "| Feature | Direction | Interpretation |\n"
+            "|---|---|---|\n"
+            "| `RevolvingUtilizationOfUnsecuredLines` | Strong positive | Maxed-out credit lines are the strongest single predictor of default |\n"
+            "| `NumberOfTime90DaysLate` | Strong positive | Historical 90-day defaults predict future defaults — past behaviour dominates |\n"
+            "| `NumberOfTime30-59DaysPastDueNotWorse` | Positive | Early delinquency is a leading indicator |\n"
+            "| `DebtRatio` | Positive (with caveats) | High debt relative to income — but encoding issues require careful treatment |\n"
+            "| `MonthlyIncome` | Negative | Higher income = lower default probability |\n"
+            "| `age` | Negative (non-linear) | Older borrowers default less; youngest group (< 25) shows elevated risk |\n"
+            "| `NumberOfOpenCreditLinesAndLoans` | Weak positive | More open lines = more exposure, but also signals credit access |\n\n"
+            "**What to watch for in the heatmap:**\n"
+            "- The three `NumberOfTimePastDue` features are strongly correlated — multicollinearity "
+            "here is real and will affect Logistic Regression coefficients. LASSO or Ridge "
+            "regularisation handles this; tree models are naturally robust.\n"
+            "- `DebtRatio` has a bimodal distribution due to encoding issues; its raw Pearson "
+            "correlation with the target undersells its true predictive power."
+        ),
+        "missing": (
+            "**❓ Missing Value Patterns — Give Me Some Credit**\n\n"
+            "This dataset has two features with meaningful missingness:\n\n"
+            "| Column | % Missing | Mechanism | Treatment in Step 3 |\n"
+            "|---|---|---|---|\n"
+            "| `MonthlyIncome` | ~19.8% | MAR — higher earners less likely to disclose | Training-set median imputation + missing flag |\n"
+            "| `NumberOfDependents` | ~2.6% | MAR — no dependents may appear as missing | Mode imputation (most common value = 0) |\n\n"
+            "**`MonthlyIncome` is Missing At Random (MAR):** The probability of missing income "
+            "correlates with income level itself — wealthier borrowers are more privacy-conscious. "
+            "This means the missing indicator is itself predictive of lower default risk, which "
+            "is counterintuitive but well-established in credit scoring literature.\n\n"
+            "**Critical anti-leakage rule:** Imputation medians are computed from the training "
+            "split only. Fitting the median on the combined train+validation set would allow "
+            "validation-set income values to influence the imputation statistic."
+        ),
+        "outlier": (
+            "**🔺 Outlier Handling — Give Me Some Credit**\n\n"
+            "| Feature | Issue | Treatment in Step 3 |\n"
+            "|---|---|---|\n"
+            "| `age` | Values of 0 are clear data errors; one entry of age 0 | Clip to [18, 100] |\n"
+            "| `RevolvingUtilizationOfUnsecuredLines` | Values up to 50,892 (should be 0–1) | Clip to [0.0, 1.5] before feature engineering |\n"
+            "| `NumberOfTime30-59DaysPastDueNotWorse` | Values of 96 and 98 appear as artifacts | Treat values ≥ 90 as 90 (cap and flag separately) |\n"
+            "| `NumberOfTime90DaysLate` | Same artifact (96/98 values) | Same treatment — cap at 90 |\n"
+            "| `MonthlyIncome` | Right-skewed; max > $3.5M | log1p transform (`fe_monthly_income_log`) |\n"
+            "| `DebtRatio` | Some values in millions (ambiguous encoding) | Clip to [0, 10] to handle encoding inconsistency |\n\n"
+            "**The 96/98 artifact:** In credit bureau data, 96 and 98 are often used as special "
+            "codes ('data not available', 'special circumstance'). Treating these as literal "
+            "counts of 96 or 98 delinquency events would severely distort the model — they "
+            "need to be recoded before any analysis."
+        ),
+    },
+    "C_nlp": {
+        "target": (
+            "**📊 Class Distribution — FinPhrasebank Sentiment (NLP)**\n\n"
+            "FinPhrasebank is a 3-class classification dataset of financial news headlines "
+            "labelled as **Positive (~37%)**, **Neutral (~35%)**, and **Negative (~28%)**. "
+            "This is substantially more balanced than the binary fraud/credit cases.\n\n"
+            "**Why this matters for modelling:**\n"
+            "- With three near-balanced classes, accuracy is more meaningful here than in "
+            "the imbalanced binary cases — but **macro-F1** is still preferred because it "
+            "weights each class equally regardless of frequency.\n"
+            "- **Weighted cross-entropy loss** is used to give slightly more weight to the "
+            "Negative class (28%), preventing the model from ignoring it to optimise the "
+            "majority classes.\n"
+            "- The boundary between Positive and Neutral is inherently ambiguous in financial "
+            "text. 'Company X meets earnings expectations' could be Positive (met targets) or "
+            "Neutral (no surprise). Inter-annotator agreement in the dataset is ~75%, meaning "
+            "25% of labels are contested — the model's ceiling performance is bounded by this.\n\n"
+            "**Business framing:** Accurate financial sentiment classification feeds directly "
+            "into event-driven trading strategies, ESG monitoring systems, and regulatory "
+            "disclosure analysis pipelines."
+        ),
+        "correlation": (
+            "**🔗 Key Correlation Signals — FinPhrasebank NLP**\n\n"
+            "| Feature | Direction | Interpretation |\n"
+            "|---|---|---|\n"
+            "| `finbert_positive` | Positive → Positive class | FinBERT directly predicts the label — highest single-feature AUC |\n"
+            "| `finbert_negative` | Positive → Negative class | Symmetric signal for the negative class |\n"
+            "| `has_number` | → Neutral | Quantitative headlines ('up 23%', '$4.2B revenue') tend to be factual |\n"
+            "| `word_count` | → Neutral | Longer headlines are more nuanced and less extreme |\n"
+            "| `has_ticker` | → Positive or Negative | Company-specific headlines are more extreme than market commentary |\n"
+            "| TF-IDF: 'profit', 'growth', 'beat' | → Positive | Core positive financial vocabulary |\n"
+            "| TF-IDF: 'loss', 'decline', 'cut' | → Negative | Core negative financial vocabulary |\n\n"
+            "**Important caveat on TF-IDF correlations:** Because TF-IDF creates thousands of "
+            "sparse features, traditional Pearson correlation is not the right tool for evaluating "
+            "individual term importance. Use **mutual information** or **chi-squared** feature "
+            "selection instead — these handle the discrete, sparse nature of bag-of-words features."
+        ),
+        "missing": (
+            "**❓ Missing Value Patterns — FinPhrasebank NLP**\n\n"
+            "Text datasets are unusual in that traditional 'missing value' problems rarely apply — "
+            "a headline either exists or it doesn't. However, there are data quality considerations "
+            "specific to NLP preprocessing:\n\n"
+            "| Issue | Frequency | Treatment |\n"
+            "|---|---|---|\n"
+            "| Empty/whitespace-only headlines | Rare (<0.1%) | Drop rows |\n"
+            "| FinBERT inference failures (very long text) | Rare | Fallback to VADER scores |\n"
+            "| Encoding issues (non-UTF-8 characters) | Occasional | Normalise to ASCII before tokenisation |\n"
+            "| Duplicate headlines with conflicting labels | ~3–5% | Keep first occurrence (label noise) |\n\n"
+            "**Label noise is the primary data quality concern** in text sentiment datasets, not "
+            "missing values. The FinPhrasebank dataset was annotated by a single domain expert — "
+            "more recent versions include multi-annotator agreement scores which can be used to "
+            "weight training examples by label confidence."
+        ),
+        "outlier": (
+            "**🔺 Outlier Handling — FinPhrasebank NLP**\n\n"
+            "In NLP, 'outliers' take the form of extreme documents rather than extreme numeric values:\n\n"
+            "| Issue | Description | Treatment |\n"
+            "|---|---|---|\n"
+            "| Very short headlines (< 3 words) | Insufficient context for reliable classification | Flag with `is_very_short`; down-weight in training |\n"
+            "| Very long headlines (> 50 words) | Unusual for financial news; may be misformatted | Truncate to 50 tokens before TF-IDF |\n"
+            "| Non-English text | Occasional foreign-language entries | Filter to English using langdetect |\n"
+            "| Extreme TF-IDF values | Single-occurrence rare terms with high IDF weights | min_df=2 in TfidfVectorizer drops hapax legomena |\n\n"
+            "**TF-IDF sparsity:** After preprocessing, the feature matrix is extremely sparse "
+            "(>99% zeros). This is expected and desirable — sparse representations are efficient "
+            "and Logistic Regression with L2 regularisation handles them well. Do not apply "
+            "PCA or StandardScaler to TF-IDF matrices as they will densify the representation "
+            "and destroy the sparsity structure that makes these models efficient."
+        ),
+    },
+    "C_markets": {
+        "target": (
+            "**📊 Target Distribution — Optiver Realised Volatility (Regression)**\n\n"
+            "Unlike the binary classification use cases, UC-C_markets is a **regression problem**: "
+            "the target is **realised volatility** — a continuous, non-negative measure of how much "
+            "a stock's price moved in a 10-minute window immediately following the feature window.\n\n"
+            "**Distribution characteristics:**\n"
+            "- Realised volatility is approximately **log-normally distributed** — the log of "
+            "volatility is approximately normal. This means raw volatility has a right-skewed "
+            "distribution with a heavy tail (extreme spikes during market stress events).\n"
+            "- The **RMSPE (Root Mean Squared Percentage Error)** is the Optiver competition metric: "
+            "RMSPE = sqrt(mean((y_pred/y_true − 1)²)). This penalises relative errors equally "
+            "across stocks with different baseline volatility levels.\n"
+            "- Volatility is **strongly autocorrelated** — high-volatility regimes persist. "
+            "A stock that was volatile in the previous 10-minute window is very likely to be "
+            "volatile in the next 10-minute window (GARCH effects).\n\n"
+            "**Business framing:** Accurate volatility forecasting is central to options pricing "
+            "(Black-Scholes uses implied volatility), risk management (VaR models), and "
+            "execution algorithms (VWAP strategies adapt to volatility regimes)."
+        ),
+        "correlation": (
+            "**🔗 Key Correlation Signals — Optiver Volatility**\n\n"
+            "| Feature | Direction | Interpretation |\n"
+            "|---|---|---|\n"
+            "| `fe_book_rv` | Strong positive | Current-window book volatility predicts next-window volatility (autocorrelation) |\n"
+            "| `fe_lr_std` | Strong positive | Trade log-return std is the direct empirical volatility estimate |\n"
+            "| `fe_spread` | Positive | Wide bid-ask spread = high uncertainty = high expected volatility |\n"
+            "| `fe_stock_mean_rv` | Positive | Market-wide volatility context — systematic risk |\n"
+            "| `fe_rv_vs_stock_mean` | Positive | Stock-specific excess volatility above market average |\n"
+            "| `fe_wap_mean` | Near zero | Price level has little direct bearing on volatility |\n\n"
+            "**What to watch for in the heatmap:**\n"
+            "- `fe_book_rv` and `fe_lr_std` will be highly correlated — both measure realised "
+            "volatility from different data sources. The book-based measure is available earlier "
+            "in the tick stream; the trade-based measure is available only after trades execute.\n"
+            "- Cross-stock features (`fe_stock_mean_rv`) will show moderate correlation with "
+            "individual stock features — this is genuine systematic risk, not collinearity "
+            "to be removed."
+        ),
+        "missing": (
+            "**❓ Missing Value Patterns — Optiver Volatility**\n\n"
+            "Missing values in order book data arise from two sources:\n\n"
+            "| Source | Description | Treatment |\n"
+            "|---|---|---|\n"
+            "| No trades in bucket | Some stocks have 10-minute windows with zero executed trades | Impute trade features with 0 (no trading = no trade volatility) |\n"
+            "| Thin order books | Very illiquid stocks may have missing L2 book levels | Impute missing WAP with L1 mid-price |\n"
+            "| Cross-book NaN | If a stock has no data in a time bucket, cross-stock features are NaN | Forward-fill from previous bucket |\n\n"
+            "**Temporal structure is critical:** This dataset has a time dimension — stocks × "
+            "time buckets. Standard random imputation would be inappropriate. Missing values "
+            "must be imputed using **forward-fill** (use previous bucket's value) or **market-wide "
+            "mean** (use other stocks in the same bucket) to respect the temporal structure.\n\n"
+            "**Train/val split must respect time:** Do not randomly shuffle rows. The validation "
+            "set must use later time periods than the training set to simulate real forecasting "
+            "conditions and avoid look-ahead bias."
+        ),
+        "outlier": (
+            "**🔺 Outlier Handling — Optiver Volatility**\n\n"
+            "| Feature | Issue | Treatment |\n"
+            "|---|---|---|\n"
+            "| `fe_book_rv` | Volatility spikes during market stress (COVID March 2020, flash crashes) | log1p transform; do NOT remove — extreme events are real |\n"
+            "| `fe_spread` | Some stocks have artificially wide spreads when illiquid | Winsorise at 99th percentile per stock |\n"
+            "| `fe_lr_std` | NaN when no trades occurred in bucket | Impute with 0 (no trades = no realised variance from trades) |\n"
+            "| `target` (realised vol) | Right-skewed; some extreme spikes | RMSPE metric inherently handles this via percentage error |\n\n"
+            "**Do not remove volatility spikes:** Extreme volatility events are the most "
+            "important cases for financial risk management — removing them because they are "
+            "'outliers' would make the model useless precisely when it is needed most "
+            "(high-stress market conditions). Instead, log-transform features to compress "
+            "the tail while keeping all observations.\n\n"
+            "*The Optiver winners used no outlier removal — log-transforms and robust "
+            "gradient boosting losses (Huber loss) were sufficient to handle extreme values.*"
+        ),
+    },
+    "E": {
+        "target": (
+            "**📊 Class Imbalance — Porto Seguro Insurance Claims**\n\n"
+            "The Porto Seguro dataset contains approximately **3.6% policyholders who filed "
+            "a claim** (target = 1) — a roughly 27:1 imbalance ratio, similar in severity "
+            "to the fraud detection case.\n\n"
+            "**Why this matters for modelling:**\n"
+            "- At 3.6% claim rate, precision and recall trade-offs are extreme. The Kaggle "
+            "competition metric is **Normalised Gini Coefficient** (equivalent to 2×AUC − 1), "
+            "which measures rank ordering quality independently of the chosen threshold.\n"
+            "- **Class weights** and **SMOTE** are used to compensate, but the extreme imbalance "
+            "means even small improvements in the minority class detection translate to "
+            "significant Gini improvement.\n"
+            "- This dataset is notable for its **feature anonymisation** — all feature names "
+            "are obfuscated (ps_ind_01, ps_car_02, ps_calc_10) and their business meaning "
+            "is not disclosed. Feature engineering must be data-driven rather than domain-driven.\n\n"
+            "**Business framing:** Insurance pricing depends on accurate claim probability "
+            "estimates. A 1% improvement in distinguishing high-claim-risk policyholders "
+            "enables more accurate premium pricing — either avoiding adverse selection "
+            "(underpricing high-risk customers) or retaining profitable customers by not "
+            "overpricing low-risk ones."
+        ),
+        "correlation": (
+            "**🔗 Key Correlation Signals — Porto Seguro Insurance**\n\n"
+            "| Feature Group | Direction | Interpretation |\n"
+            "|---|---|---|\n"
+            "| `ps_ind_*` features (individual) | Mixed | Personal attributes — age proxies, coverage type |\n"
+            "| `ps_calc_*` features (calculated) | Weak | Computed risk metrics — individually weak, strong in aggregate |\n"
+            "| `ps_car_*` features (vehicle) | Moderate | Vehicle attributes — car type, age, brand category |\n"
+            "| `ps_reg_*` features (regional) | Moderate | Geographic risk — region and density |\n"
+            "| Missing value flags (`_missing`) | Positive | Missingness patterns correlate with claim risk |\n\n"
+            "**Important finding from Kaggle:** The `calc` features (ps_calc_01–ps_calc_20) "
+            "have near-zero correlation with the target individually, but collectively they "
+            "carry predictive power when aggregated. This is why `fe_calc_mean`, `fe_calc_std`, "
+            "and `fe_calc_cv` are important — no single calc feature matters, but the group "
+            "statistical profile does.\n\n"
+            "**Binary vs continuous:** Many features end in `_bin` (binary) or `_cat` (categorical). "
+            "Point-biserial correlation is more appropriate than Pearson for binary features — "
+            "the correlation matrix will understate their true relationship with the target."
+        ),
+        "missing": (
+            "**❓ Missing Value Patterns — Porto Seguro Insurance**\n\n"
+            "Porto Seguro encodes missing values as **-1** (not NaN). This must be converted "
+            "before any analysis or modelling.\n\n"
+            "| Feature | % with -1 | Mechanism | Treatment |\n"
+            "|---|---|---|---|\n"
+            "| `ps_car_03_cat` | 69.1% | MNAR — certain vehicle types lack this attribute | Binary flag + mode imputation |\n"
+            "| `ps_car_05_cat` | 44.8% | MNAR — similar structural absence | Binary flag + mode imputation |\n"
+            "| `ps_car_07_cat` | 1.9% | MAR — data collection issue | Mode imputation, no flag needed |\n"
+            "| `ps_ind_02_cat` | 0.06% | MCAR — rare recording error | Mode imputation |\n"
+            "| `ps_car_01_cat` | 0.1% | MCAR — rare recording error | Mode imputation |\n\n"
+            "**MNAR = Missing Not At Random:** For `ps_car_03_cat` and `ps_car_05_cat`, "
+            "the -1 encoding is structurally determined by the vehicle type — it is not a "
+            "random data collection failure. This means the **missing flag itself is predictive** "
+            "of claim risk, which is why we create binary indicator columns before imputing."
+        ),
+        "outlier": (
+            "**🔺 Outlier Handling — Porto Seguro Insurance**\n\n"
+            "| Feature | Issue | Treatment |\n"
+            "|---|---|---|\n"
+            "| All features with -1 | Sentinel for missing, not a valid value | Convert -1 → NaN before any outlier analysis |\n"
+            "| `ps_reg_03` | Right-skewed continuous regional feature | log1p transform |\n"
+            "| `ps_car_12` | Continuous vehicle feature; some extreme values | Winsorise at 99th percentile |\n"
+            "| `ps_calc_*` | All continuous features 0–1 or count-based | No transformation needed — already bounded or low-range |\n"
+            "| `ps_ind_14` | Integer count feature; >99% of values are 0 | Binary encode (0 vs > 0) — near-zero-variance otherwise |\n\n"
+            "**The -1 conversion is the single most critical preprocessing step.** Forgetting "
+            "to convert -1 to NaN before fitting any scaler or computing any statistic will "
+            "corrupt every downstream calculation — means, medians, correlations, and model "
+            "splits will all be distorted by the presence of -1 as if it were a real value.\n\n"
+            "*Porto Seguro's encoding choice was a deliberate data obfuscation decision — "
+            "treat it as domain knowledge, not a data quality issue.*"
+        ),
+    },
+    "F": {
+        "target": (
+            "**📊 Greenwashing Risk — 3-Class Distribution**\n\n"
+            "The hybrid dataset labels each disclosure sentence as **Low**, **Medium**, or **High** "
+            "greenwashing risk. Low-risk sentences dominate (~55 %) because most environmental "
+            "disclosures are either non-claims or claims with narrow score gaps. Medium and High "
+            "classes together represent ~45 % of samples.\n\n"
+            "**Why macro-F1?** With three unequal classes, accuracy is misleading — a naïve model "
+            "predicting *Low* for everything achieves > 50 % accuracy while completely missing the "
+            "High-risk cases that matter most to regulators. Macro-F1 weights every class equally, "
+            "penalising the model for missing any tier.\n\n"
+            "**EDGAR extension:** The class proportions in SEC 10-K Item 1A filings are likely "
+            "even more skewed toward Low; students running the real-data extension should expect "
+            "to apply class-weight adjustments. See the EDGAR EFTS endpoint in "
+            "`01_data_loading.py` for the live query."
+        ),
+        "correlation": (
+            "**🔗 Strongest Predictors of Greenwashing Risk**\n\n"
+            "- **`avg_gap`** (ESG score minus emissions score): the single strongest numeric "
+            "predictor. A large positive gap — high ESG rating but weak emissions performance — "
+            "is the operational definition of greenwashing. Spearman ρ with risk label ≈ 0.65.\n"
+            "- **`env_claim_label`** (ClimateBERT binary): sentences classified as genuine "
+            "environmental claims are over-represented in Medium and High risk bands. A non-claim "
+            "sentence almost never reaches High risk regardless of score gap.\n"
+            "- **`emissions_intensity`**: right-skewed; high-intensity companies appear "
+            "disproportionately in the High-risk tier even when ESG scores look respectable.\n"
+            "- **Sector patterns**: Energy and Materials sectors cluster in Medium/High; "
+            "Technology and Healthcare sectors skew Low. Target-encoded `sector_risk_mean` "
+            "captures this signal without leaking test labels (encoding is fit on train only).\n\n"
+            "TF-IDF unigrams/bigrams from `disclosure_text` add non-linear signal captured by "
+            "chi-squared SelectKBest(200); top tokens include *carbon neutral*, *net zero*, "
+            "*offset*, and *renewable target*."
+        ),
+        "missing": (
+            "**🔍 Missing Data Profile**\n\n"
+            "The hybrid (ClimateBERT + synthetic) dataset contains **no true missing values**: "
+            "all numeric columns are fully populated during synthesis and all text rows carry a "
+            "`disclosure_text` string.\n\n"
+            "**Sentinel value note:** For compatibility with the EDGAR real-data extension, "
+            "columns `esg_score`, `env_score`, and `emissions_intensity` use **−1 as a "
+            "not-reported sentinel** rather than NaN. Students merging real EDGAR filings will "
+            "encounter genuine NaNs that should be imputed or masked before feature engineering — "
+            "`03_feature_engineering.py` already clips these at 0 to prevent negative TF-IDF "
+            "inputs.\n\n"
+            "The `company_id` column is categorical and non-null across all splits. "
+            "Company-stratified splitting ensures no company appears in more than one partition, "
+            "so there is no row-level leakage even if a firm filed multiple disclosures."
+        ),
+        "outlier": (
+            "**⚠️ Outlier Profile**\n\n"
+            "- **`avg_gap`**: designed to span [−40, +60]; extreme positive values (> 40) are "
+            "rare by construction but represent the clearest greenwashing signal. Flag for "
+            "review rather than clip.\n"
+            "- **`emissions_intensity`**: log-normal in real data; the synthetic generator "
+            "applies a light right skew (chi-squared draw). Values above 3× the 75th percentile "
+            "are legitimate high-emitter observations — do not winsorise without domain "
+            "justification.\n"
+            "- **Text length** (`disclosure_text` token count): most sentences fall in the "
+            "15–60 token range; a small tail reaches 120+ tokens. Very short strings (< 5 "
+            "tokens) may be header artefacts in real EDGAR data and should be filtered.\n"
+            "- **`esg_score` / `env_score`**: bounded [0, 100] by design; no true outliers "
+            "in the synthetic split, but real EDGAR-sourced records may carry agency-specific "
+            "scales that need normalisation before merging with synthetic baselines."
+        ),
+    },
+    "G": {
+        "target": (
+            "**📊 Class Balance — AmEx Default Prediction**\n\n"
+            "The AmEx dataset has approximately **25.9% defaulters** — a 2.86:1 imbalance ratio. "
+            "This is far less severe than IEEE-CIS fraud (~3.5%) or Porto Seguro insurance (~3.6%), "
+            "making standard accuracy a less misleading metric here (though still insufficient).\n\n"
+            "**Why the AmEx custom metric instead of AUC?**\n"
+            "AmEx M = 0.5 × (Gini + D-rate@4%) combines two complementary objectives:\n"
+            "- **Gini** (= 2×AUC−1): overall rank ordering quality across all possible thresholds — "
+            "the model's ability to separate defaulters from non-defaulters at any operating point.\n"
+            "- **D-rate@4%**: of all customers ranked highest by the model, what fraction are actual "
+            "defaulters? This captures AmEx's business objective: **identify the highest-risk segment** "
+            "for proactive intervention (limit reduction, collections, early warning alerts).\n\n"
+            "A model can have a good Gini but poor D-rate@4% if it scores the top decile poorly "
+            "(e.g., it ranks a few non-defaulters very high, diluting the top 4%). Both components "
+            "are needed to serve both regulatory compliance and business strategy.\n\n"
+            "**SMOTE is NOT needed here** — the 25.9% default rate is close enough to balanced "
+            "that `is_unbalance=True` in LightGBM or `scale_pos_weight=2.86` in XGBoost is sufficient."
+        ),
+        "correlation": (
+            "**🔗 Key Correlation Signals — AmEx Default Prediction**\n\n"
+            "Correlation is computed on the **last statement** values per customer (most predictive).\n\n"
+            "| Feature Group | Key Features | Direction | Interpretation |\n"
+            "|---|---|---|---|\n"
+            "| Delinquency (D_*) | D_39, D_41, D_42 | Strong positive | Accumulated delinquency days — the clearest default signal |\n"
+            "| Balance (B_*) | B_1, B_2, B_3 | Positive | High outstanding balance relative to limit = stress |\n"
+            "| Payment (P_*) | P_2, P_3 | Negative | Higher recent payments = better financial management |\n"
+            "| Risk (R_*) | R_1, R_2 | Positive | Pre-computed risk scores by AmEx internal models |\n"
+            "| Spend (S_*) | S_3, S_7 | Mixed | Spend behaviour varies by account type |\n\n"
+            "**What the winners found:**\n"
+            "- 'last' values (most recent statement) consistently outperform 'mean' in correlation\n"
+            "- Diff features (last−mean) are strongly correlated because they encode deterioration\n"
+            "- D_63 category 'CR' vs others shows meaningfully different default rates\n"
+            "- User-rank features amplify the correlation signal by normalising per-customer"
+        ),
+        "missing": (
+            "**❓ Missing Value Patterns — AmEx Default Prediction**\n\n"
+            "AmEx features have **structural missingness** — not random gaps but systematic "
+            "patterns tied to account type and credit product eligibility.\n\n"
+            "| Feature Group | Est. % Missing | Mechanism | Treatment in Step 3 |\n"
+            "|---|---|---|---|\n"
+            "| D_* delinquency | 0–30% | MAR — only reported when delinquency occurs; 0 = no event | Treat as 0 (no event), add missingness flag |\n"
+            "| B_* balance | 0–15% | MAR — tied to credit product type | Median imputation within group, flag high-miss features |\n"
+            "| P_* payment | 0–10% | MAR — no payment if no balance | Treat as 0, flag |\n"
+            "| S_* spend | 5–25% | MAR — spend features depend on card usage | Median imputation, flag |\n"
+            "| R_* risk | 5–20% | MAR — internal scores not always computed | Median imputation |\n\n"
+            "**Key insight:** `fe_all_null_count` — the count of features that are NEVER populated "
+            "for a customer across all 13 statements — is a powerful feature. Customers with many "
+            "never-populated features have simpler accounts with less credit activity, which "
+            "correlates with default risk differently than complex multi-product customers.\n\n"
+            "**Critical anti-leakage rule:** The denoised aggregate step applies imputation "
+            "implicitly through groupby aggregations (NaN values are excluded from mean/std/min/max). "
+            "No explicit imputation statistics need to be fitted and transferred — but the rank "
+            "feature global-rank arrays MUST be computed on train data only."
+        ),
+        "outlier": (
+            "**🔺 Outlier Handling — AmEx Default Prediction**\n\n"
+            "| Feature Group | Issue | Treatment |\n"
+            "|---|---|---|\n"
+            "| D_39 (delinquency days) | Values up to 180 days — extreme delinquents | No cap: extreme values are genuine high-risk signals |\n"
+            "| B_1 (balance) | Wide range $0–$30,000+ | Captured by std/rank features; log not needed (LGB handles it) |\n"
+            "| P_2 (payment amount) | Zero-payment months are valid events | Preserve 0s; they signal payment skips |\n"
+            "| Diff features | Extreme diffs possible for long-history customers | Clipped at 99th percentile in rank features |\n\n"
+            "**The denoise step** (np.floor(x×100)/100) is the primary outlier treatment "
+            "for floating-point artefacts. For genuine extreme values:\n\n"
+            "- **Tree-based models (LightGBM)** are inherently robust to outliers — they split "
+            "on thresholds, not distances. The extreme delinquency customer gets correctly "
+            "placed in the high-risk leaf without needing winsorisation.\n"
+            "- **Rank features** transform all values to [0,1] percentiles, automatically "
+            "handling outliers by capping their influence at the distribution extremes.\n"
+            "- **Diff features** with extreme values are naturally bounded because the "
+            "denoised data reduces precision artefacts that create spurious extreme diffs.\n\n"
+            "*Competition lesson: removing or capping outliers in this dataset reduced model "
+            "performance — extreme delinquency and balance events are genuine signals, not noise.*"
+        ),
     },
 }
 
@@ -504,7 +2133,9 @@ def load_model(path):
     if not p.exists():
         return None
     try:
-        obj = joblib.load(p)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            obj = joblib.load(p)
         if isinstance(obj, dict) and "model" in obj:
             return obj["model"]
         return obj
@@ -841,7 +2472,7 @@ def page_run_pipeline(uc_key: str) -> None:
     if uc.get("status") == "scaffolded":
         st.warning(
             f"**{uc['title']}** is scaffolded — no pipeline scripts exist yet.  \n"
-            "Select an active use case (A, B, C_nlp, C_markets, or E) to run the pipeline.",
+            "Select an active use case (A, B, C_nlp, C_markets, D, or E) to run the pipeline.",
             icon="⚙️",
         )
         return
@@ -873,7 +2504,7 @@ def page_run_pipeline(uc_key: str) -> None:
         )
 
     with col_run:
-        run_clicked = st.button("▶ Run Selected", type="primary", key=f"_run_btn_{uc_key}", use_container_width=True)
+        run_clicked = st.button("▶ Run Selected", type="primary", key=f"_run_btn_{uc_key}", width='stretch')
 
     # Step description cards
     for s in available_steps:
@@ -946,6 +2577,24 @@ def page_data_profiling(uc_key: str) -> None:
         f"🔬 Data Studio — {uc['icon']} {uc['title']}",
         "Raw data exploration, statistical profiling, and quality assessment.",
     )
+
+
+    # ── Dataset introduction card ──────────────────────────────────────────────
+    _ds_info = _DATASET_INFO.get(uc_key, {})
+    if _ds_info:
+        _ds_url   = _ds_info.get("url", "")
+        _ds_label = _ds_info.get("label", "Dataset")
+        _ds_intro = _ds_info.get("intro", "")
+        st.markdown(
+            f"<div style='background:#1A237E22;border-left:4px solid {ACCENT};"
+            f"padding:10px 16px;border-radius:0 6px 6px 0;margin-bottom:14px;'>"
+            f"<p style='margin:0 0 6px 0;font-size:0.85rem;color:{BLUE};'>"
+            f"📂 <a href='{_ds_url}' target='_blank' style='color:{BLUE};text-decoration:underline;'>"
+            f"{_ds_label}</a></p>"
+            f"<p style='margin:0;font-size:0.9rem;color:{FONT};'>{_ds_intro}</p>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
 
     _is_markets = (uc_key == "C_markets")
 
@@ -1046,6 +2695,13 @@ def page_data_profiling(uc_key: str) -> None:
             else:
                 st.info("Target column not found in raw data. Run Step 1 first.")
 
+    # ── EDA insight — target tab ──────────────────────────────────────────────
+    _eda_target_note = _EDA_INSIGHTS.get(uc_key, {}).get("target")
+    if _eda_target_note:
+        with tab_target:
+            with st.expander("💡 Dataset Insights — Target Distribution", expanded=True):
+                st.markdown(_eda_target_note)
+
     # ── Correlation matrix ─────────────────────────────────────────────────────
     with tab_corr:
         with st.expander("📚 Teaching Note — How to read this correlation matrix", expanded=False):
@@ -1062,6 +2718,10 @@ Values range from -1 (perfect negative) to +1 (perfect positive); 0 = no linear 
 **Spearman** (toggle below) is more robust to outliers and captures monotonic (not just linear) relationships.
             """)
         _render_correlation_matrix(uc_key)
+        _eda_corr_note = _EDA_INSIGHTS.get(uc_key, {}).get("correlation")
+        if _eda_corr_note:
+            with st.expander("💡 Dataset Insights — Correlation Patterns", expanded=True):
+                st.markdown(_eda_corr_note)
 
     # ── Missing values ─────────────────────────────────────────────────────────
     with tab_missing:
@@ -1084,6 +2744,10 @@ Values range from -1 (perfect negative) to +1 (perfect positive); 0 = no linear 
         else:
             st.info("Missing values heatmap not found. Run Step 2 — EDA Analysis.")
             _run_step_action(2, uc_key, "▶ Run Step 2 — EDA  (goes to Run Pipeline)", suffix="miss")
+        _eda_miss_note = _EDA_INSIGHTS.get(uc_key, {}).get("missing")
+        if _eda_miss_note:
+            with st.expander("💡 Dataset Insights — Missing Values", expanded=True):
+                st.markdown(_eda_miss_note)
 
     # ── Outliers ───────────────────────────────────────────────────────────────
     with tab_outlier:
@@ -1123,6 +2787,10 @@ Review outliers in business context before removing.
                 st.info("Outlier report not found. Run Step 2 — EDA Analysis.")
         else:
             st.info("No outlier report configured for this use case.")
+        _eda_out_note = _EDA_INSIGHTS.get(uc_key, {}).get("outlier")
+        if _eda_out_note:
+            with st.expander("💡 Dataset Insights — Outlier Treatment", expanded=True):
+                st.markdown(_eda_out_note)
 
     # ── Market Analytics (C_markets only) ─────────────────────────────────────
     if _is_markets and tab_market is not None:
@@ -1271,34 +2939,78 @@ def page_feature_engineering(uc_key: str) -> None:
         "Feature scaling, extraction, transformation, engineering, and selection.",
     )
 
+    _fe_done = bool(src.get("train_fe") and (ROOT / src["train_fe"]).exists())
+    _run_tab_label = "▶️ Run Step 4" if _fe_done else "▶️ Run Step 3"
     tab_guide, tab_feats, tab_summary, tab_run = st.tabs([
         "📖 FE Guidance",
         "📋 Feature List",
         "📊 FE Summary",
-        "▶️ Run Step 3",
+        _run_tab_label,
     ])
 
     # ── FE Guidance ────────────────────────────────────────────────────────────
     with tab_guide:
         desc = guidance.get("description", "")
         if desc:
-            st.markdown(f"> {desc}")
+            st.markdown(
+                f"<div style='background:#1A237E22;border-left:4px solid #3949AB;"
+                f"padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:16px;'>"
+                f"<p style='margin:0;font-size:0.92rem;'>{desc}</p></div>",
+                unsafe_allow_html=True,
+            )
 
-        stages = guidance.get("stages", [])
+        stages     = guidance.get("stages", [])
+        stage_notes = guidance.get("stage_notes", {})
         if stages:
             st.markdown("#### Feature Engineering Pipeline Stages")
             for stage_name, feats in stages:
                 st.markdown(
-                    f"<div style='margin-bottom:10px;'>"
-                    f"<b style='color:{BLUE};'>{stage_name}</b><br>"
+                    f"<div style='margin-bottom:6px;'>"
+                    f"<b style='color:{BLUE};font-size:0.95rem;'>{stage_name}</b><br>"
                     + "".join(
                         f"<span class='pill'>{f}</span>" for f in feats
                     )
                     + "</div>",
                     unsafe_allow_html=True,
                 )
+                note = stage_notes.get(stage_name)
+                if note:
+                    with st.expander(f"📖 Rationale — {stage_name}", expanded=False):
+                        st.markdown(note)
+                st.markdown("")
         else:
             st.info("FE guidance not configured for this use case.")
+
+        # Imputation summary (shown when stage_notes present)
+        if stage_notes:
+            st.markdown("---")
+            st.markdown("#### Imputation & Final Cleaning")
+            st.markdown(
+                "After all feature groups are created, remaining numeric columns are imputed with "
+                "**training-set medians** (computed on the training split before the val split is touched). "
+                "Categorical columns — `msno` (user ID hash), `gender`, date fields — are dropped since "
+                "their signal is already captured in the engineered features above. "
+                "The result is a fully numeric, NaN-free feature matrix ready for model training."
+            )
+
+
+        # ── EDA-based recommendations ──────────────────────────────────────────
+        _eda_recs = _EDA_RECOMMENDATIONS.get(uc_key, [])
+        if _eda_recs:
+            with st.expander("💡 Practical Considerations from EDA", expanded=False):
+                st.markdown(
+                    f"<p style='color:{FONT};font-size:0.88rem;margin-bottom:8px;'>"
+                    "The following recommendations are derived from exploratory data analysis "
+                    "of this dataset. They inform the feature engineering choices implemented in Step 3.</p>",
+                    unsafe_allow_html=True,
+                )
+                for _rec in _eda_recs:
+                    st.markdown(
+                        f"<div style='border-left:3px solid {GRN};padding:6px 10px;"
+                        f"margin-bottom:8px;background:{GRID}11;border-radius:0 4px 4px 0;'>"
+                        f"<p style='margin:0;font-size:0.88rem;color:{FONT};'>• {_rec}</p></div>",
+                        unsafe_allow_html=True,
+                    )
 
         # SMOTE note
         st.markdown("---")
@@ -1350,11 +3062,27 @@ def page_feature_engineering(uc_key: str) -> None:
             st.info("Feature engineering summary plot not found. Run Step 3.")
             _run_step_action(3, uc_key, "▶ Run Step 3 — Data Preparation  (goes to Run Pipeline)", suffix="fe_sum")
 
-    # ── Run Step 3 ─────────────────────────────────────────────────────────────
+    # ── Run Step 3 / Step 4 (dynamic) ─────────────────────────────────────────
     with tab_run:
-        st.markdown("#### Run Step 3 — Data Preparation")
-        st.markdown(STEP_DESCRIPTIONS[3])
-        _run_step_action(3, uc_key, "▶ Run Step 3 — Data Preparation  (goes to Run Pipeline)", suffix="fe_run")
+        if _fe_done:
+            st.markdown("#### ✅ Step 3 Complete — Feature Engineering")
+            st.success(
+                f"Processed training file found at `{src.get('train_fe', '')}`. "
+                "Step 3 — Data Preparation has already run successfully.",
+                icon="✅",
+            )
+            st.markdown("---")
+            st.markdown("#### ▶ Next: Step 4 — Algorithm Selection & Cross-Validation")
+            st.markdown(STEP_DESCRIPTIONS[4])
+            _run_step_action(4, uc_key, "▶ Run Step 4 — Model Training  (goes to Run Pipeline)", suffix="fe_run_s4")
+            st.markdown("---")
+            with st.expander("🔁 Re-run Step 3 (overwrite processed files)", expanded=False):
+                st.markdown(STEP_DESCRIPTIONS[3])
+                _run_step_action(3, uc_key, "▶ Re-run Step 3 — Data Preparation", suffix="fe_run_s3")
+        else:
+            st.markdown("#### Run Step 3 — Data Preparation")
+            st.markdown(STEP_DESCRIPTIONS[3])
+            _run_step_action(3, uc_key, "▶ Run Step 3 — Data Preparation  (goes to Run Pipeline)", suffix="fe_run")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1397,11 +3125,12 @@ def page_post_processing_eda(uc_key: str) -> None:
         _run_step_action(3, uc_key, "\u25b6 Run Step 3 \u2014 Data Preparation  (goes to Run Pipeline)", suffix="ppe_s3")
         return
 
-    tab_overview, tab_compare, tab_new_feats, tab_target = st.tabs([
+    tab_overview, tab_compare, tab_new_feats, tab_target, tab_reports = st.tabs([
         "\U0001f4ca Overview",
         "\U0001f522 Raw vs Processed",
         "\U0001f195 New Features",
         "\U0001f3af Target Split",
+        "\U0001f4ca Report Figures",
     ])
 
     # \u2500\u2500 OVERVIEW \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
@@ -1438,6 +3167,9 @@ def page_post_processing_eda(uc_key: str) -> None:
             st.image(str(fe_png), width="stretch")
 
     # \u2500\u2500 RAW vs PROCESSED \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    _RAW_CLR = "#78909C"  # hoisted here so tab_new_feats can always reference it
+    _FE_CLR  = "#42A5F5"
+
     with tab_compare:
         if df_raw is None:
             st.info("Raw data not found \u2014 cannot compare distributions.")
@@ -1473,9 +3205,6 @@ def page_post_processing_eda(uc_key: str) -> None:
                     default=shared_num[:min(3, max_col)],
                     key=f"_ppe_cols_{uc_key}",
                 )
-
-                _RAW_CLR = "#78909C"
-                _FE_CLR  = "#42A5F5"
 
                 for col in picked:
                     _rv = df_raw[col].dropna()
@@ -1591,6 +3320,70 @@ def page_post_processing_eda(uc_key: str) -> None:
         else:
             st.info(f"Target column `{target}` not found in processed data.")
 
+    # ── REPORT FIGURES ─────────────────────────────────────────────────────────
+    with tab_reports:
+        report_dir = src.get("report_dir", "")
+        if not report_dir:
+            st.info("No report directory configured for this use case.")
+        else:
+            r_dir = ROOT / report_dir
+            if not r_dir.exists():
+                st.info(f"Report directory not found: `{report_dir}`")
+                st.caption("Run Steps 2 and 3 (EDA & Feature Engineering) to generate report figures.")
+            else:
+                # Categorise available PNGs
+                eda_patterns = [
+                    "overview.png",
+                    "target_distribution.png",
+                    "missing_heatmap.png",
+                    "numeric_distributions.png",
+                    "readability_complexity.png",
+                    "top_unigrams.png",
+                    "top_bigrams.png",
+                    "term_heatmap.png",
+                ]
+                fe_patterns = [
+                    "engineered_feature_summary.png",
+                    "raw_vs_processed_distributions.png",
+                ]
+
+                eda_imgs  = [(p, r_dir / p) for p in eda_patterns if (r_dir / p).exists()]
+                fe_imgs   = [(p, r_dir / p) for p in fe_patterns  if (r_dir / p).exists()]
+                # Also catch any other PNGs not in the named lists
+                all_named = set(eda_patterns + fe_patterns)
+                other_imgs = sorted(
+                    [(p.name, p) for p in r_dir.glob("*.png") if p.name not in all_named],
+                    key=lambda x: x[0],
+                )
+
+                total = len(eda_imgs) + len(fe_imgs) + len(other_imgs)
+                if total == 0:
+                    st.info("No PNG report figures found. Run Steps 2–3 to generate them.")
+                    _run_step_action(2, uc_key, "▶ Run Step 2 — EDA Analysis", suffix="ppe_rpt_s2")
+                    _run_step_action(3, uc_key, "▶ Run Step 3 — Feature Engineering", suffix="ppe_rpt_s3")
+                else:
+                    st.caption(f"📁 `{report_dir}` — {total} figure(s) available")
+
+                    if eda_imgs:
+                        st.markdown("**📊 EDA Report Figures** *(from Step 2)*")
+                        for label, img_path in eda_imgs:
+                            clean = label.replace("_", " ").replace(".png", "").title()
+                            with st.expander(clean, expanded=True):
+                                st.image(str(img_path), width='stretch')
+
+                    if fe_imgs:
+                        st.markdown("**🔧 Feature Engineering Figures** *(from Step 3)*")
+                        for label, img_path in fe_imgs:
+                            clean = label.replace("_", " ").replace(".png", "").title()
+                            with st.expander(clean, expanded=True):
+                                st.image(str(img_path), width='stretch')
+
+                    if other_imgs:
+                        st.markdown("**📋 Other Report Figures**")
+                        for label, img_path in other_imgs:
+                            clean = label.replace("_", " ").replace(".png", "").title()
+                            with st.expander(clean, expanded=False):
+                                st.image(str(img_path), width='stretch')
 
 
 def _HP_GUIDE_DATA() -> dict:
@@ -2135,6 +3928,43 @@ def page_explainability(uc_key: str) -> None:
 
     # ── Bias Audit ─────────────────────────────────────────────────────────────
     with tab_bias:
+        with st.expander("📚 How to read the Bias Audit charts", expanded=False):
+            st.markdown(f"""
+<p style='color:{FONT};font-size:0.9rem;'>
+A bias audit evaluates whether the model's predictions are <b>equitable across subgroups</b> —
+for example, by risk score, product type, or any available demographic proxy.
+This is distinct from SHAP explainability: SHAP tells you <em>why</em> the model makes a prediction;
+bias audit tells you <em>who</em> the model treats differently.
+</p>
+
+**What each column means:**
+
+| Column | What it measures |
+|--------|-----------------|
+| `subgroup` / first categorical | The group being evaluated (e.g., risk tier, region, score bucket) |
+| `mean_pred` / `avg_score` | Average predicted probability or score for this group |
+| `actual_rate` | Observed positive-class rate in the validation set for this group |
+| `approval_rate` | Share of cases in this group that would be approved at a given threshold |
+| `fpr` / `false_positive_rate` | Share of true negatives incorrectly flagged as positive — a **fairness-critical metric** |
+| `fnr` / `false_negative_rate` | Share of true positives missed — the **recall gap** across groups |
+
+**Key fairness concepts to look for:**
+
+- **Demographic parity gap:** If `approval_rate` differs sharply between groups, the model may be "disparate impact" under regulatory frameworks (e.g., ECOA in lending, EU AI Act). A gap > 20 percentage points typically warrants investigation.
+- **Equalised odds:** A fair model should have similar `fpr` and `fnr` across groups. If the false positive rate is much higher for one group, that group is disproportionately penalised.
+- **Calibration:** The model's predicted probability should match the actual positive rate within each group. A group where `mean_pred = 0.15` but `actual_rate = 0.35` is systematically under-scored.
+
+**Reading the bar chart:**
+- The colour gradient (green → red) visualises the selected metric across groups.
+- **Look for outlier bars** — groups that are significantly higher or lower than the overall average deserve investigation.
+- Switch the metric selector to compare multiple fairness dimensions (FPR, FNR, mean score) for the same groups.
+
+**What bias audit does NOT tell you:**
+- It does not prove discrimination — disparity in outcomes can reflect legitimate risk differences. Fairness analysis provides signals for human review, not automatic conclusions.
+- It does not replace legal compliance analysis. Always involve domain experts and legal counsel before making policy decisions based on model outputs.
+            """, unsafe_allow_html=True)
+
+
         bias_csv = r_dir / "ethics_bias_report.csv"
         if bias_csv.exists():
             df_bias = pd.read_csv(bias_csv)
@@ -2214,401 +4044,198 @@ def _page_prediction_demo_regression(uc_key: str) -> None:
                 input_vals[feat] = col.number_input(
                     feat, value=default_val,
                     format="%.6f",
-                    key=f"_ri_{uc_key}_{feat}",
                 )
-        submitted = st.form_submit_button("Predict", type="primary")
+        submitted = st.form_submit_button("🔮 Predict", type="primary")
 
     if submitted:
-        # Fill remaining features with median
-        all_input = {}
-        if df_ref is not None:
-            for feat in feat_cols:
-                if feat in df_ref.columns:
-                    all_input[feat] = float(df_ref[feat].median())
-        for feat in feat_cols_use:
-            all_input[feat] = input_vals.get(feat, 0.0)
-
-        X_input = pd.DataFrame([{f: all_input.get(f, 0.0) for f in feat_cols}])
+        X_pred = pd.DataFrame([{f: input_vals.get(f, 0.0) for f in feat_cols_use}])
         try:
-            prediction = model.predict(X_input)[0]
-            st.success(f"**Predicted {uc.get('target', 'value')}: {prediction:.6f}**")
+            pred = model.predict(X_pred)[0]
+            c1, c2 = st.columns(2)
+            with c1:
+                st.metric("Predicted Value", f"{pred:.6f}")
+            with c2:
+                if df_ref is not None:
+                    target_col = uc.get("target", "target")
+                    if target_col in df_ref.columns:
+                        mean_val = df_ref[target_col].mean()
+                        st.metric("Val-set mean", f"{mean_val:.6f}")
+            st.success(f"Champion `{champion_name}` predicted: **{pred:.6f}**")
+        except Exception as _e:
+            st.error(f"Prediction failed: {_e}")
 
-            # Gauge-style display
-            fig = go.Figure(go.Indicator(
-                mode="gauge+number",
-                value=float(prediction),
-                title={"text": f"Predicted {uc.get('metric', 'Value')}"},
-                gauge={
-                    "axis": {"range": [0, max(0.05, float(prediction) * 3)]},
-                    "bar":  {"color": BLUE},
-                    "bgcolor": BG,
-                    "steps": [
-                        {"range": [0, float(prediction) * 0.5], "color": "#1B5E20"},
-                        {"range": [float(prediction) * 0.5, float(prediction) * 1.5], "color": "#E65100"},
-                    ],
-                },
-            ))
-            fig.update_layout(plot_bgcolor=BG, paper_bgcolor=BG, font_color=FONT, height=320)
-            st.plotly_chart(fig, width='stretch')
-        except Exception as e:
-            st.error(f"Prediction failed: {e}")
+    # ── Reference statistics ────────────────────────────────────────────────
+    if df_ref is not None:
+        with st.expander("📊 Validation set feature statistics", expanded=False):
+            show_cols = [c for c in feat_cols_use if c in df_ref.columns]
+            st.dataframe(df_ref[show_cols].describe().T.round(4),
+                         width='stretch', hide_index=False)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# ── PAGE: Prediction Demo ─────────────────────────────────────────────────────
+# ── PAGE: Prediction Demo (dispatcher) ───────────────────────────────────────
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_prediction_demo(uc_key: str) -> None:
     uc = USE_CASE_META.get(uc_key, {})
     section_header(
         f"🎯 Prediction Demo — {uc['icon']} {uc['title']}",
-        "Live inference using the tuned champion model.",
+        "Live inference on the tuned champion model.",
     )
+    warn = _prereq_warning("🎯 Prediction Demo", uc_key)
+    if warn:
+        st.warning(warn)
+        _run_step_action(5, uc_key, "▶ Run Steps 4–5  (goes to Run Pipeline)", suffix="pdemo_warn")
+        return
 
-    # Route regression to its own helper
-    if "Regression" in uc.get("task", ""):
+    is_regr = "Regression" in uc.get("task", "")
+    if is_regr:
         _page_prediction_demo_regression(uc_key)
         return
 
-    # ── Classification demo ────────────────────────────────────────────────────
+    # ── Classification path ────────────────────────────────────────────────
     m_dir = ROOT / "models" / uc.get("model_dir", "")
-    champion_name = uc.get("champion", "lgbm_optuna_champion.pkl")
+    champion_name = uc.get("champion", "champion.pkl")
     model = load_model(m_dir / champion_name)
     feat_pkl = m_dir / "feature_cols.pkl"
     feat_cols = joblib.load(feat_pkl) if feat_pkl.exists() else None
 
     if model is None:
         st.info("Champion model not found. Run Step 5.")
-        _run_step_action(5, uc_key, "▶ Run Step 5  (goes to Run Pipeline)", suffix="cdemo")
+        _run_step_action(5, uc_key, "▶ Run Step 5  (goes to Run Pipeline)", suffix="pdemo_cls")
         return
 
     if feat_cols is None:
-        st.info("Feature columns not found. Run Steps 4–5.")
-        return
-
-    is_nlp = uc.get("is_nlp", False)
-    if is_nlp:
-        _page_prediction_demo_nlp(uc_key, model, feat_cols)
+        st.info("Feature columns list not found. Run Steps 4–5.")
         return
 
     st.markdown("#### Live Classification Prediction Demo")
     st.markdown(
-        f"Adjust feature values below and click **Predict** to see the champion model's "
-        f"probability output. Model: `{champion_name}`"
+        f"Select a sample from the validation set to see the champion model "
+        f"(`{champion_name}`) prediction and top SHAP feature contributions."
     )
 
-    # Load val data for defaults and ranges
     data_dir = ROOT / "data" / uc.get("data_dir", "")
-    val_path = data_dir / "val_fe.parquet"
-    df_ref   = None
-    if val_path.exists():
-        df_ref = pd.read_parquet(val_path)
+    val_path  = data_dir / "val_fe.parquet"
+    if not val_path.exists():
+        st.info("Validation data not found. Run Step 3.")
+        return
 
-    # Load optimal threshold
-    thresh = 0.5
-    thresh_file = m_dir / "lgbm_optimal_threshold.txt"
-    if thresh_file.exists():
-        try:
-            thresh = float(thresh_file.read_text().strip())
-        except Exception:
-            pass
+    df_val = pd.read_parquet(val_path)
+    feat_cols_use = [c for c in feat_cols if c in df_val.columns]
+    if not feat_cols_use:
+        st.info("Feature columns not found in validation data.")
+        return
 
-    # Feature importance for ordering sliders
-    shap_csv = ROOT / "reports" / uc.get("report_dir", "") / "shap_feature_importance.csv"
-    if shap_csv.exists():
-        df_shap = pd.read_csv(shap_csv)
-        ordered_feats = df_shap.iloc[:, 0].tolist()
-        feat_cols_ui = [f for f in ordered_feats if f in feat_cols][:15]
-    else:
-        feat_cols_ui = feat_cols[:15]
+    X_val = df_val[feat_cols_use]
 
-    input_vals = {}
-    with st.form(key=f"_clf_form_{uc_key}"):
-        n_per_row = 3
-        feat_rows = [feat_cols_ui[i:i+n_per_row] for i in range(0, len(feat_cols_ui), n_per_row)]
-        for feat_row in feat_rows:
-            cols = st.columns(len(feat_row))
-            for col, feat in zip(cols, feat_row):
-                default_val = 0.0
-                min_val, max_val = 0.0, 1.0
-                if df_ref is not None and feat in df_ref.columns:
-                    default_val = float(df_ref[feat].median())
-                    min_val     = float(df_ref[feat].quantile(0.01))
-                    max_val     = float(df_ref[feat].quantile(0.99))
-                    if min_val == max_val:
-                        min_val = default_val - 1.0
-                        max_val = default_val + 1.0
-                input_vals[feat] = col.slider(
-                    feat,
-                    min_value=float(min_val),
-                    max_value=float(max_val),
-                    value=float(default_val),
-                    key=f"_ci_{uc_key}_{feat}",
-                )
-        threshold_override = st.slider(
-            "Decision threshold", 0.01, 0.99, float(thresh), 0.01,
-            key=f"_thresh_demo_{uc_key}",
-        )
-        submitted = st.form_submit_button("Predict", type="primary")
-
-    if submitted:
-        all_input = {}
-        if df_ref is not None:
-            for feat in feat_cols:
-                if feat in df_ref.columns:
-                    all_input[feat] = float(df_ref[feat].median())
-        for feat in feat_cols_ui:
-            all_input[feat] = input_vals.get(feat, 0.0)
-
-        X_input = pd.DataFrame([{f: all_input.get(f, 0.0) for f in feat_cols}])
-        try:
-            proba = model.predict_proba(X_input)[0]
-            target_names = uc.get("target_labels", {})
-
-            if len(proba) == 2:
-                pos_prob = proba[1]
-                decision = "POSITIVE" if pos_prob >= threshold_override else "NEGATIVE"
-                colour   = RED if decision == "POSITIVE" else GRN
-
-                col1, col2 = st.columns(2)
-                col1.markdown(
-                    metric_card("Positive Class Probability", f"{pos_prob:.4f}", colour=colour),
-                    unsafe_allow_html=True,
-                )
-                col2.markdown(
-                    metric_card("Decision", decision, colour=colour),
-                    unsafe_allow_html=True,
-                )
-
-                fig = go.Figure(go.Bar(
-                    x=[target_names.get(0, "Negative"), target_names.get(1, "Positive")],
-                    y=[proba[0], proba[1]],
-                    marker_color=[GRN, RED],
-                    text=[f"{proba[0]:.4f}", f"{proba[1]:.4f}"],
-                    textposition="outside",
-                ))
-                fig.update_layout(
-                    plot_bgcolor=BG, paper_bgcolor=BG, font_color=FONT,
-                    height=300, yaxis_range=[0, 1.1],
-                    title="Predicted Class Probabilities",
-                    yaxis_title="Probability",
-                )
-                st.plotly_chart(fig, width='stretch')
-
-            else:
-                # Multi-class
-                class_names = [target_names.get(i, f"Class {i}") for i in range(len(proba))]
-                fig = go.Figure(go.Bar(
-                    x=class_names, y=list(proba),
-                    marker_color=[BLUE, GRN, ORG, RED, PURP][:len(proba)],
-                    text=[f"{p:.4f}" for p in proba],
-                    textposition="outside",
-                ))
-                fig.update_layout(
-                    plot_bgcolor=BG, paper_bgcolor=BG, font_color=FONT,
-                    height=320, yaxis_range=[0, 1.1],
-                    title="Predicted Class Probabilities",
-                    yaxis_title="Probability",
-                )
-                st.plotly_chart(fig, width='stretch')
-
-        except Exception as e:
-            st.error(f"Prediction failed: {e}")
-
-
-# ======================================================================
-# PAGE: Prediction Demo (NLP)
-# ======================================================================
-
-def _page_prediction_demo_nlp(uc_key: str, model, feat_cols: list) -> None:
-    uc = USE_CASE_META.get(uc_key, {})
-    target_labels = uc.get("target_labels", {})
-
-    st.markdown("#### Live NLP Sentiment Demo")
-    st.markdown(
-        "Enter a financial news headline or excerpt below. "
-        "The champion model will classify it as **Bearish / Neutral / Bullish**."
+    sample_idx = st.number_input(
+        "Sample index (row in val set)", min_value=0,
+        max_value=len(X_val) - 1, value=0, step=1,
+        key=f"_cls_idx_{uc_key}",
     )
+    row = X_val.iloc[[sample_idx]]
 
-    m_dir    = ROOT / "models" / uc.get("model_dir", "")
-    vec_path = m_dir / "tfidf_vectorizer.pkl"
-    vectorizer = None
-    if vec_path.exists():
-        try:
-            vectorizer = joblib.load(vec_path)
-        except Exception:
-            pass
+    try:
+        proba = model.predict_proba(row)[0]
+        if len(proba) == 2:
+            st.metric("Predicted probability (positive class)", f"{proba[1]:.4f}")
+        else:
+            cols_m = st.columns(len(proba))
+            for i, (col_m, p) in enumerate(zip(cols_m, proba)):
+                col_m.metric(f"Class {i} probability", f"{p:.4f}")
 
-    text_input = st.text_area(
-        "Financial text",
-        value="The company reported record profits, beating analyst expectations.",
-        height=100,
-        key=f"_nlp_text_{uc_key}",
-    )
-
-    if st.button("Classify", type="primary", key=f"_nlp_btn_{uc_key}"):
-        try:
-            if vectorizer is not None:
-                X_vec = vectorizer.transform([text_input])
-                if hasattr(X_vec, "toarray"):
-                    X_input = pd.DataFrame(
-                        X_vec.toarray(),
-                        columns=vectorizer.get_feature_names_out(),
-                    )
-                    for c in feat_cols:
-                        if c not in X_input.columns:
-                            X_input[c] = 0.0
-                    X_input = X_input[feat_cols]
-                else:
-                    X_input = X_vec
-            else:
-                X_input = pd.DataFrame([[0.0] * len(feat_cols)], columns=feat_cols)
-
-            proba       = model.predict_proba(X_input)[0]
-            class_names = [target_labels.get(i, f"Class {i}") for i in range(len(proba))]
-            pred_idx    = int(np.argmax(proba))
-            pred_label  = class_names[pred_idx]
-            colour_map  = {0: RED, 1: PALETTE["grey"], 2: GRN}
-            colour      = colour_map.get(pred_idx, BLUE)
-
-            st.markdown(
-                metric_card("Prediction", pred_label, colour=colour),
-                unsafe_allow_html=True,
-            )
-
-            fig = go.Figure(go.Bar(
-                x=class_names, y=list(proba),
-                marker_color=[RED, PALETTE["grey"], GRN][:len(proba)],
-                text=[f"{p:.4f}" for p in proba],
-                textposition="outside",
-            ))
-            fig.update_layout(
-                plot_bgcolor=BG, paper_bgcolor=BG, font_color=FONT,
-                height=300, yaxis_range=[0, 1.1],
-                title="Sentiment Class Probabilities",
-                yaxis_title="Probability",
-            )
-            st.plotly_chart(fig, width='stretch')
-
-        except Exception as e:
-            st.error(f"Classification failed: {e}")
-            st.info("Ensure Steps 4-5 have been run successfully so the model and vectorizer are saved.")
+        # Show top SHAP features for this sample
+        r_dir = ROOT / "reports" / uc.get("report_dir", "")
+        shap_csv = r_dir / "shap_feature_importance.csv"
+        if shap_csv.exists():
+            df_shap  = pd.read_csv(shap_csv)
+            top_feats = df_shap.iloc[:, 0].head(20).tolist()
+            row_display = row.T.reset_index()
+            row_display.columns = ["Feature", "Value"]
+            row_top = row_display[row_display["Feature"].isin(top_feats)]
+            st.markdown("**Top SHAP features for this sample (values only)**")
+            st.dataframe(row_top, width='stretch', hide_index=True)
+    except Exception as _e:
+        st.warning(f"Could not compute prediction: {_e}")
 
 
-# ======================================================================
-# PAGES registry
-# ======================================================================
+# ══════════════════════════════════════════════════════════════════════════════
+# ── Top-level navigation & routing ───────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
 
 PAGES: dict = {
-    "\u25b6\ufe0f  Run Pipeline":           page_run_pipeline,
-    "\U0001f52c Data Studio":             page_data_profiling,
-    "\U0001f527 Data Preparation":        page_feature_engineering,
-    "\U0001f4c8 Post-Processing EDA":     page_post_processing_eda,
-    "\U0001f916 Model Development":       page_model_development,
-    "\U0001f4ca Model Evaluation":        page_model_performance,
-    "\U0001f50d Ethics & Explainability": page_explainability,
-    "\U0001f3af Prediction Demo":         page_prediction_demo,
+    "▶️  Run Pipeline":          page_run_pipeline,
+    "🔬 Data Studio":            page_data_profiling,
+    "🔧 Data Preparation":       page_feature_engineering,
+    "📈 Post-Processing EDA":    page_post_processing_eda,
+    "🤖 Model Development":      page_model_development,
+    "📊 Model Evaluation":       page_model_performance,
+    "🎯 Prediction Demo":        page_prediction_demo,
+    "🔍 Ethics & Explainability": page_explainability,
 }
 
-# ── Main execution ─────────────────────────────────────────────────────────────
-uc_key = render_sidebar()
+_NAV_SECTIONS: list[str] = list(PAGES.keys())
 
-# ── Top navigation bar (radio-based tab strip) ────────────────────────────────
+# ── Nav strip CSS ──────────────────────────────────────────────────────────────
 st.markdown(
-    """
+    f"""
     <style>
-    div[data-testid="stRadio"] > label { display:none; }
-    div[data-testid="stRadio"] div[role="radiogroup"] {
-        display:flex; flex-wrap:wrap; gap:2px;
-        border-bottom:2px solid #3949AB;
-        margin-bottom:18px; padding-bottom:0;
-    }
-    div[data-testid="stRadio"] div[role="radiogroup"] > label {
-        background:#FFFFFF;
-        border:1px solid #C5CAE9;
-        border-bottom:2px solid transparent;
-        border-radius:6px 6px 0 0;
-        padding:7px 14px;
-        margin-bottom:-2px;
-        font-size:0.80rem;
-        white-space:nowrap;
-        color:#1A237E !important;
-        cursor:pointer;
-        font-weight:500;
-        transition:background 0.12s, color 0.12s;
-    }
-    div[data-testid="stRadio"] div[role="radiogroup"] > label p {
-        color:#1A237E !important;
-        font-size:0.80rem;
-        margin:0;
-    }
-    div[data-testid="stRadio"] div[role="radiogroup"] > label:hover {
-        background:#E8EAF6;
-    }
-    div[data-testid="stRadio"] div[role="radiogroup"] > label:hover p {
-        color:#1A237E !important;
-    }
-    div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) {
-        background:#3949AB !important;
-        border-color:#3949AB !important;
-        border-bottom-color:#3949AB !important;
-        color:#FFFFFF !important;
-        font-weight:700;
-    }
-    div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) p {
-        color:#FFFFFF !important;
-        font-weight:700;
-    }
-    div[data-testid="stRadio"] div[role="radiogroup"] > label > div:first-child {
-        display:none;
-    }
+    div[data-testid="stRadio"] div[role="radiogroup"] {{
+        display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0;
+    }}
+    div[data-testid="stRadio"] div[role="radiogroup"] > label {{
+        background: #1E2A4A;
+        border: 1.5px solid {ACCENT};
+        border-radius: 20px;
+        padding: 5px 14px;
+        cursor: pointer;
+        color: {FONT} !important;
+        font-size: 0.82rem;
+        transition: background 0.15s;
+    }}
+    div[data-testid="stRadio"] div[role="radiogroup"] > label p {{
+        color: {FONT} !important;
+        margin: 0;
+    }}
+    div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) {{
+        background: {ACCENT} !important;
+        border-color: {ACCENT} !important;
+        color: #FFFFFF !important;
+    }}
+    div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) p {{
+        color: #FFFFFF !important;
+    }}
+    div[data-testid="stRadio"] div[role="radiogroup"] > label input {{
+        display: none;
+    }}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-_NAV_LABELS = list(PAGES.keys())
+# ── Session state defaults ─────────────────────────────────────────────────────
+if "nav_page" not in st.session_state:
+    st.session_state.nav_page = "▶️  Run Pipeline"
 
-if "nav_page" not in st.session_state or st.session_state.nav_page not in _NAV_LABELS:
-    st.session_state.nav_page = _NAV_LABELS[0]
-_selected_nav = st.radio(
+# ── Sidebar (returns selected uc_key) ─────────────────────────────────────────
+uc_key = render_sidebar()
+
+# ── Top nav strip ─────────────────────────────────────────────────────────────
+_nav_idx = (
+    _NAV_SECTIONS.index(st.session_state.nav_page)
+    if st.session_state.nav_page in _NAV_SECTIONS
+    else 0
+)
+selected_page = st.radio(
     "Navigation",
-    _NAV_LABELS,
-    index=_NAV_LABELS.index(st.session_state.nav_page),
-    key="_top_nav_radio",
+    _NAV_SECTIONS,
+    index=_nav_idx,
     horizontal=True,
+    key="_top_nav",
     label_visibility="collapsed",
 )
-if _selected_nav != st.session_state.nav_page:
-    st.session_state.nav_page = _selected_nav
-    st.rerun()
+st.session_state.nav_page = selected_page
 
-_active_page = st.session_state.nav_page
-_warning_msg = _prereq_warning(_active_page, uc_key)
-if _warning_msg:
-    st.warning(_warning_msg, icon="\u26a0\ufe0f")
-    st.info(
-        "Once the required step is complete, come back to this page \u2014 it will load automatically.",
-        icon="\U0001f4a1",
-    )
-    _run_step_hint = {
-        "\U0001f52c Data Studio":             1,
-        "\U0001f527 Data Preparation":        1,
-        "\U0001f4c8 Post-Processing EDA":     3,
-        "\U0001f916 Model Development":       4,
-        "\U0001f4ca Model Evaluation":        4,
-        "\U0001f3af Prediction Demo":         5,
-        "\U0001f50d Ethics & Explainability": 6,
-    }
-    _hint_step = _run_step_hint.get(_active_page)
-    if _hint_step is not None:
-        if st.button(
-            f"\u25b6\ufe0f Go to Run Pipeline \u2192 Step {_hint_step}",
-            key="_prereq_goto_run",
-            type="primary",
-        ):
-            st.session_state["_auto_run_step"] = _hint_step
-            st.session_state.nav_page = "\u25b6\ufe0f  Run Pipeline"
-            st.rerun()
-else:
-    PAGES[_active_page](uc_key)
+# ── Dispatch ───────────────────────────────────────────────────────────────────
+PAGES[selected_page](uc_key)

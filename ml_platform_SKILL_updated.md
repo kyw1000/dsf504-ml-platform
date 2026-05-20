@@ -2,10 +2,10 @@
 name: ml-platform
 description: >
   Expert assistant for the DSF504 ML Platform -- a Streamlit multi-use-case
-  machine learning dashboard with six-step pipeline scripts.
+  machine learning dashboard with five-step pipeline scripts.
   Use this skill whenever the user asks about, works on, or debugs anything
   in the DSF504 project, including: the Streamlit dashboard (app.py), pipeline
-  scripts (01-06 per use case), config.py, utils/, or any page/tab/chart
+  scripts (01-05 per use case), config.py, utils/, or any page/tab/chart
   inside the platform. Also trigger for requests like "add a new use case",
   "add a page / tab", "fix this dashboard error", "improve the correlation
   chart", or any question about the ML Framework phases used in this project.
@@ -21,30 +21,30 @@ description: >
 | Item | Value |
 |------|-------|
 | Root | C:\\DSF504\\ (bash: /sessions/.../mnt/DSF504/) |
-| Dashboard | dashboard/app.py (~3,871 lines) |
+| Dashboard | dashboard/app.py (~2,700 lines) |
 | Run | streamlit run dashboard/app.py (from C:\\DSF504\\) |
 | Python | 3.13, Windows |
-| Active use cases | A (fraud), B (credit), C_nlp (NLP sentiment), C_markets (volatility), D (churn), E (insurance), F (ESG greenwashing), G (AmEx default) |
+| Active use cases | A (fraud), B (credit), C_nlp (NLP sentiment), C_markets (volatility), D (churn), E (insurance) |
 
 ## ML Framework -- 8 Dashboard Pages
 
-Top nav uses st.radio(horizontal=True) styled as a pill tab strip (no --- separator between nav and content):
+Top nav uses st.radio(horizontal=True) styled as a pill tab strip (no `---` separator between nav and content):
 
 ```
-Run Pipeline           -- execute any of the 6 pipeline steps
-Data Studio            -- raw data browser + profiling + correlation matrix
-Data Preparation       -- feature engineering guidance + run Step 3
-Post-Processing EDA    -- raw vs processed + Report Figures (PNG gallery)
-Model Development      -- algorithm comparison + CV explorer + HP tuning guide
-Model Evaluation       -- champion metrics + threshold calibration
-Prediction Demo        -- live inference on the tuned champion
-Ethics & Explainability -- SHAP + fairness audit
+▶️  Run Pipeline           -- execute any of the 5 pipeline steps
+🔬 Data Studio            -- raw data browser + profiling + correlation matrix
+🔧 Data Preparation       -- feature engineering guidance + run Step 3
+📈 Post-Processing EDA    -- raw vs processed + Report Figures (PNG gallery)
+🤖 Model Development      -- algorithm comparison + CV explorer + HP tuning guide
+📊 Model Evaluation       -- champion metrics + threshold calibration
+🎯 Prediction Demo        -- live inference on the tuned champion
+🔍 Ethics & Explainability -- SHAP + fairness audit
 ```
 
 PAGES dict and _NAV_SECTIONS must use byte-identical label strings --
 any mismatch causes a nav button that never activates.
 
-## Six-Step Pipeline (per use case)
+## Five-Step Pipeline (per use case)
 
 ```
 Step 1  01_data_loading.py          -> Parquet splits (train/val/test)
@@ -52,13 +52,7 @@ Step 2  02_eda_analysis.py          -> CSV/PNG reports in reports/<uc>/
 Step 3  03_feature_engineering.py   -> train_fe.parquet, feature list CSV
 Step 4  04_model_training.py        -> champion.pkl, model_comparison.csv
 Step 5  05_hyperparameter_tuning.py -> final_model.pkl, tuning logs
-Step 6  06_ethics_explainability.py -> SHAP PNGs, fairness CSVs, ethics_insights.txt
 ```
-
-Step 6 exists for UC-E (binary) and UC-F (3-class ESG). UC-E uses utils/ethics_viz.py
-helpers. UC-F is self-contained -- multiclass SHAP from LightGBM returns a 3-D ndarray
-(n_samples, n_features, n_classes); slice to a list of 2-D arrays before plotting.
-STEP_NAMES[6] = "Ethics & Explainability" is already registered in app.py.
 
 See references/architecture.md for the full import/logging/ensure_utf8
 boilerplate every script must include.
@@ -78,27 +72,36 @@ wc -c /sessions/.../mnt/DSF504/dashboard/app.py
 ```
 
 ### Safe write pattern (bypasses the buffer limit)
-```python
+```bash
+python3 - <<'EOF'
 content = open('/sessions/.../mnt/DSF504/target.py', encoding='utf-8').read()
 # ... make your changes to content ...
 with open('/sessions/.../mnt/DSF504/target.py', 'w', encoding='utf-8') as f:
     f.write(content)
 import ast; ast.parse(content); print("AST OK,", len(content.splitlines()), "lines")
+EOF
 ```
 
 ### Strip null bytes after any Edit on a large file
-```python
+```bash
+python3 - <<'EOF'
 path = '/sessions/.../mnt/DSF504/dashboard/app.py'
 raw = open(path, 'rb').read()
 if b'\x00' in raw:
     open(path, 'wb').write(raw.rstrip(b'\x00'))
     print("Stripped null bytes")
 import ast; ast.parse(open(path, encoding='utf-8').read()); print("AST OK")
+EOF
 ```
 
 ### Use utils/file_guard.py
 ```bash
 python utils/file_guard.py dashboard/app.py      # check + strip nulls
+```
+```python
+from utils.file_guard import check_file, safe_write
+check_file("dashboard/app.py")       # after any Edit
+safe_write("big_file.py", content)   # instead of Write tool
 ```
 
 Never chain multiple Edit calls on the same large file in one turn -- each
@@ -114,24 +117,47 @@ final content in one bash Python call instead.
    pair appears more than once -- duplicate widget keys crash Streamlit.
 
 ### Navigation tab CSS -- the cascade trap
-color on label does NOT cascade to the inner p in Streamlit radio buttons.
-Always target both elements in CSS:
+color on <label> does NOT cascade to the inner <p> in Streamlit radio buttons.
+Always target both elements:
 
 ```css
-div[data-testid="stRadio"] div[role="radiogroup"] > label { color: #1A237E !important; }
-div[data-testid="stRadio"] div[role="radiogroup"] > label p { color: #1A237E !important; }
-div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) { background: #3949AB !important; color: #FFFFFF !important; }
-div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) p { color: #FFFFFF !important; }
+div[data-testid="stRadio"] div[role="radiogroup"] > label {
+    background: #FFFFFF; color: #1A237E !important;
+}
+div[data-testid="stRadio"] div[role="radiogroup"] > label p {
+    color: #1A237E !important;
+}
+div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) {
+    background: #3949AB !important; color: #FFFFFF !important;
+}
+div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) p {
+    color: #FFFFFF !important;
+}
 ```
 
-### Dark background -- always use light text
+### Dark background — always use light text
 
-The dashboard uses a dark background (BG = "#1A1A2E"). Any inline HTML,
-custom CSS, or st.markdown content must use light colours. Always use:
-    st.markdown(f"<p style='color:{FONT};'>...</p>", unsafe_allow_html=True)
-Not: st.markdown("<p>...</p>", unsafe_allow_html=True)  # invisible black text
+The dashboard uses a dark background (`BG = "#1A1A2E"`). Any inline HTML,
+custom CSS, or st.markdown content must use light colours or it will be
+invisible against the dark canvas.
 
-When writing CSS, always target both the container AND inner p tags.
+```python
+# ✅ Correct — light text on dark background
+st.markdown(f"<p style='color:{FONT};'> ... </p>", unsafe_allow_html=True)
+
+# ❌ Wrong — default browser black text, invisible on dark bg
+st.markdown("<p> ... </p>", unsafe_allow_html=True)
+```
+
+When writing CSS selectors that set text colour, always specify both the
+container element AND any inner `<p>` tags, because Streamlit wraps markdown
+text in `<p>` which resets colour:
+
+```css
+/* target the label AND its inner <p> */
+div.my-class { color: #E0E0E0 !important; }
+div.my-class p { color: #E0E0E0 !important; }
+```
 
 House colour palette:
 
@@ -149,55 +175,39 @@ House colour palette:
 
 ### Charts & widgets -- house style
 ```python
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+import plotly.express as px
+
+BG, FONT = "#1A1A2E", "#E0E0E0"
 fig.update_layout(plot_bgcolor=BG, paper_bgcolor=BG, font_color=FONT, height=340)
-st.plotly_chart(fig, width='stretch')   # use_container_width removed in Streamlit >=1.44
+st.plotly_chart(fig, width='stretch')    # not use_container_width (removed in Streamlit ≥1.44)
 st.dataframe(df, width='stretch', hide_index=True)
-st.image(img_path, width='stretch')
+st.image(img_path, width='stretch')      # same — use_container_width= is gone
 ```
 
-width='stretch' replaces use_container_width=True.
-width='content' replaces use_container_width=False.
-Applies to all Streamlit widgets that previously accepted use_container_width.
+`use_container_width` is fully removed. Always use:
+- `width='stretch'`  (replaces use_container_width=True)
+- `width='content'`  (replaces use_container_width=False)
 
-### Data Preparation page -- dynamic last tab
-
-page_data_prep computes _fe_done (True when train_fe.parquet exists) and
-uses it to switch the last tab label and content:
-- _fe_done = False  ->  tab label "Run Step 3", button runs Step 3
-- _fe_done = True   ->  tab label "Run Step 4", primary CTA runs Step 4,
-  with a collapsible expander to re-run Step 3 if needed
-
-### Post-Processing EDA -- colour constants scope
-
-_RAW_CLR and _FE_CLR are defined at the top of page_post_processing_eda
-(before the with tab_compare: block) so that tab_new_feats can always
-reference them even when df_raw is None. Do NOT move these back inside the
-if shared_num: block or the UnboundLocalError will return.
+Applies to: st.plotly_chart, st.dataframe, st.image, st.button, and all
+other Streamlit widgets that previously accepted use_container_width.
 
 ### Adding a new use case
-1. Create use_case_X/01...06_*.py (copy UC-E or UC-F as template -- both have Step 6).
-2. Add key to USE_CASE_SCRIPTS (steps 1-6) and USE_CASE_META in app.py.
-3. Add dicts: _PROFILING_SRC, _FE_EDA_SRC, _FE_GUIDANCE (with stage_notes per stage),
-   and _EDA_INSIGHTS (4 keys: target / correlation / missing / outlier).
-4. _PROFILING_SRC["X"]["raw"] must point to the actual parquet filename on disk
-   (verify with ls data/<dir>/). Wrong path -> Data Studio shows no raw samples.
-5. Use "status": "scaffolded" until all six scripts run end-to-end successfully.
-6. Promote to "status": "active" only after Steps 1-6 all produce their artefacts.
-
-### UC-G raw data paths
-UC-G (AmEx Default) raw file is data/amex_default/train_raw.parquet --
-NOT train_data_synthetic.parquet. Both _PROFILING_SRC["G"]["raw"] and
-_FE_EDA_SRC["G"]["raw"] must use train_raw.parquet.
-
-### n_jobs in sandbox pipeline scripts
-The bash sandbox hangs with n_jobs=-1. All pipeline scripts must use n_jobs=1.
-Check with: grep -rn "n_jobs=-1" use_case_*/
-UC-G step 04 had 4 occurrences (LogisticRegression, RF, XGBoost, LightGBM) --
-all fixed. UC-F steps 04 and 05 were also fixed previously.
+1. Create use_case_X/01...05_*.py (copy Use Case A as template).
+2. Add key to USE_CASE_SCRIPTS and USE_CASE_META in app.py.
+3. Add dicts: _PROFILING_SRC, _FE_EDA_SRC, _FE_GUIDANCE, _DATASET_ANALYSIS_CONFIG.
+4. Use "status": "scaffolded" until all five scripts run end-to-end successfully.
 
 ### Git -- must run from Windows, not bash sandbox
 The bash sandbox mounts the Windows filesystem read-only for git operations.
-Run all git commands from Windows PowerShell (cd C:\\DSF504; git add -A; git push).
+Run all git commands from Windows PowerShell:
+```powershell
+cd C:\DSF504
+git add -A
+git commit -m "fix: describe change"
+git push
+```
 
 ## Known Pitfalls -- Quick Lookup
 
@@ -208,23 +218,16 @@ See references/pitfalls.md for full root-cause analysis.
 | File silently truncated after Edit/Write | Tool buffer cap ~12 KB | Use bash Python for files > 10 KB |
 | Null bytes / SyntaxError after Edit | Tool pads with 0x00 when shrinking | raw.rstrip(b'\\x00') then rewrite |
 | StreamlitDuplicateElementKey | Two _run_step_action(N, uc_key) on same page | Add suffix="unique" to second call |
-| NameError: plt is not defined | matplotlib not imported in dashboard | Replace with plotly go.Histogram etc |
+| NameError: plt is not defined | matplotlib.pyplot not imported in dashboard | Replace with plotly go.Histogram etc |
 | Garbled output on Windows | cp1252 vs UTF-8 pipe encoding | ensure_utf8() before logging.basicConfig() |
 | TypeError: multi_class unexpected kwarg | Removed in scikit-learn 1.5 | Delete multi_class= from LogisticRegression |
-| Dataset scripts no longer supported | HuggingFace datasets v3 change | Use parquet fallbacks + raw text mirrors |
+| Dataset scripts are no longer supported | HuggingFace datasets v3 dropped script loading | Use parquet fallbacks + raw text mirrors (pitfalls #13) |
 | Nav tab text invisible (dark on dark) | CSS color on label does not cascade to p | Also target > label p { color: !important } |
 | git init fails from bash sandbox | Mounted Windows filesystem | Run git from Windows PowerShell |
-| PerformanceWarning: DataFrame fragmented | Many df["col"] = assignments | Collect in dict, pd.concat once |
-| use_container_width deprecation warning | Removed in Streamlit >=1.44 | width='stretch' or width='content' |
+| PerformanceWarning: DataFrame fragmented | Many df["col"] = ... assignments | Collect in dict, pd.concat once |
+| use_container_width deprecation warning | Removed in Streamlit ≥1.44 | width='stretch' (True) or width='content' (False) — all widgets incl. st.image |
 | Pandas4Warning on select_dtypes("object") | pandas 3 separates str from object | Use include=["object","category","str"] |
 | PAGES / _NAV_SECTIONS key mismatch | Label strings differ | Copy-paste labels; debug with .encode('utf-8').hex() |
-| LightGBM multiclass SHAP is 3-D ndarray | shap_values() returns (n,p,k) not a list | Slice: [sv[:,:,k] for k in range(sv.shape[2])] |
-| model.feature_name_() TypeError | LightGBM feature_name_ is a property | Remove () -- use model.feature_name_ |
-| Beta generator yields no High-risk class | beta(1.5,4.0) rarely exceeds threshold | Use explicit 3-tier (60/25/15% Low/Med/High) |
-| UnboundLocalError: _FE_CLR not associated with a value | _FE_CLR defined inside if shared_num block, skipped when df_raw is None | Define _RAW_CLR/_FE_CLR before with tab_compare: in page_post_processing_eda |
-| UC-G Data Studio shows no raw samples | _PROFILING_SRC["G"]["raw"] -> non-existent train_data_synthetic.parquet | Change to train_raw.parquet |
-| UC-G step 04 hangs / only 1 model in comparison | n_jobs=-1 in all 4 model definitions | Change all to n_jobs=1 in 04_model_training.py |
-| UC-G ROC-AUC = 1.000 | Synthetic data -- target derived from features with minimal noise | Expected; not a leakage bug; real data shows model differentiation |
 
 ## Helper Functions (app.py)
 

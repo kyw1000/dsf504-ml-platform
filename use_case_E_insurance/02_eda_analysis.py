@@ -557,6 +557,21 @@ def main():
     print("\n[7] Continuous feature distributions…")
     plot_continuous_distributions(df_clean)
 
+    # 8. Supplemental standardised EDA plots
+    print("\n[8] Supplemental standardised visualizations…")
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from utils.eda_viz import (
+            plot_overview_panel, plot_numeric_distributions,
+        )
+        plot_overview_panel(df_clean, TARGET_COL, REPORT_DIR, " — UC E Insurance Risk")
+        plot_numeric_distributions(df_clean, REPORT_DIR, " — UC E Insurance Risk",
+                                   target_col=TARGET_COL)
+        print("    Saved: overview.png, numeric_distributions.png")
+    except Exception as _e:
+        print(f"    [warn] Supplemental plots skipped: {_e}")
+
     print(f"\n[✓] All EDA outputs saved to: {REPORT_DIR}")
     print("\n" + "=" * 65)
     print("  Step 2 complete. Ready for Feature Engineering (03_feature_engineering.py)")

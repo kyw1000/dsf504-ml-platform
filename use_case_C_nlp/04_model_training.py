@@ -188,7 +188,6 @@ def build_models() -> dict:
             max_iter=2000,
             C=1.0,
             solver="saga",
-            multi_class="multinomial",
             random_state=RANDOM_STATE,
         ),
         "features": "combined",

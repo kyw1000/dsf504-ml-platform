@@ -309,6 +309,20 @@ def main():
     plot_term_heatmap(df, top_terms=20)
 
     print_eda_summary(df)
+
+    # ── Supplemental standardised EDA plots ──────────────────────────────
+    print("[7] Supplemental standardised visualizations…")
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from utils.eda_viz import plot_target_distribution, plot_overview_panel
+        plot_target_distribution(df, TARGET, REPORT_DIR, " — UC C_nlp Sentiment",
+                                 label_map={0: "Negative", 1: "Neutral", 2: "Positive"})
+        plot_overview_panel(df, TARGET, REPORT_DIR, " — UC C_nlp Sentiment")
+        print("    Saved: target_distribution.png, overview.png")
+    except Exception as _e:
+        print(f"    [warn] Supplemental plots skipped: {_e}")
+
     print(f"  All EDA outputs saved to: {REPORT_DIR}")
     print("  Ready for feature engineering (03_feature_engineering.py)")
 

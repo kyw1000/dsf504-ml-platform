@@ -1,230 +1,347 @@
-<svg viewBox="0 0 1059.36 1190" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif" style="">
-  <title style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">DSF504 Dashboard Enhancement Roadmap — 9 prompts across 3 layers</title>
-  <desc style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Three-layer diagram showing Data, Learning, and Governance enhancement prompts for the DSF504 ML teaching dashboard</desc>
-
-  <!-- background -->
-  <rect width="900" height="1180" fill="#f8f9fa" style="fill:rgb(248, 249, 250);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-
-  <!-- Title -->
-  <text x="450" y="36" text-anchor="middle" font-size="17" font-weight="700" fill="#1a1a2e" style="fill:rgb(26, 26, 46);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:17px;font-weight:700;text-anchor:middle;dominant-baseline:auto">DSF504 Dashboard — Enhancement Prompts</text>
-  <text x="450" y="56" text-anchor="middle" font-size="11" fill="#666" style="fill:rgb(102, 102, 102);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:11px;font-weight:400;text-anchor:middle;dominant-baseline:auto">9 self-contained implementation prompts across 3 teaching layers</text>
-
-  <!-- Layer labels -->
-  <!-- Layer 1: Data Foundation -->
-  <rect x="18" y="76" width="864" height="24" rx="4" fill="#1E88E5" opacity="0.12" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.12;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="30" y="93" font-size="11" font-weight="700" fill="#1E88E5" letter-spacing="1" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:11px;font-weight:700;text-anchor:start;dominant-baseline:auto">LAYER 1 — DATA FOUNDATION</text>
-
-  <!-- P1: Data Profiling -->
-  <rect x="18" y="108" width="274" height="130" rx="6" fill="white" stroke="#1E88E5" stroke-width="1.5" style="fill:rgb(255, 255, 255);stroke:rgb(30, 136, 229);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="18" y="108" width="274" height="8" rx="6" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="30" y="134" font-size="12" font-weight="700" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:12px;font-weight:700;text-anchor:start;dominant-baseline:auto">P1 · Data Profiling Studio</text>
-  <text x="30" y="150" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Replace static Data Explorer with interactive</text>
-  <text x="30" y="163" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">column-level drill-down: distribution shape,</text>
-  <text x="30" y="176" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">outlier rug plot, skewness/kurtosis badges,</text>
-  <text x="30" y="189" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">pairwise scatter matrix, correlation heatmap</text>
-  <text x="30" y="202" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">with significance masking, and a dataset</text>
-  <text x="30" y="215" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">health scorecard (completeness, uniqueness…).</text>
-  <text x="30" y="230" font-size="9" fill="#1E88E5" font-style="italic" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:9px;font-weight:400;font-style:italic;text-anchor:start;dominant-baseline:auto">Teaches: EDA discipline, distributional thinking</text>
-
-  <!-- P2: Data Cleansing -->
-  <rect x="314" y="108" width="274" height="130" rx="6" fill="white" stroke="#1E88E5" stroke-width="1.5" style="fill:rgb(255, 255, 255);stroke:rgb(30, 136, 229);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="314" y="108" width="274" height="8" rx="6" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="326" y="134" font-size="12" font-weight="700" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:12px;font-weight:700;text-anchor:start;dominant-baseline:auto">P2 · Data Cleansing Workshop</text>
-  <text x="326" y="150" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Interactive before/after panels: choose imputation</text>
-  <text x="326" y="163" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">strategy per column, preview distributional shift,</text>
-  <text x="326" y="176" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">outlier detection (IQR / Z-score / isolation forest)</text>
-  <text x="326" y="189" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">with toggle, duplicate detection, type coercion</text>
-  <text x="326" y="202" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">log. Concept cards explain why each choice</text>
-  <text x="326" y="215" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">affects downstream model performance.</text>
-  <text x="326" y="230" font-size="9" fill="#1E88E5" font-style="italic" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:9px;font-weight:400;font-style:italic;text-anchor:start;dominant-baseline:auto">Teaches: imputation bias, leakage risk, MCAR/MAR/MNAR</text>
-
-  <!-- P3: Feature Engineering -->
-  <rect x="610" y="108" width="272" height="130" rx="6" fill="white" stroke="#1E88E5" stroke-width="1.5" style="fill:rgb(255, 255, 255);stroke:rgb(30, 136, 229);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="610" y="108" width="272" height="8" rx="6" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="622" y="134" font-size="12" font-weight="700" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:12px;font-weight:700;text-anchor:start;dominant-baseline:auto">P3 · Feature Engineering Studio+</text>
-  <text x="622" y="150" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Extend existing FE page with: feature importance</text>
-  <text x="622" y="163" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">live preview (retrain fast LR after each toggle),</text>
-  <text x="622" y="176" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">VIF multicollinearity table, interaction term</text>
-  <text x="622" y="189" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">builder, encoding strategy comparison (OHE vs</text>
-  <text x="622" y="202" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">target vs frequency encoding), and a feature</text>
-  <text x="622" y="215" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">selection leaderboard with macro-F1 delta.</text>
-  <text x="622" y="230" font-size="9" fill="#1E88E5" font-style="italic" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:9px;font-weight:400;font-style:italic;text-anchor:start;dominant-baseline:auto">Teaches: curse of dimensionality, multicollinearity</text>
-
-  <!-- Layer 2: Modelling -->
-  <rect x="18" y="256" width="864" height="24" rx="4" fill="#43A047" opacity="0.12" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.12;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="30" y="273" font-size="11" font-weight="700" fill="#43A047" letter-spacing="1" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:11px;font-weight:700;text-anchor:start;dominant-baseline:auto">LAYER 2 — MODELLING &amp; VALIDATION</text>
-
-  <!-- P4: CV & Learning Curves -->
-  <rect x="18" y="288" width="274" height="130" rx="6" fill="white" stroke="#43A047" stroke-width="1.5" style="fill:rgb(255, 255, 255);stroke:rgb(67, 160, 71);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="18" y="288" width="274" height="8" rx="6" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="30" y="314" font-size="12" font-weight="700" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:12px;font-weight:700;text-anchor:start;dominant-baseline:auto">P4 · Cross-Validation Explorer</text>
-  <text x="30" y="330" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Animated fold-by-fold CV visualiser: show train/</text>
-  <text x="30" y="343" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">val split per fold as coloured strips, per-fold</text>
-  <text x="30" y="356" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">metric distribution boxplot, learning curves</text>
-  <text x="30" y="369" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">(train vs val score vs training size), bias-variance</text>
-  <text x="30" y="382" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">decomposition diagram, and overfitting detector</text>
-  <text x="30" y="395" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">flag when train–val gap exceeds threshold.</text>
-  <text x="30" y="410" font-size="9" fill="#43A047" font-style="italic" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:9px;font-weight:400;font-style:italic;text-anchor:start;dominant-baseline:auto">Teaches: bias-variance tradeoff, CV strategy selection</text>
-
-  <!-- P5: Model Selection Workbench -->
-  <rect x="314" y="288" width="274" height="130" rx="6" fill="white" stroke="#43A047" stroke-width="1.5" style="fill:rgb(255, 255, 255);stroke:rgb(67, 160, 71);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="314" y="288" width="274" height="8" rx="6" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="326" y="314" font-size="12" font-weight="700" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:12px;font-weight:700;text-anchor:start;dominant-baseline:auto">P5 · Model Selection Workbench</text>
-  <text x="326" y="330" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Side-by-side model comparison table with sortable</text>
-  <text x="326" y="343" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">metrics, radar chart overlay, ROC/PR curves on</text>
-  <text x="326" y="356" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">one canvas, DET curve, calibration curves, and</text>
-  <text x="326" y="369" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">McNemar's test for statistical significance of</text>
-  <text x="326" y="382" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">performance differences. "Why this model?" concept</text>
-  <text x="326" y="395" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">cards for each algorithm with complexity trade-offs.</text>
-  <text x="326" y="410" font-size="9" fill="#43A047" font-style="italic" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:9px;font-weight:400;font-style:italic;text-anchor:start;dominant-baseline:auto">Teaches: no-free-lunch, metric selection, significance</text>
-
-  <!-- P6: Hyperparameter Explorer -->
-  <rect x="610" y="288" width="272" height="130" rx="6" fill="white" stroke="#43A047" stroke-width="1.5" style="fill:rgb(255, 255, 255);stroke:rgb(67, 160, 71);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="610" y="288" width="272" height="8" rx="6" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="622" y="314" font-size="12" font-weight="700" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:12px;font-weight:700;text-anchor:start;dominant-baseline:auto">P6 · Hyperparameter Explorer</text>
-  <text x="622" y="330" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Visual Optuna trial history: parallel coordinates</text>
-  <text x="622" y="343" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">plot of hyperparameter space, contour surface of</text>
-  <text x="622" y="356" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">2-param interactions, importance bar chart</text>
-  <text x="622" y="369" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">(fANOVA), convergence curve, and an interactive</text>
-  <text x="622" y="382" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">slider panel to re-score any trial config on the</text>
-  <text x="622" y="395" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">validation set without retraining.</text>
-  <text x="622" y="410" font-size="9" fill="#43A047" font-style="italic" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:9px;font-weight:400;font-style:italic;text-anchor:start;dominant-baseline:auto">Teaches: search strategies, regularisation sensitivity</text>
-
-  <!-- Layer 3: Governance -->
-  <rect x="18" y="436" width="864" height="24" rx="4" fill="#8E24AA" opacity="0.12" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.12;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="30" y="453" font-size="11" font-weight="700" fill="#8E24AA" letter-spacing="1" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:11px;font-weight:700;text-anchor:start;dominant-baseline:auto">LAYER 3 — GOVERNANCE &amp; PEDAGOGY</text>
-
-  <!-- P7: Ethical AI -->
-  <rect x="18" y="468" width="274" height="130" rx="6" fill="white" stroke="#8E24AA" stroke-width="1.5" style="fill:rgb(255, 255, 255);stroke:rgb(142, 36, 170);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="18" y="468" width="274" height="8" rx="6" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="30" y="494" font-size="12" font-weight="700" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:12px;font-weight:700;text-anchor:start;dominant-baseline:auto">P7 · Ethical AI &amp; Fairness Checks</text>
-  <text x="30" y="510" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Protected attribute selector (age band, gender,</text>
-  <text x="30" y="523" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">postcode proxy). Compute: demographic parity,</text>
-  <text x="30" y="536" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">equalised odds, calibration by group, disparate</text>
-  <text x="30" y="549" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">impact ratio. Display confusion matrices per group,</text>
-  <text x="30" y="562" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">flag EU AI Act risk level, and surface mitigation</text>
-  <text x="30" y="575" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">options (reweighting, threshold adjustment).</text>
-  <text x="30" y="590" font-size="9" fill="#8E24AA" font-style="italic" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:9px;font-weight:400;font-style:italic;text-anchor:start;dominant-baseline:auto">Teaches: fairness definitions, regulatory context</text>
-
-  <!-- P8: Teaching Mode -->
-  <rect x="314" y="468" width="274" height="130" rx="6" fill="white" stroke="#8E24AA" stroke-width="1.5" style="fill:rgb(255, 255, 255);stroke:rgb(142, 36, 170);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="314" y="468" width="274" height="8" rx="6" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="326" y="494" font-size="12" font-weight="700" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:12px;font-weight:700;text-anchor:start;dominant-baseline:auto">P8 · Teaching Mode &amp; Concept Cards</text>
-  <text x="326" y="510" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Global toggle: "Teaching Mode ON". When active,</text>
-  <text x="326" y="523" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">every chart gains a ℹ️ button that opens a concept</text>
-  <text x="326" y="536" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">card (plain-language explanation + academic ref +</text>
-  <text x="326" y="549" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">what-to-look-for checklist). Guided walkthrough</text>
-  <text x="326" y="562" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">mode sequences cards into a lesson. Progress</text>
-  <text x="326" y="575" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">tracker with completion badges per use case.</text>
-  <text x="326" y="590" font-size="9" fill="#8E24AA" font-style="italic" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:9px;font-weight:400;font-style:italic;text-anchor:start;dominant-baseline:auto">Teaches: meta-skill — how to read ML outputs</text>
-
-  <!-- P9: Report Generator -->
-  <rect x="610" y="468" width="272" height="130" rx="6" fill="white" stroke="#8E24AA" stroke-width="1.5" style="fill:rgb(255, 255, 255);stroke:rgb(142, 36, 170);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="610" y="468" width="272" height="8" rx="6" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="622" y="494" font-size="12" font-weight="700" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:12px;font-weight:700;text-anchor:start;dominant-baseline:auto">P9 · Report Generator</text>
-  <text x="622" y="510" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">One-click export of a structured model card:</text>
-  <text x="622" y="523" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">dataset summary, preprocessing decisions, CV</text>
-  <text x="622" y="536" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">results, champion model spec, fairness audit,</text>
-  <text x="622" y="549" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">SHAP top-10 features, and business impact.</text>
-  <text x="622" y="562" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Output: PDF + docx + JSON model card following</text>
-  <text x="622" y="575" font-size="10" fill="#444" style="fill:rgb(68, 68, 68);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">EU AI Act Annex IV documentation template.</text>
-  <text x="622" y="590" font-size="9" fill="#8E24AA" font-style="italic" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:9px;font-weight:400;font-style:italic;text-anchor:start;dominant-baseline:auto">Teaches: model documentation standards</text>
-
-  <!-- dependency arrows Layer 1 -> 2 -->
-  <defs>
-    <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-      <polygon points="0 0, 8 3, 0 6" fill="#ccc"/>
-    </marker>
-  <mask id="imagine-text-gaps-bqqxzs" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="1059.36" height="1190" fill="white"/><rect x="266.96197509765625" y="15.082330703735352" width="368.0363464355469" height="26.70120620727539" fill="black" rx="2"/><rect x="286.1900329589844" y="42.64939498901367" width="328.6188049316406" height="19.13413715362549" fill="black" rx="2"/><rect x="26" y="79.64939880371094" width="195.72833251953125" height="17.242369651794434" fill="black" rx="2"/><rect x="26" y="118.75763702392578" width="150.6669158935547" height="21.025903701782227" fill="black" rx="2"/><rect x="26" y="136.64939880371094" width="200.2086944580078" height="19.13413715362549" fill="black" rx="2"/><rect x="24.108232498168945" y="149.64939880371094" width="202.83749389648438" height="19.13413715362549" fill="black" rx="2"/><rect x="24.108232498168945" y="162.64939880371094" width="199.03817749023438" height="19.13413715362549" fill="black" rx="2"/><rect x="26" y="175.6494140625" width="200.3690643310547" height="19.13413715362549" fill="black" rx="2"/><rect x="24.108232498168945" y="188.64939880371094" width="186.97195434570312" height="19.13413715362549" fill="black" rx="2"/><rect x="26" y="201.64939880371094" width="215.75296020507812" height="19.13413715362549" fill="black" rx="2"/><rect x="26" y="218.54116821289062" width="188.2245330810547" height="17.242369651794434" fill="black" rx="2"/><rect x="322" y="118.75763702392578" width="177.56504821777344" height="21.025903701782227" fill="black" rx="2"/><rect x="322" y="136.64939880371094" width="228.22824096679688" height="19.13413715362549" fill="black" rx="2"/><rect x="320.1082458496094" y="149.64939880371094" width="223.57040405273438" height="19.13413715362549" fill="black" rx="2"/><rect x="320.1082458496094" y="162.64939880371094" width="225.5605010986328" height="17.242369651794434" fill="black" rx="2"/><rect x="320.1082458496094" y="175.6494140625" width="214.44468688964844" height="19.13413715362549" fill="black" rx="2"/><rect x="322" y="188.64939880371094" width="199.16494750976562" height="19.13413715362549" fill="black" rx="2"/><rect x="320.1082458496094" y="201.64939880371094" width="189.4642791748047" height="19.13413715362549" fill="black" rx="2"/><rect x="322" y="218.54116821289062" width="234.65087890625" height="17.242369651794434" fill="black" rx="2"/><rect x="618" y="118.75763702392578" width="193.6887664794922" height="21.025903701782227" fill="black" rx="2"/><rect x="618" y="136.64939880371094" width="222.62429809570312" height="19.13413715362549" fill="black" rx="2"/><rect x="618" y="149.64939880371094" width="210.74400329589844" height="19.13413715362549" fill="black" rx="2"/><rect x="616.1082763671875" y="162.64939880371094" width="197.6903533935547" height="19.13413715362549" fill="black" rx="2"/><rect x="618" y="175.6494140625" width="216.274169921875" height="19.13413715362549" fill="black" rx="2"/><rect x="616.1082763671875" y="188.64939880371094" width="205.11448669433594" height="19.13413715362549" fill="black" rx="2"/><rect x="616.1082763671875" y="201.64939880371094" width="199.6576385498047" height="17.242369651794434" fill="black" rx="2"/><rect x="618" y="218.54116821289062" width="199.80352783203125" height="17.242369651794434" fill="black" rx="2"/><rect x="26" y="259.6494140625" width="243.73191833496094" height="17.242369651794434" fill="black" rx="2"/><rect x="26" y="298.75762939453125" width="175.37460327148438" height="21.025903701782227" fill="black" rx="2"/><rect x="24.108232498168945" y="316.6494140625" width="222.66761779785156" height="19.13413715362549" fill="black" rx="2"/><rect x="24.108232498168945" y="329.6494140625" width="201.46275329589844" height="19.13413715362549" fill="black" rx="2"/><rect x="26" y="342.6493835449219" width="198.54066467285156" height="19.13413715362549" fill="black" rx="2"/><rect x="26" y="355.6494140625" width="217.83969116210938" height="19.13413715362549" fill="black" rx="2"/><rect x="24.108232498168945" y="368.6494140625" width="224.85809326171875" height="19.13413715362549" fill="black" rx="2"/><rect x="24.108232498168945" y="381.6494140625" width="198.5065155029297" height="19.13413715362549" fill="black" rx="2"/><rect x="26" y="398.5411682128906" width="212.65054321289062" height="17.242369651794434" fill="black" rx="2"/><rect x="322" y="298.75762939453125" width="191.46226501464844" height="21.025903701782227" fill="black" rx="2"/><rect x="322" y="316.6494140625" width="233.26150512695312" height="19.13413715362549" fill="black" rx="2"/><rect x="322" y="329.6494140625" width="212.1334991455078" height="19.13413715362549" fill="black" rx="2"/><rect x="320.1082458496094" y="342.6493835449219" width="210.9215850830078" height="17.242369651794434" fill="black" rx="2"/><rect x="322" y="355.6494140625" width="201.979736328125" height="19.13413715362549" fill="black" rx="2"/><rect x="322" y="368.6494140625" width="239.6560821533203" height="19.13413715362549" fill="black" rx="2"/><rect x="320.1082458496094" y="381.6494140625" width="239.03610229492188" height="19.13413715362549" fill="black" rx="2"/><rect x="322" y="398.5411682128906" width="211.15435791015625" height="17.242369651794434" fill="black" rx="2"/><rect x="618" y="298.75762939453125" width="176.21798706054688" height="21.025903701782227" fill="black" rx="2"/><rect x="616.1082763671875" y="316.6494140625" width="216.65895080566406" height="19.13413715362549" fill="black" rx="2"/><rect x="618" y="329.6494140625" width="224.11737060546875" height="19.13413715362549" fill="black" rx="2"/><rect x="618" y="342.6493835449219" width="197.20494079589844" height="19.13413715362549" fill="black" rx="2"/><rect x="618" y="355.6494140625" width="221.83416748046875" height="19.13413715362549" fill="black" rx="2"/><rect x="616.1082763671875" y="368.6494140625" width="211.1232452392578" height="19.13413715362549" fill="black" rx="2"/><rect x="616.1082763671875" y="381.6494140625" width="153.93377685546875" height="19.13413715362549" fill="black" rx="2"/><rect x="618" y="398.5411682128906" width="206.21826171875" height="17.242369651794434" fill="black" rx="2"/><rect x="26" y="439.6494140625" width="246.3922119140625" height="17.242369651794434" fill="black" rx="2"/><rect x="26" y="478.75762939453125" width="189.2718048095703" height="21.025903701782227" fill="black" rx="2"/><rect x="26" y="496.6493835449219" width="215.5919647216797" height="19.13413715362549" fill="black" rx="2"/><rect x="26" y="509.6494140625" width="220.0009765625" height="19.13413715362549" fill="black" rx="2"/><rect x="24.108232498168945" y="522.6494140625" width="216.59544372558594" height="19.13413715362549" fill="black" rx="2"/><rect x="26" y="535.6494140625" width="233.8180694580078" height="19.13413715362549" fill="black" rx="2"/><rect x="24.108232498168945" y="548.6494140625" width="214.22515869140625" height="19.13413715362549" fill="black" rx="2"/><rect x="24.108232498168945" y="561.6494140625" width="207.08065795898438" height="19.13413715362549" fill="black" rx="2"/><rect x="26" y="578.5411987304688" width="192.46299743652344" height="17.242369651794434" fill="black" rx="2"/><rect x="322" y="478.75762939453125" width="216.43344116210938" height="21.025903701782227" fill="black" rx="2"/><rect x="320.1082458496094" y="496.6493835449219" width="230.4765625" height="19.13413715362549" fill="black" rx="2"/><rect x="320.1082458496094" y="509.6494140625" width="237.16806030273438" height="19.13413715362549" fill="black" rx="2"/><rect x="320.1082458496094" y="522.6494140625" width="233.65528869628906" height="19.13413715362549" fill="black" rx="2"/><rect x="320.1082458496094" y="535.6494140625" width="222.0775146484375" height="19.13413715362549" fill="black" rx="2"/><rect x="322" y="548.6494140625" width="210.80686950683594" height="19.13413715362549" fill="black" rx="2"/><rect x="320.1082458496094" y="561.6494140625" width="209.8948211669922" height="19.13413715362549" fill="black" rx="2"/><rect x="322" y="578.5411987304688" width="188.53167724609375" height="17.242369651794434" fill="black" rx="2"/><rect x="618" y="478.75762939453125" width="131.6336898803711" height="21.025903701782227" fill="black" rx="2"/><rect x="616.1082763671875" y="496.6493835449219" width="205.9833526611328" height="19.13413715362549" fill="black" rx="2"/><rect x="616.1082763671875" y="509.6494140625" width="214.25389099121094" height="19.13413715362549" fill="black" rx="2"/><rect x="618" y="522.6494140625" width="205.97410583496094" height="19.13413715362549" fill="black" rx="2"/><rect x="618" y="535.6494140625" width="201.46754455566406" height="19.13413715362549" fill="black" rx="2"/><rect x="616.1082763671875" y="548.6494140625" width="229.24807739257812" height="19.13413715362549" fill="black" rx="2"/><rect x="618" y="561.6494140625" width="206.5253448486328" height="19.13413715362549" fill="black" rx="2"/><rect x="618" y="578.5411987304688" width="169.82275390625" height="15.350603103637695" fill="black" rx="2"/><rect x="26" y="623.6494140625" width="317.2713928222656" height="17.242369651794434" fill="black" rx="2"/><rect x="30" y="654.6494140625" width="19.882662773132324" height="17.242369651794434" fill="black" rx="2"/><rect x="50.000003814697266" y="654.6494140625" width="103.83946990966797" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="668.6494140625" width="514.4807739257812" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="681.6494140625" width="504.62823486328125" height="19.13413715362549" fill="black" rx="2"/><rect x="50.000003814697266" y="694.6494140625" width="502.1615905761719" height="19.13413715362549" fill="black" rx="2"/><rect x="30" y="720.6494140625" width="19.882662773132324" height="17.242369651794434" fill="black" rx="2"/><rect x="50.000003814697266" y="720.6494140625" width="126.56729125976562" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="734.6494140625" width="503.4382629394531" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="747.6494140625" width="502.5702819824219" height="19.13413715362549" fill="black" rx="2"/><rect x="50.000003814697266" y="760.6494140625" width="495.56280517578125" height="19.13413715362549" fill="black" rx="2"/><rect x="30" y="786.6494140625" width="19.882662773132324" height="17.242369651794434" fill="black" rx="2"/><rect x="50.000003814697266" y="786.6494140625" width="241.80191040039062" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="800.6494140625" width="503.46563720703125" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="813.6494140625" width="508.24713134765625" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="826.6494140625" width="471.298095703125" height="19.13413715362549" fill="black" rx="2"/><rect x="30" y="852.6494140625" width="21.70258140563965" height="17.242369651794434" fill="black" rx="2"/><rect x="48.10823440551758" y="852.6494140625" width="125.75274658203125" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="866.6494140625" width="514.8369140625" height="19.13413715362549" fill="black" rx="2"/><rect x="50.000003814697266" y="879.6494140625" width="510.3108215332031" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="892.6494140625" width="471.3565673828125" height="19.13413715362549" fill="black" rx="2"/><rect x="30" y="918.6494140625" width="19.882662773132324" height="17.242369651794434" fill="black" rx="2"/><rect x="50.000003814697266" y="918.6494140625" width="294.3392028808594" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="932.6494140625" width="517.2840576171875" height="19.13413715362549" fill="black" rx="2"/><rect x="50.000003814697266" y="945.6494140625" width="527.3132934570312" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="958.6493530273438" width="449.1555480957031" height="19.13413715362549" fill="black" rx="2"/><rect x="30" y="984.6494140625" width="19.882662773132324" height="17.242369651794434" fill="black" rx="2"/><rect x="50.000003814697266" y="984.6494140625" width="124.2803726196289" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="998.6494750976562" width="491.2555847167969" height="19.13413715362549" fill="black" rx="2"/><rect x="50.000003814697266" y="1011.6494750976562" width="507.42779541015625" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="1024.6494140625" width="416.70263671875" height="19.13413715362549" fill="black" rx="2"/><rect x="30" y="1050.6494140625" width="19.882662773132324" height="17.242369651794434" fill="black" rx="2"/><rect x="50.000003814697266" y="1050.6494140625" width="134.3567123413086" height="17.242369651794434" fill="black" rx="2"/><rect x="48.10823440551758" y="1064.6494140625" width="479.2674865722656" height="19.13413715362549" fill="black" rx="2"/><rect x="48.10823440551758" y="1077.6494140625" width="494.1038513183594" height="19.13413715362549" fill="black" rx="2"/><rect x="50.000003814697266" y="1090.6494140625" width="516.1639404296875" height="19.13413715362549" fill="black" rx="2"/><rect x="30" y="1116.6494140625" width="19.882662773132324" height="17.242369651794434" fill="black" rx="2"/><rect x="48.10823440551758" y="1116.6494140625" width="158.91775512695312" height="19.13413715362549" fill="black" rx="2"/><rect x="50.000003814697266" y="1130.6494140625" width="1003.1182250976562" height="19.13413715362549" fill="black" rx="2"/><rect x="30" y="1157.6494140625" width="19.882662773132324" height="17.242369651794434" fill="black" rx="2"/><rect x="50.000003814697266" y="1157.6494140625" width="101.20951080322266" height="19.13413715362549" fill="black" rx="2"/><rect x="73.5582275390625" y="1157.6494140625" width="830.3429565429688" height="19.13413715362549" fill="black" rx="2"/></mask></defs>
-  <line x1="155" y1="238" x2="155" y2="280" stroke="#ccc" stroke-width="1.5" marker-end="url(#arr)" stroke-dasharray="4,3" mask="url(#imagine-text-gaps-bqqxzs)" style="fill:rgb(0, 0, 0);stroke:rgb(204, 204, 204);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <line x1="451" y1="238" x2="451" y2="280" stroke="#ccc" stroke-width="1.5" marker-end="url(#arr)" stroke-dasharray="4,3" style="fill:rgb(0, 0, 0);stroke:rgb(204, 204, 204);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <line x1="746" y1="238" x2="746" y2="280" stroke="#ccc" stroke-width="1.5" marker-end="url(#arr)" stroke-dasharray="4,3" style="fill:rgb(0, 0, 0);stroke:rgb(204, 204, 204);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <!-- Layer 2 -> 3 -->
-  <line x1="155" y1="418" x2="155" y2="460" stroke="#ccc" stroke-width="1.5" marker-end="url(#arr)" stroke-dasharray="4,3" mask="url(#imagine-text-gaps-bqqxzs)" style="fill:rgb(0, 0, 0);stroke:rgb(204, 204, 204);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <line x1="451" y1="418" x2="451" y2="460" stroke="#ccc" stroke-width="1.5" marker-end="url(#arr)" stroke-dasharray="4,3" style="fill:rgb(0, 0, 0);stroke:rgb(204, 204, 204);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <line x1="746" y1="418" x2="746" y2="460" stroke="#ccc" stroke-width="1.5" marker-end="url(#arr)" stroke-dasharray="4,3" style="fill:rgb(0, 0, 0);stroke:rgb(204, 204, 204);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-
-  <!-- Prompt cards below -->
-  <rect x="18" y="620" width="864" height="24" rx="4" fill="#37474f" opacity="0.08" style="fill:rgb(55, 71, 79);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.08;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="30" y="637" font-size="11" font-weight="700" fill="#37474f" letter-spacing="1" style="fill:rgb(55, 71, 79);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:11px;font-weight:700;text-anchor:start;dominant-baseline:auto">IMPLEMENTATION PROMPTS — DETAIL REFERENCE</text>
-
-  <!-- prompt list -->
-  <g font-size="10" fill="#333" style="fill:rgb(51, 51, 51);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">
-    <!-- P1 -->
-    <rect x="18" y="652" width="864" height="58" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1" style="fill:rgb(255, 255, 255);stroke:rgb(224, 224, 224);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <rect x="18" y="652" width="5" height="58" rx="2" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <text x="34" y="668" font-weight="700" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:700;text-anchor:start;dominant-baseline:auto">P1</text>
-    <text x="54" y="668" font-weight="600" style="fill:rgb(51, 51, 51);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:600;text-anchor:start;dominant-baseline:auto">Data Profiling Studio</text>
-    <text x="54" y="682" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Add a "📈 Data Profiling" page to dashboard/app.py. For each column: histogram + KDE overlay, box-and-whisker</text>
-    <text x="54" y="695" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">with outlier dots, skewness/kurtosis/entropy badges, % missing bar. Add pairwise scatter matrix (top-10 numeric</text>
-    <text x="54" y="708" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">by variance) and a dataset health scorecard (completeness %, duplicate %, type-consistency %, cardinality flags).</text>
-
-    <!-- P2 -->
-    <rect x="18" y="718" width="864" height="58" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1" style="fill:rgb(255, 255, 255);stroke:rgb(224, 224, 224);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <rect x="18" y="718" width="5" height="58" rx="2" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <text x="34" y="734" font-weight="700" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:700;text-anchor:start;dominant-baseline:auto">P2</text>
-    <text x="54" y="734" font-weight="600" style="fill:rgb(51, 51, 51);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:600;text-anchor:start;dominant-baseline:auto">Data Cleansing Workshop</text>
-    <text x="54" y="748" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Add a "🧹 Data Cleansing" page. For each column with issues: show before/after distribution toggle, imputation</text>
-    <text x="54" y="761" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">strategy dropdown (mean/median/mode/KNN/flag-and-drop), outlier method selector (IQR/Z-score/IF). Show a</text>
-    <text x="54" y="774" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">live data-quality diff table. Concept cards explain MCAR/MAR/MNAR and leakage risk. Export cleaned parquet.</text>
-
-    <!-- P3 -->
-    <rect x="18" y="784" width="864" height="58" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1" style="fill:rgb(255, 255, 255);stroke:rgb(224, 224, 224);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <rect x="18" y="784" width="5" height="58" rx="2" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <text x="34" y="800" font-weight="700" fill="#1E88E5" style="fill:rgb(30, 136, 229);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:700;text-anchor:start;dominant-baseline:auto">P3</text>
-    <text x="54" y="800" font-weight="600" style="fill:rgb(51, 51, 51);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:600;text-anchor:start;dominant-baseline:auto">Feature Engineering Studio+ (extend existing page)</text>
-    <text x="54" y="814" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Add to the existing FE page: a VIF table (flag VIF &gt; 5), interaction-term builder (select 2 cols → add product/ratio</text>
-    <text x="54" y="827" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">feature), encoding comparison panel (OHE vs frequency vs target encoding side-by-side macro-F1), and a feature</text>
-    <text x="54" y="840" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">selection leaderboard (forward/backward selection with metric delta per step shown as a waterfall chart).</text>
-
-    <!-- P4 -->
-    <rect x="18" y="850" width="864" height="58" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1" style="fill:rgb(255, 255, 255);stroke:rgb(224, 224, 224);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <rect x="18" y="850" width="5" height="58" rx="2" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <text x="34" y="866" font-weight="700" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:700;text-anchor:start;dominant-baseline:auto">P4</text>
-    <text x="54" y="866" font-weight="600" style="fill:rgb(51, 51, 51);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:600;text-anchor:start;dominant-baseline:auto">Cross-Validation Explorer</text>
-    <text x="54" y="880" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Add a "🔁 Cross-Validation" page. Render fold strips (Plotly heatmap, rows=folds, cols=samples, colour=train/val).</text>
-    <text x="54" y="893" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Plot per-fold metric boxplot. Plot learning curves (score vs training size) from saved CV results. Show bias-variance</text>
-    <text x="54" y="906" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">decomposition and an overfitting flag when train–val gap &gt; 0.05. Load data from model_comparison.csv.</text>
-
-    <!-- P5 -->
-    <rect x="18" y="916" width="864" height="58" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1" style="fill:rgb(255, 255, 255);stroke:rgb(224, 224, 224);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <rect x="18" y="916" width="5" height="58" rx="2" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <text x="34" y="932" font-weight="700" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:700;text-anchor:start;dominant-baseline:auto">P5</text>
-    <text x="54" y="932" font-weight="600" style="fill:rgb(51, 51, 51);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:600;text-anchor:start;dominant-baseline:auto">Model Selection Workbench (extend Model Performance page)</text>
-    <text x="54" y="946" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Add tabs: sortable metrics table with conditional formatting, radar chart (all models × all metrics), combined ROC +</text>
-    <text x="54" y="959" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">PR + DET curves on one canvas, calibration curves per model, McNemar's test p-value matrix for pairwise significance.</text>
-    <text x="54" y="972" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Add "Why this algorithm?" collapsible cards: complexity table, inductive bias, when to use / not use.</text>
-
-    <!-- P6 -->
-    <rect x="18" y="982" width="864" height="58" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1" style="fill:rgb(255, 255, 255);stroke:rgb(224, 224, 224);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <rect x="18" y="982" width="5" height="58" rx="2" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <text x="34" y="998" font-weight="700" fill="#43A047" style="fill:rgb(67, 160, 71);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:700;text-anchor:start;dominant-baseline:auto">P6</text>
-    <text x="54" y="998" font-weight="600" style="fill:rgb(51, 51, 51);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:600;text-anchor:start;dominant-baseline:auto">Hyperparameter Explorer</text>
-    <text x="54" y="1012" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Add a "🎛️ Hyperparameter Explorer" page. Load lgbm_optuna_trials.csv. Render: parallel coordinates (Plotly),</text>
-    <text x="54" y="1025" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">2-param contour heatmap (select x/y from dropdowns), fANOVA importance bar chart, convergence curve (trial #</text>
-    <text x="54" y="1038" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">vs best score). Slider panel replays any trial config and scores it on val set without retraining.</text>
-
-    <!-- P7 -->
-    <rect x="18" y="1048" width="864" height="58" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1" style="fill:rgb(255, 255, 255);stroke:rgb(224, 224, 224);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <rect x="18" y="1048" width="5" height="58" rx="2" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <text x="34" y="1064" font-weight="700" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:700;text-anchor:start;dominant-baseline:auto">P7</text>
-    <text x="54" y="1064" font-weight="600" style="fill:rgb(51, 51, 51);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:600;text-anchor:start;dominant-baseline:auto">Ethical AI &amp; Fairness Checks</text>
-    <text x="54" y="1078" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Add a "⚖️ Fairness" page. Protected-attribute selector from val_fe.parquet columns. Compute and display:</text>
-    <text x="54" y="1091" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">demographic parity ratio, equalised odds (TPR/FPR per group), calibration curves per group, disparate impact.</text>
-    <text x="54" y="1104" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Flag EU AI Act risk tier. Surface mitigation options: threshold shift per group, reweighting, fairness-aware retraining.</text>
-
-    <!-- P8 -->
-    <rect x="18" y="1114" width="864" height="38" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1" style="fill:rgb(255, 255, 255);stroke:rgb(224, 224, 224);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <rect x="18" y="1114" width="5" height="38" rx="2" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-    <text x="34" y="1130" font-weight="700" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:700;text-anchor:start;dominant-baseline:auto">P8</text>
-    <text x="54" y="1130" font-weight="600" style="fill:rgb(51, 51, 51);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:600;text-anchor:start;dominant-baseline:auto">Teaching Mode &amp; Concept Cards</text>
-    <text x="54" y="1144" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">Sidebar toggle "Teaching Mode". When ON: every Plotly chart gains an ℹ️ expander with concept card (plain explanation + citation + what-to-look-for). Guided walkthrough sequences cards into a lesson with progress tracker.</text>
-
-    <!-- P9 at bottom -->
-  </g>
-  <rect x="18" y="1158" width="864" height="18" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1" style="fill:rgb(255, 255, 255);stroke:rgb(224, 224, 224);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="18" y="1158" width="5" height="18" rx="2" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <text x="34" y="1171" font-size="10" font-weight="700" fill="#8E24AA" style="fill:rgb(142, 36, 170);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:700;text-anchor:start;dominant-baseline:auto">P9</text>
-  <text x="54" y="1171" font-size="10" font-weight="600" fill="#333" style="fill:rgb(51, 51, 51);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:600;text-anchor:start;dominant-baseline:auto">Report Generator — </text>
-  <text x="79.45" y="1171" font-size="10" fill="#555" style="fill:rgb(85, 85, 85);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:system-ui, sans-serif;font-size:10px;font-weight:400;text-anchor:start;dominant-baseline:auto">One-click model card export (PDF + docx + JSON). Sections: dataset, preprocessing, CV results, champion spec, fairness audit, SHAP top-10, business impact. EU AI Act Annex IV template.</text>
+<svg viewBox="0 0 900 2180" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+  <title>DSF504 Dashboard Enhancement Roadmap v2 — May 2026</title>
+  <rect width="900" height="2180" fill="#f8f9fa"/>
+  <text x="450" y="30" text-anchor="middle" font-size="17" font-weight="700" fill="#1a1a2e">DSF504 Dashboard — Enhancement Roadmap</text>
+  <text x="450" y="48" text-anchor="middle" font-size="10" fill="#666">v2 · P1–P9 original + P10–P15 new · Status reviewed May 2026</text>
+  <rect x="18" y="62" width="9" height="9" rx="2" fill="#2E7D32"/>
+  <text x="30" y="71" font-size="9" fill="#333">✓ Done</text>
+  <rect x="108" y="62" width="9" height="9" rx="2" fill="#E65100"/>
+  <text x="120" y="71" font-size="9" fill="#333">◑ Partial</text>
+  <rect x="198" y="62" width="9" height="9" rx="2" fill="#757575"/>
+  <text x="210" y="71" font-size="9" fill="#333">○ Planned</text>
+  <rect x="18" y="78" width="864" height="22" rx="4" fill="#1E88E5" opacity="0.12"/>
+  <text x="30" y="93" font-size="11" font-weight="700" fill="#1E88E5" letter-spacing="1">LAYER 1 — DATA FOUNDATION</text>
+  <rect x="18" y="104" width="274" height="152" rx="6" fill="white" stroke="#1E88E5" stroke-width="1.5"/>
+  <rect x="18" y="104" width="274" height="8" rx="5" fill="#1E88E5"/>
+  <rect x="227" y="114" width="59" height="14" rx="4" fill="#E65100"/>
+  <text x="256" y="124" text-anchor="middle" font-size="8" font-weight="700" fill="white">◑ Partial</text>
+  <text x="30" y="136" font-size="11" font-weight="700" fill="#1E88E5">P1 · Data Profiling Studio</text>
+  <text x="30" y="150" font-size="9" fill="#444">Interactive column-level drill-down:</text>
+  <text x="30" y="163" font-size="9" fill="#444">histogram+KDE, box-whisker, skew/kurt</text>
+  <text x="30" y="176" font-size="9" fill="#444">badges, pairwise scatter matrix,</text>
+  <text x="30" y="189" font-size="9" fill="#444">correlation heatmap, health scorecard.</text>
+  <text x="30" y="202" font-size="9" fill="#444">▶ Data Studio page + EDA insights LIVE</text>
+  <text x="30" y="215" font-size="9" fill="#444">for UC-D only. Other UCs: pending.</text>
+  <text x="30" y="247" font-size="8.5" fill="#1E88E5" font-style="italic">Teaches: EDA discipline, distributional thinking</text>
+  <rect x="316" y="104" width="274" height="152" rx="6" fill="white" stroke="#1E88E5" stroke-width="1.5"/>
+  <rect x="316" y="104" width="274" height="8" rx="5" fill="#1E88E5"/>
+  <rect x="525" y="114" width="59" height="14" rx="4" fill="#757575"/>
+  <text x="554" y="124" text-anchor="middle" font-size="8" font-weight="700" fill="white">○ Planned</text>
+  <text x="328" y="136" font-size="11" font-weight="700" fill="#1E88E5">P2 · Data Cleansing Workshop</text>
+  <text x="328" y="150" font-size="9" fill="#444">Before/after imputation panels per col,</text>
+  <text x="328" y="163" font-size="9" fill="#444">strategy selector (mean/median/KNN/flag),</text>
+  <text x="328" y="176" font-size="9" fill="#444">outlier method toggle (IQR / Z / IF),</text>
+  <text x="328" y="189" font-size="9" fill="#444">live data-quality diff table. Concept</text>
+  <text x="328" y="202" font-size="9" fill="#444">cards explain MCAR/MAR/MNAR and leakage.</text>
+  <text x="328" y="215" font-size="9" fill="#444">Export cleaned parquet.</text>
+  <text x="328" y="247" font-size="8.5" fill="#1E88E5" font-style="italic">Teaches: imputation bias, leakage, MCAR/MAR/MNAR</text>
+  <rect x="614" y="104" width="274" height="152" rx="6" fill="white" stroke="#1E88E5" stroke-width="1.5"/>
+  <rect x="614" y="104" width="274" height="8" rx="5" fill="#1E88E5"/>
+  <rect x="823" y="114" width="59" height="14" rx="4" fill="#E65100"/>
+  <text x="852" y="124" text-anchor="middle" font-size="8" font-weight="700" fill="white">◑ Partial</text>
+  <text x="626" y="136" font-size="11" font-weight="700" fill="#1E88E5">P3 · Feature Engineering Studio+</text>
+  <text x="626" y="150" font-size="9" fill="#444">Stage pills + collapsible rationale cards,</text>
+  <text x="626" y="163" font-size="9" fill="#444">VIF multicollinearity table, interaction</text>
+  <text x="626" y="176" font-size="9" fill="#444">term builder, encoding strategy compare</text>
+  <text x="626" y="189" font-size="9" fill="#444">(OHE vs target vs freq), FE leaderboard.</text>
+  <text x="626" y="202" font-size="9" fill="#444">▶ Rationale + stage_notes LIVE for UC-D.</text>
+  <text x="626" y="215" font-size="9" fill="#444">Backfill for A, B, C, E: pending (P10).</text>
+  <text x="626" y="247" font-size="8.5" fill="#1E88E5" font-style="italic">Teaches: curse of dimensionality, multicollinearity</text>
+  <rect x="18" y="274" width="864" height="22" rx="4" fill="#43A047" opacity="0.12"/>
+  <text x="30" y="289" font-size="11" font-weight="700" fill="#43A047" letter-spacing="1">LAYER 2 — MODELLING &amp; VALIDATION</text>
+  <rect x="18" y="300" width="274" height="152" rx="6" fill="white" stroke="#43A047" stroke-width="1.5"/>
+  <rect x="18" y="300" width="274" height="8" rx="5" fill="#43A047"/>
+  <rect x="227" y="310" width="59" height="14" rx="4" fill="#757575"/>
+  <text x="256" y="320" text-anchor="middle" font-size="8" font-weight="700" fill="white">○ Planned</text>
+  <text x="30" y="332" font-size="11" font-weight="700" fill="#43A047">P4 · Cross-Validation Explorer</text>
+  <text x="30" y="346" font-size="9" fill="#444">Animated fold-by-fold CV visualiser:</text>
+  <text x="30" y="359" font-size="9" fill="#444">train/val strips per fold, per-fold metric</text>
+  <text x="30" y="372" font-size="9" fill="#444">boxplot, learning curves (score vs size),</text>
+  <text x="30" y="385" font-size="9" fill="#444">bias-variance decomp diagram, overfitting</text>
+  <text x="30" y="398" font-size="9" fill="#444">flag when train-val gap exceeds threshold.</text>
+  <text x="30" y="411" font-size="9" fill="#444"></text>
+  <text x="30" y="443" font-size="8.5" fill="#43A047" font-style="italic">Teaches: bias-variance tradeoff, CV strategy</text>
+  <rect x="316" y="300" width="274" height="152" rx="6" fill="white" stroke="#43A047" stroke-width="1.5"/>
+  <rect x="316" y="300" width="274" height="8" rx="5" fill="#43A047"/>
+  <rect x="525" y="310" width="59" height="14" rx="4" fill="#E65100"/>
+  <text x="554" y="320" text-anchor="middle" font-size="8" font-weight="700" fill="white">◑ Partial</text>
+  <text x="328" y="332" font-size="11" font-weight="700" fill="#43A047">P5 · Model Selection Workbench</text>
+  <text x="328" y="346" font-size="9" fill="#444">Side-by-side comparison table, radar</text>
+  <text x="328" y="359" font-size="9" fill="#444">chart overlay, ROC/PR/DET curves on one</text>
+  <text x="328" y="372" font-size="9" fill="#444">canvas, calibration curves, McNemar test</text>
+  <text x="328" y="385" font-size="9" fill="#444">for significance of differences.</text>
+  <text x="328" y="398" font-size="9" fill="#444">▶ Model Development page exists.</text>
+  <text x="328" y="411" font-size="9" fill="#444">Radar chart + DET + significance: pending.</text>
+  <text x="328" y="443" font-size="8.5" fill="#43A047" font-style="italic">Teaches: no-free-lunch theorem, metric selection</text>
+  <rect x="614" y="300" width="274" height="152" rx="6" fill="white" stroke="#43A047" stroke-width="1.5"/>
+  <rect x="614" y="300" width="274" height="8" rx="5" fill="#43A047"/>
+  <rect x="823" y="310" width="59" height="14" rx="4" fill="#757575"/>
+  <text x="852" y="320" text-anchor="middle" font-size="8" font-weight="700" fill="white">○ Planned</text>
+  <text x="626" y="332" font-size="11" font-weight="700" fill="#43A047">P6 · Hyperparameter Explorer</text>
+  <text x="626" y="346" font-size="9" fill="#444">Visual Optuna trial history: parallel</text>
+  <text x="626" y="359" font-size="9" fill="#444">coordinates plot of HP space, contour</text>
+  <text x="626" y="372" font-size="9" fill="#444">surface of 2-param interactions, fANOVA</text>
+  <text x="626" y="385" font-size="9" fill="#444">importance bar, convergence curve,</text>
+  <text x="626" y="398" font-size="9" fill="#444">slider panel re-scores any trial config</text>
+  <text x="626" y="411" font-size="9" fill="#444">on val set without retraining.</text>
+  <text x="626" y="443" font-size="8.5" fill="#43A047" font-style="italic">Teaches: search strategies, regularisation sensitivity</text>
+  <rect x="18" y="470" width="864" height="22" rx="4" fill="#8E24AA" opacity="0.12"/>
+  <text x="30" y="485" font-size="11" font-weight="700" fill="#8E24AA" letter-spacing="1">LAYER 3 — GOVERNANCE &amp; PEDAGOGY</text>
+  <rect x="18" y="496" width="274" height="152" rx="6" fill="white" stroke="#8E24AA" stroke-width="1.5"/>
+  <rect x="18" y="496" width="274" height="8" rx="5" fill="#8E24AA"/>
+  <rect x="227" y="506" width="59" height="14" rx="4" fill="#E65100"/>
+  <text x="256" y="516" text-anchor="middle" font-size="8" font-weight="700" fill="white">◑ Partial</text>
+  <text x="30" y="528" font-size="11" font-weight="700" fill="#8E24AA">P7 · Ethical AI &amp; Fairness Checks</text>
+  <text x="30" y="542" font-size="9" fill="#444">Protected-attribute selector, demographic</text>
+  <text x="30" y="555" font-size="9" fill="#444">parity ratio, equalised odds (TPR/FPR</text>
+  <text x="30" y="568" font-size="9" fill="#444">per group), calibration curves per group,</text>
+  <text x="30" y="581" font-size="9" fill="#444">disparate impact. Flag EU AI Act risk tier.</text>
+  <text x="30" y="594" font-size="9" fill="#444">▶ Ethics page + pipeline scripts exist.</text>
+  <text x="30" y="607" font-size="9" fill="#444">Fairness mitigation UI: pending.</text>
+  <text x="30" y="639" font-size="8.5" fill="#8E24AA" font-style="italic">Teaches: fairness definitions, regulatory context</text>
+  <rect x="316" y="496" width="274" height="152" rx="6" fill="white" stroke="#8E24AA" stroke-width="1.5"/>
+  <rect x="316" y="496" width="274" height="8" rx="5" fill="#8E24AA"/>
+  <rect x="525" y="506" width="59" height="14" rx="4" fill="#E65100"/>
+  <text x="554" y="516" text-anchor="middle" font-size="8" font-weight="700" fill="white">◑ Partial</text>
+  <text x="328" y="528" font-size="11" font-weight="700" fill="#8E24AA">P8 · Teaching Mode &amp; Concept Cards</text>
+  <text x="328" y="542" font-size="9" fill="#444">Global sidebar 'Teaching Mode' toggle.</text>
+  <text x="328" y="555" font-size="9" fill="#444">Every chart gains ℹ️ button → concept card</text>
+  <text x="328" y="568" font-size="9" fill="#444">(plain explanation + citation + checklist).</text>
+  <text x="328" y="581" font-size="9" fill="#444">Guided walkthrough, progress tracker.</text>
+  <text x="328" y="594" font-size="9" fill="#444">▶ EDA insights + FE rationale LIVE for D.</text>
+  <text x="328" y="607" font-size="9" fill="#444">Global toggle + other UCs: pending (P10).</text>
+  <text x="328" y="639" font-size="8.5" fill="#8E24AA" font-style="italic">Teaches: meta-skill — how to read ML outputs</text>
+  <rect x="614" y="496" width="274" height="152" rx="6" fill="white" stroke="#8E24AA" stroke-width="1.5"/>
+  <rect x="614" y="496" width="274" height="8" rx="5" fill="#8E24AA"/>
+  <rect x="823" y="506" width="59" height="14" rx="4" fill="#757575"/>
+  <text x="852" y="516" text-anchor="middle" font-size="8" font-weight="700" fill="white">○ Planned</text>
+  <text x="626" y="528" font-size="11" font-weight="700" fill="#8E24AA">P9 · Report Generator</text>
+  <text x="626" y="542" font-size="9" fill="#444">One-click model card export. Sections:</text>
+  <text x="626" y="555" font-size="9" fill="#444">dataset summary, preprocessing decisions,</text>
+  <text x="626" y="568" font-size="9" fill="#444">CV results, champion spec, fairness audit,</text>
+  <text x="626" y="581" font-size="9" fill="#444">SHAP top-10, business impact estimate.</text>
+  <text x="626" y="594" font-size="9" fill="#444">Output: PDF + docx + JSON following</text>
+  <text x="626" y="607" font-size="9" fill="#444">EU AI Act Annex IV documentation template.</text>
+  <text x="626" y="639" font-size="8.5" fill="#8E24AA" font-style="italic">Teaches: model documentation standards</text>
+  <rect x="18" y="670" width="864" height="22" rx="4" fill="#00838F" opacity="0.15"/>
+  <text x="30" y="685" font-size="11" font-weight="700" fill="#00838F" letter-spacing="1">TEACHING COMPLETENESS MATRIX — PER USE CASE</text>
+  <rect x="18" y="698" width="864" height="20" rx="3" fill="#00838F"/>
+  <text x="22" y="712" font-size="9" font-weight="700" fill="white"></text>
+  <text x="42" y="712" font-size="9" font-weight="700" fill="white">Use Case</text>
+  <text x="152" y="712" font-size="9" font-weight="700" fill="white">Title</text>
+  <text x="314" y="712" font-size="9" font-weight="700" fill="white">EDA Insights</text>
+  <text x="464" y="712" font-size="9" font-weight="700" fill="white">FE Stage Notes</text>
+  <text x="594" y="712" font-size="9" font-weight="700" fill="white">Pipeline</text>
+  <text x="724" y="712" font-size="9" font-weight="700" fill="white">Status</text>
+  <rect x="18" y="718" width="864" height="20" fill="#E8F5E9" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="22" y="732" font-size="9" font-weight="400" fill="#333">🚨</text>
+  <text x="42" y="732" font-size="9" font-weight="700" fill="#1565C0">A</text>
+  <text x="152" y="732" font-size="9" font-weight="400" fill="#333">Fraud Detection (IEEE-CIS)</text>
+  <text x="314" y="732" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="464" y="732" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="594" y="732" font-size="9" font-weight="400" fill="#555">✅ Scripts done</text>
+  <text x="724" y="732" font-size="9" font-weight="400" fill="#37474f">Complete</text>
+  <rect x="18" y="738" width="864" height="20" fill="#E8F5E9" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="22" y="752" font-size="9" font-weight="400" fill="#333">💳</text>
+  <text x="42" y="752" font-size="9" font-weight="700" fill="#1565C0">B</text>
+  <text x="152" y="752" font-size="9" font-weight="400" fill="#333">Credit Risk (Give Me Some Credit)</text>
+  <text x="314" y="752" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="464" y="752" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="594" y="752" font-size="9" font-weight="400" fill="#555">✅ Scripts done</text>
+  <text x="724" y="752" font-size="9" font-weight="400" fill="#37474f">Complete</text>
+  <rect x="18" y="758" width="864" height="20" fill="#E8F5E9" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="22" y="772" font-size="9" font-weight="400" fill="#333">💬</text>
+  <text x="42" y="772" font-size="9" font-weight="700" fill="#1565C0">C_nlp</text>
+  <text x="152" y="772" font-size="9" font-weight="400" fill="#333">NLP Sentiment (FinPhrasebank)</text>
+  <text x="314" y="772" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="464" y="772" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="594" y="772" font-size="9" font-weight="400" fill="#555">✅ Scripts done</text>
+  <text x="724" y="772" font-size="9" font-weight="400" fill="#37474f">Complete</text>
+  <rect x="18" y="778" width="864" height="20" fill="#E8F5E9" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="22" y="792" font-size="9" font-weight="400" fill="#333">📈</text>
+  <text x="42" y="792" font-size="9" font-weight="700" fill="#1565C0">C_mkt</text>
+  <text x="152" y="792" font-size="9" font-weight="400" fill="#333">Market Volatility Forecast</text>
+  <text x="314" y="792" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="464" y="792" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="594" y="792" font-size="9" font-weight="400" fill="#555">✅ Scripts done</text>
+  <text x="724" y="792" font-size="9" font-weight="400" fill="#37474f">Complete</text>
+  <rect x="18" y="798" width="864" height="20" fill="#E3F2FD" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="22" y="812" font-size="9" font-weight="400" fill="#333">🎵</text>
+  <text x="42" y="812" font-size="9" font-weight="700" fill="#1565C0">D</text>
+  <text x="152" y="812" font-size="9" font-weight="400" fill="#333">KKBox Churn (WSDM Kaggle)</text>
+  <text x="314" y="812" font-size="9" font-weight="400" fill="#555">✅ Done</text>
+  <text x="464" y="812" font-size="9" font-weight="400" fill="#555">✅ Done</text>
+  <text x="594" y="812" font-size="9" font-weight="400" fill="#555">✅ Active</text>
+  <text x="724" y="812" font-size="9" font-weight="400" fill="#37474f">Active</text>
+  <rect x="18" y="818" width="864" height="20" fill="#E8F5E9" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="22" y="832" font-size="9" font-weight="400" fill="#333">🏥</text>
+  <text x="42" y="832" font-size="9" font-weight="700" fill="#1565C0">E</text>
+  <text x="152" y="832" font-size="9" font-weight="400" fill="#333">Insurance Claim Prediction</text>
+  <text x="314" y="832" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="464" y="832" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="594" y="832" font-size="9" font-weight="400" fill="#555">✅ Scripts done</text>
+  <text x="724" y="832" font-size="9" font-weight="400" fill="#37474f">Complete</text>
+  <rect x="18" y="838" width="864" height="20" fill="#FFF8E1" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="22" y="852" font-size="9" font-weight="400" fill="#333">🌱</text>
+  <text x="42" y="852" font-size="9" font-weight="700" fill="#1565C0">F</text>
+  <text x="152" y="852" font-size="9" font-weight="400" fill="#333">ESG &amp; Greenwashing (SEC EDGAR)</text>
+  <text x="314" y="852" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="464" y="852" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="594" y="852" font-size="9" font-weight="400" fill="#555">⬜ Scripts TBD</text>
+  <text x="724" y="852" font-size="9" font-weight="400" fill="#37474f">Scaffolded</text>
+  <rect x="18" y="858" width="864" height="20" fill="#FFF8E1" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="22" y="872" font-size="9" font-weight="400" fill="#333">🤖</text>
+  <text x="42" y="872" font-size="9" font-weight="700" fill="#1565C0">G</text>
+  <text x="152" y="872" font-size="9" font-weight="400" fill="#333">Robo-Advisory/Portfolio (AmEx)</text>
+  <text x="314" y="872" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="464" y="872" font-size="9" font-weight="400" fill="#555">⬜ Pending</text>
+  <text x="594" y="872" font-size="9" font-weight="400" fill="#555">⬜ Scripts TBD</text>
+  <text x="724" y="872" font-size="9" font-weight="400" fill="#37474f">Scaffolded</text>
+  <rect x="18" y="878" width="864" height="20" fill="#FCE4EC" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="22" y="892" font-size="9" font-weight="400" fill="#333">🏦</text>
+  <text x="42" y="892" font-size="9" font-weight="700" fill="#1565C0">H</text>
+  <text x="152" y="892" font-size="9" font-weight="400" fill="#333">Bank Customer Churn (planned)</text>
+  <text x="314" y="892" font-size="9" font-weight="400" fill="#555">⬜ Planned</text>
+  <text x="464" y="892" font-size="9" font-weight="400" fill="#555">⬜ Planned</text>
+  <text x="594" y="892" font-size="9" font-weight="400" fill="#555">⬜ Not started</text>
+  <text x="724" y="892" font-size="9" font-weight="400" fill="#37474f">Planned</text>
+  <rect x="18" y="926" width="864" height="22" rx="4" fill="#00838F" opacity="0.15"/>
+  <text x="30" y="941" font-size="11" font-weight="700" fill="#00838F" letter-spacing="1">NEW ENHANCEMENTS — P10 TO P15</text>
+  <rect x="18" y="952" width="274" height="143" rx="6" fill="white" stroke="#00838F" stroke-width="1.5"/>
+  <rect x="18" y="952" width="274" height="8" rx="5" fill="#00838F"/>
+  <rect x="227" y="962" width="59" height="14" rx="4" fill="#757575"/>
+  <text x="256" y="972" text-anchor="middle" font-size="8" font-weight="700" fill="white">○ Planned</text>
+  <text x="30" y="984" font-size="11" font-weight="700" fill="#00838F">P10 · Teaching Backfill (A,B,C,E)</text>
+  <text x="30" y="998" font-size="9" fill="#444">Add _EDA_INSIGHTS entries to app.py for</text>
+  <text x="30" y="1011" font-size="9" fill="#444">UCs A, B, C_nlp, C_markets, E — same 4-key</text>
+  <text x="30" y="1024" font-size="9" fill="#444">structure as UC-D (target/correlation/</text>
+  <text x="30" y="1037" font-size="9" fill="#444">missing/outlier). Add stage_notes to</text>
+  <text x="30" y="1050" font-size="9" fill="#444">_FE_GUIDANCE for each UC. Academic</text>
+  <text x="30" y="1063" font-size="9" fill="#444">citations per domain required.</text>
+  <text x="30" y="1086" font-size="8.5" fill="#00838F" font-style="italic">Scope: ~250 lines per UC × 5 UCs in app.py</text>
+  <rect x="316" y="952" width="274" height="143" rx="6" fill="white" stroke="#00838F" stroke-width="1.5"/>
+  <rect x="316" y="952" width="274" height="8" rx="5" fill="#00838F"/>
+  <rect x="525" y="962" width="59" height="14" rx="4" fill="#757575"/>
+  <text x="554" y="972" text-anchor="middle" font-size="8" font-weight="700" fill="white">○ Planned</text>
+  <text x="328" y="984" font-size="11" font-weight="700" fill="#00838F">P11 · Bank Customer Churn (UC-H)</text>
+  <text x="328" y="998" font-size="9" fill="#444">New use case: Kaggle Telco/Bank Churn.</text>
+  <text x="328" y="1011" font-size="9" fill="#444">Binary classification, ~10K rows, tabular.</text>
+  <text x="328" y="1024" font-size="9" fill="#444">Add USE_CASE_META['H'], pipeline 01-06,</text>
+  <text x="328" y="1037" font-size="9" fill="#444">_FE_GUIDANCE + _EDA_INSIGHTS entries,</text>
+  <text x="328" y="1050" font-size="9" fill="#444">wire into USE_CASE_SCRIPTS. Comparator</text>
+  <text x="328" y="1063" font-size="9" fill="#444">to UC-D (industry vs academic churn).</text>
+  <text x="328" y="1086" font-size="8.5" fill="#00838F" font-style="italic">Scope: 6 pipeline scripts + app.py wiring</text>
+  <rect x="614" y="952" width="274" height="143" rx="6" fill="white" stroke="#00838F" stroke-width="1.5"/>
+  <rect x="614" y="952" width="274" height="8" rx="5" fill="#00838F"/>
+  <rect x="823" y="962" width="59" height="14" rx="4" fill="#757575"/>
+  <text x="852" y="972" text-anchor="middle" font-size="8" font-weight="700" fill="white">○ Planned</text>
+  <text x="626" y="984" font-size="11" font-weight="700" fill="#00838F">P12 · ESG Pipeline Scripts (UC-F)</text>
+  <text x="626" y="998" font-size="9" fill="#444">Implement 01-06 for UC-F: SEC EDGAR</text>
+  <text x="626" y="1011" font-size="9" fill="#444">ESG multi-class text classifier. NLP +</text>
+  <text x="626" y="1024" font-size="9" fill="#444">structured features (ESG scores, sector),</text>
+  <text x="626" y="1037" font-size="9" fill="#444">FinBERT embeddings or TF-IDF, XGBoost.</text>
+  <text x="626" y="1050" font-size="9" fill="#444">Update status 'scaffolded' → 'active'</text>
+  <text x="626" y="1063" font-size="9" fill="#444">once all 6 scripts run end-to-end.</text>
+  <text x="626" y="1086" font-size="8.5" fill="#00838F" font-style="italic">Scope: 6 scripts + SEC EDGAR data pipeline</text>
+  <rect x="18" y="1113" width="274" height="143" rx="6" fill="white" stroke="#00838F" stroke-width="1.5"/>
+  <rect x="18" y="1113" width="274" height="8" rx="5" fill="#00838F"/>
+  <rect x="227" y="1123" width="59" height="14" rx="4" fill="#757575"/>
+  <text x="256" y="1133" text-anchor="middle" font-size="8" font-weight="700" fill="white">○ Planned</text>
+  <text x="30" y="1145" font-size="11" font-weight="700" fill="#00838F">P13 · AmEx Portfolio Pipeline (UC-G)</text>
+  <text x="30" y="1159" font-size="9" fill="#444">Implement 01-06 for UC-G: Robo-Advisory</text>
+  <text x="30" y="1172" font-size="9" fill="#444">using AmEx Default Prediction dataset.</text>
+  <text x="30" y="1185" font-size="9" fill="#444">~5M rows, memory-mapped Parquet chunks.</text>
+  <text x="30" y="1198" font-size="9" fill="#444">Custom AmEx metric (0.5×Gini + 0.5×</text>
+  <text x="30" y="1211" font-size="9" fill="#444">D_top4pct). LGBM champion. Delinquency</text>
+  <text x="30" y="1224" font-size="9" fill="#444">feature engineering with FE rationale.</text>
+  <text x="30" y="1247" font-size="8.5" fill="#00838F" font-style="italic">Scope: 6 scripts + custom metric class</text>
+  <rect x="316" y="1113" width="274" height="143" rx="6" fill="white" stroke="#00838F" stroke-width="1.5"/>
+  <rect x="316" y="1113" width="274" height="8" rx="5" fill="#00838F"/>
+  <rect x="540" y="1123" width="44" height="14" rx="4" fill="#2E7D32"/>
+  <text x="562" y="1133" text-anchor="middle" font-size="8" font-weight="700" fill="white">✓ Done</text>
+  <text x="328" y="1145" font-size="11" font-weight="700" fill="#00838F">P14 · Step-5 Run Stability</text>
+  <text x="328" y="1159" font-size="9" fill="#444">Long-running Optuna/SMOTE steps caused</text>
+  <text x="328" y="1172" font-size="9" fill="#444">WebSocket keepalive assertion errors.</text>
+  <text x="328" y="1185" font-size="9" fill="#444">Fix applied: .streamlit/config.toml</text>
+  <text x="328" y="1198" font-size="9" fill="#444">disables WS compression + headless=true.</text>
+  <text x="328" y="1211" font-size="9" fill="#444">Pattern: run Step 5 via CLI (python</text>
+  <text x="328" y="1224" font-size="9" fill="#444">use_case_X/05_*.py) to avoid timeout.</text>
+  <text x="328" y="1247" font-size="8.5" fill="#00838F" font-style="italic">Status: ✅ config.toml updated — done</text>
+  <rect x="614" y="1113" width="274" height="143" rx="6" fill="white" stroke="#00838F" stroke-width="1.5"/>
+  <rect x="614" y="1113" width="274" height="8" rx="5" fill="#00838F"/>
+  <rect x="823" y="1123" width="59" height="14" rx="4" fill="#757575"/>
+  <text x="852" y="1133" text-anchor="middle" font-size="8" font-weight="700" fill="white">○ Planned</text>
+  <text x="626" y="1145" font-size="11" font-weight="700" fill="#00838F">P15 · UC Completeness Widget</text>
+  <text x="626" y="1159" font-size="9" fill="#444">Sidebar widget showing per-UC pipeline</text>
+  <text x="626" y="1172" font-size="9" fill="#444">step health. 5-cell row per use case:</text>
+  <text x="626" y="1185" font-size="9" fill="#444">🟢 artefact present / 🟡 script only /</text>
+  <text x="626" y="1198" font-size="9" fill="#444">⚫ scaffolded. Provides at-a-glance</text>
+  <text x="626" y="1211" font-size="9" fill="#444">dashboard health on startup. ~40 lines</text>
+  <text x="626" y="1224" font-size="9" fill="#444">added to render_sidebar() in app.py.</text>
+  <text x="626" y="1247" font-size="8.5" fill="#00838F" font-style="italic">Scope: ~40 lines in app.py render_sidebar()</text>
+  <line x1="18" y1="1280" x2="882" y2="1280" stroke="#ccc" stroke-width="1"/>
+  <text x="30" y="1298" font-size="11" font-weight="700" fill="#37474f" letter-spacing="1">IMPLEMENTATION PROMPTS — DETAIL REFERENCE  (P1 – P9)</text>
+  <rect x="18" y="1308" width="864" height="62" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+  <rect x="18" y="1308" width="5" height="62" rx="2" fill="#1E88E5"/>
+  <text x="34" y="1322" font-size="10" font-weight="700" fill="#1E88E5">P1</text>
+  <text x="54" y="1322" font-size="10" font-weight="600" fill="#333">Data Profiling Studio</text>
+  <text x="54" y="1336" font-size="9.5" fill="#555">Add a "📈 Data Profiling" page to dashboard/app.py. For each column: histogram + KDE overlay, box-and-whisker</text>
+  <text x="54" y="1350" font-size="9.5" fill="#555">with outlier dots, skewness/kurtosis/entropy badges, % missing bar. Add pairwise scatter matrix (top-10 numeric</text>
+  <text x="54" y="1364" font-size="9.5" fill="#555">by variance) and a dataset health scorecard (completeness %, duplicate %, type-consistency %, cardinality flags).</text>
+  <rect x="18" y="1378" width="864" height="62" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+  <rect x="18" y="1378" width="5" height="62" rx="2" fill="#1E88E5"/>
+  <text x="34" y="1392" font-size="10" font-weight="700" fill="#1E88E5">P2</text>
+  <text x="54" y="1392" font-size="10" font-weight="600" fill="#333">Data Cleansing Workshop</text>
+  <text x="54" y="1406" font-size="9.5" fill="#555">Add a "🧹 Data Cleansing" page. For each column with issues: show before/after distribution toggle, imputation</text>
+  <text x="54" y="1420" font-size="9.5" fill="#555">strategy dropdown (mean/median/mode/KNN/flag-and-drop), outlier method selector (IQR/Z-score/IF). Show a</text>
+  <text x="54" y="1434" font-size="9.5" fill="#555">live data-quality diff table. Concept cards explain MCAR/MAR/MNAR and leakage risk. Export cleaned parquet.</text>
+  <rect x="18" y="1448" width="864" height="62" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+  <rect x="18" y="1448" width="5" height="62" rx="2" fill="#1E88E5"/>
+  <text x="34" y="1462" font-size="10" font-weight="700" fill="#1E88E5">P3</text>
+  <text x="54" y="1462" font-size="10" font-weight="600" fill="#333">Feature Engineering Studio+</text>
+  <text x="54" y="1476" font-size="9.5" fill="#555">Extend the FE page: feature importance live preview (retrain fast LR after each toggle), VIF multicollinearity</text>
+  <text x="54" y="1490" font-size="9.5" fill="#555">table, interaction term builder, encoding strategy comparison (OHE vs target vs frequency encoding), and a</text>
+  <text x="54" y="1504" font-size="9.5" fill="#555">feature selection leaderboard with macro-F1 delta per feature added or removed.</text>
+  <rect x="18" y="1518" width="864" height="62" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+  <rect x="18" y="1518" width="5" height="62" rx="2" fill="#43A047"/>
+  <text x="34" y="1532" font-size="10" font-weight="700" fill="#43A047">P4</text>
+  <text x="54" y="1532" font-size="10" font-weight="600" fill="#333">Cross-Validation Explorer</text>
+  <text x="54" y="1546" font-size="9.5" fill="#555">Add an animated fold-by-fold CV visualiser: show train/val split per fold as coloured strips, per-fold metric</text>
+  <text x="54" y="1560" font-size="9.5" fill="#555">distribution boxplot, learning curves (train vs val score vs training size), bias-variance decomposition</text>
+  <text x="54" y="1574" font-size="9.5" fill="#555">diagram, and overfitting detector flag when train–val gap exceeds configurable threshold.</text>
+  <rect x="18" y="1588" width="864" height="62" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+  <rect x="18" y="1588" width="5" height="62" rx="2" fill="#43A047"/>
+  <text x="34" y="1602" font-size="10" font-weight="700" fill="#43A047">P5</text>
+  <text x="54" y="1602" font-size="10" font-weight="600" fill="#333">Model Selection Workbench</text>
+  <text x="54" y="1616" font-size="9.5" fill="#555">Side-by-side model comparison table with sortable metrics, radar chart overlay, ROC/PR curves on one canvas,</text>
+  <text x="54" y="1630" font-size="9.5" fill="#555">DET curve, calibration curves, and McNemar's test for statistical significance of performance differences.</text>
+  <text x="54" y="1644" font-size="9.5" fill="#555">"Why this model?" concept cards for each algorithm with complexity trade-offs.</text>
+  <rect x="18" y="1658" width="864" height="62" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+  <rect x="18" y="1658" width="5" height="62" rx="2" fill="#43A047"/>
+  <text x="34" y="1672" font-size="10" font-weight="700" fill="#43A047">P6</text>
+  <text x="54" y="1672" font-size="10" font-weight="600" fill="#333">Hyperparameter Explorer</text>
+  <text x="54" y="1686" font-size="9.5" fill="#555">Load lgbm_optuna_trials.csv. Render: parallel coordinates (Plotly), 2-param contour heatmap (select x/y from</text>
+  <text x="54" y="1700" font-size="9.5" fill="#555">dropdowns), fANOVA importance bar chart, convergence curve (trial # vs best score). Slider panel replays</text>
+  <text x="54" y="1714" font-size="9.5" fill="#555">any trial config and scores it on val set without retraining.</text>
+  <rect x="18" y="1728" width="864" height="62" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+  <rect x="18" y="1728" width="5" height="62" rx="2" fill="#8E24AA"/>
+  <text x="34" y="1742" font-size="10" font-weight="700" fill="#8E24AA">P7</text>
+  <text x="54" y="1742" font-size="10" font-weight="600" fill="#333">Ethical AI &amp; Fairness Checks</text>
+  <text x="54" y="1756" font-size="9.5" fill="#555">Add a "⚖️ Fairness" page. Protected-attribute selector from val_fe.parquet columns. Compute and display:</text>
+  <text x="54" y="1770" font-size="9.5" fill="#555">demographic parity ratio, equalised odds (TPR/FPR per group), calibration curves per group, disparate impact.</text>
+  <text x="54" y="1784" font-size="9.5" fill="#555">Flag EU AI Act risk tier. Surface mitigation options: threshold shift per group, reweighting, fairness-aware retraining.</text>
+  <rect x="18" y="1798" width="864" height="62" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+  <rect x="18" y="1798" width="5" height="62" rx="2" fill="#8E24AA"/>
+  <text x="34" y="1812" font-size="10" font-weight="700" fill="#8E24AA">P8</text>
+  <text x="54" y="1812" font-size="10" font-weight="600" fill="#333">Teaching Mode &amp; Concept Cards</text>
+  <text x="54" y="1826" font-size="9.5" fill="#555">Sidebar toggle "Teaching Mode". When ON: every Plotly chart gains an ℹ️ expander with concept card (plain</text>
+  <text x="54" y="1840" font-size="9.5" fill="#555">explanation + citation + what-to-look-for). Guided walkthrough sequences cards into a lesson with progress</text>
+  <text x="54" y="1854" font-size="9.5" fill="#555">tracker and completion badges per use case. _EDA_INSIGHTS + stage_notes drive the content per UC.</text>
+  <rect x="18" y="1868" width="864" height="62" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+  <rect x="18" y="1868" width="5" height="62" rx="2" fill="#8E24AA"/>
+  <text x="34" y="1882" font-size="10" font-weight="700" fill="#8E24AA">P9</text>
+  <text x="54" y="1882" font-size="10" font-weight="600" fill="#333">Report Generator</text>
+  <text x="54" y="1896" font-size="9.5" fill="#555">One-click model card export (PDF + docx + JSON). Sections: dataset, preprocessing, CV results, champion spec,</text>
+  <text x="54" y="1910" font-size="9.5" fill="#555">fairness audit, SHAP top-10, business impact. EU AI Act Annex IV template. Triggered from Model Evaluation</text>
+  <text x="54" y="1924" font-size="9.5" fill="#555">page "Export Model Card" button. Uses python-docx + fpdf2 + json.dumps.</text>
 </svg>

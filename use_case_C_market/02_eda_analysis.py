@@ -470,6 +470,27 @@ def main() -> None:
     pd.DataFrame(rows).to_csv(REPORT_DIR / "train_column_summary.csv", index=False)
     log.info("Saved train_column_summary.csv")
 
+    # ── Supplemental standardised EDA plots ──────────────────────────────
+    log.info("Generating supplemental standardised EDA visualizations …")
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from utils.eda_viz import (
+            plot_overview_panel, plot_target_distribution,
+            plot_missing_heatmap, plot_correlation_heatmap,
+            plot_numeric_distributions, plot_engineered_feature_summary,
+        )
+        plot_overview_panel(df, "target", REPORT_DIR, " — UC C_market Volatility")
+        plot_target_distribution(df, "target", REPORT_DIR, " — UC C_market Volatility")
+        plot_missing_heatmap(df, REPORT_DIR, " — UC C_market Volatility")
+        plot_correlation_heatmap(df, REPORT_DIR, " — UC C_market Volatility",
+                                 top_n=25, target_col="target")
+        plot_numeric_distributions(df, REPORT_DIR, " — UC C_market Volatility",
+                                   target_col=None)
+        log.info("  Saved: overview, target_distribution, missing_heatmap, correlation_heatmap, numeric_distributions")
+    except Exception as _e:
+        log.warning("Supplemental plots skipped: %s", _e)
+
     log.info("-" * 60)
     log.info("Step 2 complete. Reports saved to %s", REPORT_DIR)
     log.info("=" * 60)

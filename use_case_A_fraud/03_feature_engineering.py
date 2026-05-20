@@ -912,6 +912,27 @@ def main():
     log.info(f"Saved: {out_train}")
     log.info(f"Saved: {out_val}")
 
+    # ── Supplemental FE visualizations ───────────────────────────────────
+    print("[FE+] Supplemental raw vs processed visualizations…")
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from utils.eda_viz import plot_raw_vs_processed
+        # Use a column sample to stay memory-efficient
+        raw_num = [c for c in df_tr.select_dtypes(include="number").columns
+                   if c not in ("TransactionID",)][:10]
+        fe_num  = [c for c in df_tr_fe.select_dtypes(include="number").columns
+                   if c not in ("TransactionID",) and not c.startswith("fe_")][:6]
+        common  = [c for c in raw_num if c in fe_num]
+        if common:
+            plot_raw_vs_processed(df_tr[common + ["isFraud"]],
+                                  df_tr_fe[common + ["isFraud"]],
+                                  REPORT_DIR, " — UC A Fraud Detection",
+                                  target_col="isFraud")
+            print("    Saved: raw_vs_processed_distributions.png")
+    except Exception as _e:
+        print(f"    [warn] Supplemental FE plots skipped: {_e}")
+
     print("\n" + "=" * 65)
     print("  Feature engineering complete.")
     print(f"  Train shape: {df_tr_fe.shape}")

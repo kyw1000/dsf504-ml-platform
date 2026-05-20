@@ -656,6 +656,24 @@ def main():
 
     run_eda(df_train)
 
+    # ── Supplemental standardised EDA plots ──────────────────────────────
+    log.info("Generating supplemental standardised EDA visualizations …")
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from utils.eda_viz import plot_overview_panel, plot_numeric_distributions
+        plot_overview_panel(df_train, "isFraud", REPORT_DIR, " — UC A Fraud Detection",
+                            split_name="train")
+        # Use only numeric columns (avoid memory issues with 800+ cols)
+        num_sample = [c for c in df_train.select_dtypes(include="number").columns
+                      if c not in ("TransactionID",)][:15]
+        plot_numeric_distributions(df_train[num_sample + ["isFraud"]],
+                                   REPORT_DIR, " — UC A Fraud Detection",
+                                   target_col="isFraud")
+        log.info("  Saved: overview.png, numeric_distributions.png")
+    except Exception as _e:
+        log.warning("Supplemental plots skipped: %s", _e)
+
 
 if __name__ == "__main__":
     main()

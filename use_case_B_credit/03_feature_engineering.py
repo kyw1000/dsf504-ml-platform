@@ -349,6 +349,20 @@ def main():
     log.info(f"Saved: {out_train}  ({len(df_train_fe.columns)} columns)")
     log.info(f"Saved: {out_val}")
 
+    # ── Supplemental FE visualizations ───────────────────────────────────
+    print("[6] Supplemental raw vs processed visualizations…")
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from utils.eda_viz import plot_raw_vs_processed, plot_engineered_feature_summary
+        plot_raw_vs_processed(df_train_raw, df_train_fe, REPORT_DIR,
+                              " — UC B Credit Scoring", target_col="SeriousDlqin2yrs")
+        plot_engineered_feature_summary(df_train_raw, df_train_fe, REPORT_DIR,
+                                        " — UC B Credit Scoring", target_col="SeriousDlqin2yrs")
+        print("    Saved: raw_vs_processed_distributions.png, engineered_feature_summary.png")
+    except Exception as _e:
+        print(f"    [warn] Supplemental FE plots skipped: {_e}")
+
     print("\n" + "=" * 65)
     print("  Step 3 complete. Ready for model training (04_model_training.py)")
     print("=" * 65 + "\n")

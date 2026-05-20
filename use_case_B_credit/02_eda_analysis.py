@@ -302,6 +302,25 @@ def main():
 
     print_eda_summary(df)
 
+    # ── Supplemental standardised EDA plots ──────────────────────────────
+    print("[7] Supplemental standardised visualizations…")
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from utils.eda_viz import (
+            plot_overview_panel, plot_target_distribution,
+            plot_missing_heatmap, plot_numeric_distributions,
+        )
+        plot_overview_panel(df, TARGET, REPORT_DIR, " — UC B Credit Scoring")
+        plot_target_distribution(df, TARGET, REPORT_DIR, " — UC B Credit Scoring",
+                                 label_map={0: "No Default", 1: "Default"})
+        plot_missing_heatmap(df, REPORT_DIR, " — UC B Credit Scoring")
+        plot_numeric_distributions(df, REPORT_DIR, " — UC B Credit Scoring",
+                                   target_col=TARGET)
+        print("    Saved: overview.png, target_distribution.png, missing_heatmap.png, numeric_distributions.png")
+    except Exception as _e:
+        print(f"    [warn] Supplemental plots skipped: {_e}")
+
     print(f"  All EDA outputs saved to: {REPORT_DIR}")
     print("  Ready for feature engineering (03_feature_engineering.py)")
 
