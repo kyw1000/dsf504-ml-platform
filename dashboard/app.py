@@ -786,6 +786,374 @@ _FE_EDA_SRC: dict = {
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# ── Feature Glossary — per-UC business meanings for non-obvious features ──────
+# ══════════════════════════════════════════════════════════════════════════════
+
+_FEATURE_GLOSSARY: dict = {
+    # ── UC-A : IEEE-CIS Fraud Detection ────────────────────────────────────────
+    "A": {
+        # Transaction metadata
+        "TransactionAmt":      "Transaction amount (USD)",
+        "TransactionDT":       "Seconds elapsed since reference date (not a calendar date)",
+        "ProductCD":           "Product category code: W=web, H=hotel, R=??, C=??, S=??",
+        "card1":               "Payment card primary group number",
+        "card2":               "Payment card secondary number",
+        "card3":               "Card issuer country code",
+        "card4":               "Card network (Visa, Mastercard, etc.)",
+        "card5":               "Card sub-type group",
+        "card6":               "Card type: debit / credit",
+        "addr1":               "Billing address ZIP/postal code",
+        "addr2":               "Billing address country code",
+        "dist1":               "Distance between billing and shipping address",
+        "dist2":               "Distance to secondary address",
+        "P_emaildomain":       "Purchaser email domain",
+        "R_emaildomain":       "Recipient email domain",
+        # D-features (timedelta)
+        "D1": "Days since first transaction on this card",
+        "D2": "Days since card was first seen in dataset",
+        "D3": "Days since last address change",
+        "D4": "Days since last transaction on this card",
+        "D10": "Days since last browser/device change",
+        "D15": "Days since last high-value transaction",
+        # M-features (match flags, already numeric)
+        "M1": "Name match flag (billing vs. card)",
+        "M2": "Address match flag",
+        "M3": "Address2 match flag",
+        "M4": "Email match flag",
+        "M5": "Phone match flag",
+        "M6": "Billing zip match",
+        "M7": "P-email match flag",
+        "M8": "R-email match flag",
+        "M9": "Browser cookie match",
+        # Engineered — time
+        "fe_hour":             "Hour of day the transaction occurred (0–23)",
+        "fe_day_of_week":      "Day of week (0=Mon … 6=Sun)",
+        "fe_is_weekend":       "Binary: transaction on Saturday or Sunday",
+        "fe_is_nighttime":     "Binary: transaction between 22:00 and 06:00",
+        "fe_hour_sin":         "Cyclical sine encoding of hour (removes 23→0 discontinuity)",
+        "fe_hour_cos":         "Cyclical cosine encoding of hour",
+        "fe_dow_sin":          "Cyclical sine encoding of day-of-week",
+        "fe_dow_cos":          "Cyclical cosine encoding of day-of-week",
+        "fe_days_since_start": "Days elapsed since the earliest transaction in the dataset",
+        # Engineered — card velocity
+        "fe_card1_txn_count":  "Running count of transactions on this card (up to current row)",
+        "fe_card1_cum_amount": "Cumulative spend on this card (rolling)",
+        "fe_card1_txn_freq":   "Transaction frequency: count / days since first card transaction",
+        "fe_card1_mean_amt":   "Historical mean transaction amount for this card",
+        "fe_card1_std_amt":    "Historical std deviation of transaction amounts for this card",
+        "fe_card1_n_txn":      "Total number of historical transactions on this card",
+        "fe_card1_mean_hour":  "Mean hour of day for prior transactions on this card",
+        "fe_addr_txn_count":   "Number of transactions from this billing address",
+        "fe_email_txn_count":  "Number of transactions from this purchaser email domain",
+        # Engineered — amount
+        "fe_amt_z_score":      "Z-score of this amount vs. card's historical amount distribution",
+        "fe_amt_above_mean":   "Binary: amount is above this card's historical mean",
+        "fe_log_amount":       "Natural log of TransactionAmt (reduces right skew)",
+        "fe_amount_cents":     "Cents portion of the transaction amount (e.g. 0.99 → 99)",
+        "fe_amount_is_round":  "Binary: transaction amount is a round number (zero cents; potential test/synthetic charge signal)",
+        "fe_amount_decile":    "Decile bin of amount within the training distribution (0–9)",
+        "fe_amount_x_product": "Interaction: log-amount × product code (numeric)",
+        # Engineered — email
+        "fe_P_email_fraud_rate": "Train-set fraud rate for this purchaser email domain",
+        "fe_R_email_fraud_rate": "Train-set fraud rate for this recipient email domain",
+        "fe_P_email_is_free":    "Binary: purchaser uses a free email provider (Gmail, Yahoo…)",
+        "fe_P_email_is_rare":    "Binary: purchaser email domain appears < 10 times in training",
+        "fe_email_domain_match": "Binary: purchaser and recipient share the same email domain",
+        # Engineered — match score
+        "fe_m1": "Numeric encoding of M1 match flag (True=1, False=0, NaN=−1)",
+        "fe_m2": "Numeric encoding of M2", "fe_m3": "Numeric encoding of M3",
+        "fe_m4": "Numeric encoding of M4", "fe_m5": "Numeric encoding of M5",
+        "fe_m6": "Numeric encoding of M6", "fe_m7": "Numeric encoding of M7",
+        "fe_m8": "Numeric encoding of M8", "fe_m9": "Numeric encoding of M9",
+        "fe_match_score":      "Count of M1–M9 flags that are True (0–9)",
+        # Engineered — PCA of V-features
+        **{f"fe_V_pca_{i:02d}": f"PCA component {i} of Vesta anonymised V-features (V1–V339)"
+           for i in range(50)},
+    },
+
+    # ── UC-B : Credit Risk (Give Me Some Credit) ────────────────────────────────
+    "B": {
+        "SeriousDlqin2yrs":             "Target: 90+ day delinquency in next 2 years (1=yes)",
+        "RevolvingUtilizationOfUnsecuredLines": "Total balance / total credit limit across cards",
+        "age":                          "Borrower age in years",
+        "NumberOfTime30-59DaysPastDueNotWorse": "Times 30–59 days late on any account",
+        "DebtRatio":                    "Monthly debt payments / monthly gross income",
+        "MonthlyIncome":                "Borrower monthly gross income (USD)",
+        "NumberOfOpenCreditLinesAndLoans": "Open credit lines + installment loans",
+        "NumberOfTimes90DaysLate":      "Times 90+ days late on any account",
+        "NumberRealEstateLoansOrLines": "Number of mortgage and real estate loans",
+        "NumberOfTime60-89DaysPastDueNotWorse": "Times 60–89 days late on any account",
+        "NumberOfDependents":           "Number of dependents in the household",
+    },
+
+    # ── UC-D : KKBox Customer Churn ─────────────────────────────────────────────
+    "D": {
+        "city":               "User city code (categorical, encoded numerically)",
+        "bd":                 "User age in years (derived from birth date; −1 if unknown)",
+        "registered_via":     "Registration channel (3=iOS, 4=Android, 7=web, 9=other)",
+        "txn_count":          "Total number of subscription transactions in history",
+        "plan_days_mean":     "Average subscription plan length in days",
+        "plan_price_mean":    "Average subscription list price paid (NTD)",
+        "actual_paid_mean":   "Average actual payment amount (NTD; may be 0 for free trials)",
+        "auto_renew_rate":    "Fraction of subscriptions where auto-renew was enabled",
+        "cancel_rate":        "Fraction of transactions that resulted in cancellation",
+        "discount_rate":      "Fraction of transactions with a discount applied",
+        "log_days":           "Log of total membership tenure in days",
+        "num_25_mean":        "Avg songs played to ≥25% completion per log period",
+        "num_50_mean":        "Avg songs played to ≥50% completion per log period",
+        "num_75_mean":        "Avg songs played to ≥75% completion per log period",
+        "num_985_mean":       "Avg songs played to ≥98.5% completion per log period",
+        "num_100_mean":       "Avg songs played to 100% completion per log period",
+        "num_unq_mean":       "Avg unique songs played per log period (variety measure)",
+        "total_secs_mean":    "Average total listening seconds per log period",
+        "total_secs_sum":     "Total listening seconds across all log periods",
+        "fe_completion_rate": "Mean fraction of each song completed (depth of engagement)",
+        "fe_skip_rate":       "Fraction of songs abandoned before 25% (low-engagement signal)",
+        "fe_deep_listen_rate":"Fraction of songs played ≥75% to completion (high-engagement signal)",
+        "fe_variety_ratio":   "Unique songs / total plays — measures listening breadth",
+        "fe_log_secs":        "Log of total listening seconds (reduces right skew)",
+        "fe_log_days_log":    "Log of log-membership-days (double-log for heavy-tailed tenure)",
+        "fe_secs_per_song":   "Average seconds spent per song play",
+        "fe_is_long_plan":    "Binary: most recent plan ≥ 30 days",
+        "fe_plan_days_log":   "Log of mean plan duration in days",
+        "fe_txn_count_log":   "Log of total transaction count",
+        "fe_auto_renew":      "Binary: auto-renew was enabled on the last subscription",
+        "fe_cancel_rate":     "Ratio: cancellations / total transactions (churn history signal)",
+        "fe_age":             "User age in years (cleaned; 0 and negatives set to NaN)",
+        "fe_age_bucket_young":"Binary: user age < 25",
+        "fe_age_bucket_senior":"Binary: user age > 55",
+        "fe_is_male":         "Binary: gender = male",
+        "fe_is_female":       "Binary: gender = female",
+        "fe_city_risk":       "Target-encoded city churn rate (smoothed mean encoding)",
+        "fe_reg_channel_risk":"Target-encoded churn rate for the user's registration channel",
+    },
+
+    # ── UC-E : Porto Seguro Insurance Risk ──────────────────────────────────────
+    "E": {
+        "fe_miss_ps_reg_03":      "Missing indicator: ps_reg_03 (continuous driving record metric)",
+        "fe_miss_ps_car_03_cat":  "Missing indicator: ps_car_03_cat (vehicle model category)",
+        "fe_miss_ps_car_05_cat":  "Missing indicator: ps_car_05_cat (vehicle brand code)",
+        "fe_miss_ps_car_07_cat":  "Missing indicator: ps_car_07_cat (car body type)",
+        "fe_miss_ps_car_14":      "Missing indicator: ps_car_14 (vehicle age proxy)",
+        "fe_te_ps_car_01_cat":    "Target-encoded: ps_car_01_cat (primary vehicle model)",
+        "fe_te_ps_car_06_cat":    "Target-encoded: ps_car_06_cat (fuel type)",
+        "fe_te_ps_car_11_cat":    "Target-encoded: ps_car_11_cat (secondary vehicle model)",
+        "fe_n_missing":           "Total count of missing values for this policyholder",
+        "fe_n_bin_ind":           "Count of binary individual (ps_ind_*_bin) features equal to 1",
+        "fe_reg_sum":             "Sum of all three ps_reg_* continuous features",
+        "fe_ind_cont_sum":        "Sum of continuous individual (ps_ind_01/03/14/15) features",
+        "fe_car13_reg03":         "Interaction: ps_car_13 × ps_reg_03 (vehicle power × driving record)",
+        "fe_miss_x_reg":          "Interaction: missing count × registration sum",
+        "fe_car13_sq":            "Squared ps_car_13 (non-linear vehicle power proxy)",
+        "fe_log_ps_reg_01":       "Log of ps_reg_01 (registration metric 01)",
+        "fe_log_ps_reg_02":       "Log of ps_reg_02 (registration metric 02)",
+        "fe_log_ps_reg_03":       "Log of ps_reg_03 (registration metric 03)",
+        "fe_log_ps_car_12":       "Log of ps_car_12 (vehicle feature 12)",
+        "fe_log_ps_car_13":       "Log of ps_car_13 (vehicle feature 13, engine/power proxy)",
+    },
+
+    # ── UC-F : ESG & Greenwashing Risk ──────────────────────────────────────────
+    "F": {
+        "fe_text_len":          "Character count of the company's ESG disclosure text",
+        "fe_word_count":        "Word count of the ESG disclosure text",
+        "fe_avg_word_len":      "Average word length in the disclosure (complexity proxy)",
+        "fe_claim_density":     "ESG claim keywords per word (sustainability rhetoric density)",
+        "fe_e_gap_clipped":     "Environmental (E) gap: self-reported minus third-party E score",
+        "fe_s_gap_clipped":     "Social (S) gap: self-reported minus third-party S score",
+        "fe_g_gap_clipped":     "Governance (G) gap: self-reported minus third-party G score",
+        "fe_avg_gap_clipped":   "Mean across E/S/G gaps — measures overall greenwashing breadth",
+        "fe_gap_cv":            "Coeff. of variation of E/S/G gaps — signals selective exaggeration",
+        "fe_max_gap":           "Largest gap across any single E, S, or G dimension",
+        "fe_composite_delta":   "YoY change in composite ESG score (improvement or decline)",
+        "fe_composite_esg":     "Weighted composite ESG score (E×0.4 + S×0.3 + G×0.3)",
+        "fe_esg_low":           "Binary: composite ESG score in the bottom quartile",
+        "fe_esg_high":          "Binary: composite ESG score in the top quartile",
+        "fe_e_score_norm":      "Normalised Environmental score (0 = worst, 1 = best in cohort)",
+        "fe_s_score_norm":      "Normalised Social score",
+        "fe_g_score_norm":      "Normalised Governance score",
+        "fe_log_market_cap":    "Log of market capitalisation (USD)",
+        "fe_log_revenue":       "Log of annual revenue (USD)",
+        "fe_log_emissions":     "Log of GHG emissions intensity (tCO₂e per USD revenue)",
+        "fe_emissions_high":    "Binary: emissions intensity in the top quartile of the cohort",
+        "fe_sector_risk_te":    "Target-encoded greenwashing rate for this GICS sector",
+        "fe_claim_x_gap":       "Interaction: claim_density × avg_gap (high rhetoric + high gap = red flag)",
+        "fe_gap_x_emissions":   "Interaction: avg_gap × log_emissions (gap aggravated by heavy emitters)",
+        **{f"fe_sector_{s}": f"One-hot: GICS sector = {s}"
+           for s in ["Communication Services","Consumer Discretionary","Consumer Staples",
+                     "Energy","Financials","Materials","Other","Real Estate","Utilities"]},
+    },
+
+    # ── UC-B3 : AmEx Loan Default ────────────────────────────────────────────────
+    "B3": {
+        "fe_stmt_count":       "Number of monthly billing statements in customer history",
+        "fe_last_miss_count":  "Missing-value count in the most recent statement",
+        "fe_all_null_count":   "Features that are null across ALL statements (always-missing signal)",
+        "fe_nuniq_D_39":       "Unique values of D_39 across statements (behavioural variability)",
+        "fe_nuniq_D_41":       "Unique values of D_41 across statements",
+        "fe_nuniq_D_42":       "Unique values of D_42 across statements",
+        "fe_nuniq_D_44":       "Unique values of D_44 across statements",
+        "fe_nuniq_D_45":       "Unique values of D_45 across statements",
+        # AmEx anonymised feature groups
+        **{f"D_{i}__mean": f"Mean of delinquency feature D_{i} across all statements"
+           for i in range(200)},
+        **{f"D_{i}__std":  f"Std deviation of delinquency feature D_{i} across statements"
+           for i in range(200)},
+        **{f"D_{i}__min":  f"Minimum of delinquency feature D_{i} across statements"
+           for i in range(200)},
+        **{f"D_{i}__max":  f"Maximum of delinquency feature D_{i} across statements"
+           for i in range(200)},
+        **{f"D_{i}__last": f"Most-recent value of delinquency feature D_{i}"
+           for i in range(200)},
+        **{f"S_{i}__mean": f"Mean of spend feature S_{i} across all statements"
+           for i in range(30)},
+        **{f"P_{i}__mean": f"Mean of payment feature P_{i} across all statements"
+           for i in range(20)},
+        **{f"B_{i}__mean": f"Mean of balance feature B_{i} across all statements"
+           for i in range(50)},
+        **{f"R_{i}__mean": f"Mean of risk feature R_{i} across all statements"
+           for i in range(30)},
+    },
+
+    # ── UC-G2 : Explainable AI — SEC EDGAR ──────────────────────────────────────
+    "G2": {
+        "market_cap_log":       "Log of market capitalisation (USD) — size control variable",
+        "pe_ratio":             "Price-to-earnings ratio: stock price / trailing-twelve-month EPS",
+        "pb_ratio":             "Price-to-book ratio: market value / book (shareholders' equity) value",
+        "ps_ratio":             "Price-to-sales ratio: market cap / annual revenue",
+        "roe":                  "Return on equity: net income / average shareholders' equity",
+        "roa":                  "Return on assets: net income / average total assets",
+        "net_margin":           "Net profit margin: net income / revenue",
+        "gross_margin":         "Gross profit margin: (revenue − COGS) / revenue",
+        "ebitda_margin":        "EBITDA / revenue — operating profitability before financing",
+        "debt_equity":          "Total debt / shareholders' equity (leverage ratio)",
+        "interest_coverage":    "EBIT / interest expense — debt-service capacity",
+        "debt_assets":          "Total debt / total assets (balance-sheet leverage)",
+        "current_ratio":        "Current assets / current liabilities — short-term liquidity",
+        "quick_ratio":          "(Current assets − inventory) / current liabilities",
+        "asset_turnover":       "Revenue / average total assets — capital efficiency",
+        "revenue_growth":       "Year-over-year revenue growth rate",
+        "eps_growth":           "Year-over-year earnings-per-share growth rate",
+        "fcf_yield":            "Free cash flow / market cap — intrinsic value signal",
+        "sector_enc":           "Historical outperformance rate for this GICS sector (target-encoded)",
+        "peg_ratio":            "P/E ÷ EPS growth rate — growth-adjusted valuation",
+        "interest_burden":      "Net interest expense / operating income — financing cost fraction",
+        "quality_spread":       "Composite quality score minus sector-year average (relative quality)",
+        "value_composite":      "Z-score composite of P/E, P/B, P/S (lower = cheaper)",
+        "growth_composite":     "Z-score composite of revenue growth, EPS growth",
+        "profitability_composite": "Z-score composite of ROE, ROA, net margin",
+        "leverage_risk":        "Composite leverage risk score (debt/equity, interest coverage)",
+        "macro_regime":         "Macroeconomic regime code: 0=contraction, 1=recovery, 2=expansion, 3=slowdown",
+        "is_crisis_year":       "Binary: year classified as financial crisis (2001, 2008–09, 2020)",
+        "is_bull_year":         "Binary: year classified as strong broad-market bull run",
+        **{f"{m}__rank": f"Percentile rank of {m} within same sector × year peer group (0=worst, 1=best)"
+           for m in ["pe_ratio","pb_ratio","ps_ratio","roe","roa","net_margin","gross_margin",
+                     "ebitda_margin","debt_equity","interest_coverage","debt_assets",
+                     "current_ratio","quick_ratio","asset_turnover","revenue_growth",
+                     "eps_growth","fcf_yield","market_cap_log","peg_ratio","quality_spread",
+                     "growth_composite","profitability_composite"]},
+    },
+}
+
+
+def _describe_feature(feat: str, uc_key: str) -> str:
+    """Return a human-readable description for an engineered feature name.
+
+    Resolution order:
+    1. Per-UC glossary exact match
+    2. Pattern matching on naming conventions
+    3. Cleaned-up title-case fallback
+    """
+    # 1. Glossary exact match
+    desc = _FEATURE_GLOSSARY.get(uc_key, {}).get(feat)
+    if desc:
+        return desc
+
+    f = feat  # preserve original case for display; use f.lower() for matching
+    fl = feat.lower()
+
+    # 2. Pattern matching ─────────────────────────────────────────────────────
+
+    # Missing-value indicators
+    if fl.startswith("fe_miss_"):
+        base = feat[8:].replace("_", " ")
+        return f"Missing-value indicator for {base}"
+
+    # TF-IDF term weights
+    if fl.startswith("tfidf_"):
+        term = feat[6:].replace("_", " ")
+        return f'TF-IDF weight for term "{term}" in ESG disclosure text'
+
+    # One-hot sector
+    if fl.startswith("fe_sector_"):
+        sector = feat[10:].replace("_", " ")
+        return f"One-hot encoded: GICS sector = {sector}"
+
+    # Target-encoded
+    if fl.startswith("fe_te_"):
+        base = feat[6:].replace("_", " ")
+        return f"Target-encoded (smoothed mean): {base}"
+
+    # AmEx anonymised aggregation stats  e.g.  D_39__mean, S_3__last
+    for stat in ("__mean", "__std", "__min", "__max", "__last"):
+        if fl.endswith(stat):
+            base = feat[: -len(stat)]
+            stat_name = stat[2:]
+            grp = base[0] if base else "?"
+            grp_names = {"D": "delinquency", "S": "spend", "P": "payment",
+                         "B": "balance", "R": "risk"}
+            grp_label = grp_names.get(grp.upper(), "")
+            label = f"{grp_label} feature {base}" if grp_label else base
+            _stat_labels = {"mean": "Mean", "std": "Standard deviation",
+                            "min": "Minimum", "max": "Maximum"}
+            stat_label = _stat_labels.get(stat_name, stat_name.capitalize())
+            return (f"Most-recent value of {label}"
+                    if stat_name == "last"
+                    else f"{stat_label} of {label} across all statements")
+
+    # Percentile rank columns  e.g.  pe_ratio__rank
+    if fl.endswith("__rank"):
+        base = feat[: -6].replace("_", " ")
+        return f"Percentile rank of {base} within same sector × year peer group"
+
+    # Log transforms
+    if fl.startswith("fe_log_"):
+        base = feat[7:].replace("_", " ")
+        return f"Natural log of {base} (variance-stabilising transform)"
+    if fl.endswith("_log") and fl.startswith("fe_"):
+        base = feat[3:-4].replace("_", " ")
+        return f"Natural log of {base}"
+
+    # Binary age buckets
+    if fl.startswith("fe_age_bucket_"):
+        bucket = feat[14:].replace("_", " ")
+        return f"Binary indicator: user is in the '{bucket}' age group"
+
+    # Binary gender
+    if fl == "fe_is_male":
+        return "Binary: user gender = male"
+    if fl == "fe_is_female":
+        return "Binary: user gender = female"
+
+    # Generic fe_is_ indicators
+    if fl.startswith("fe_is_"):
+        label = feat[6:].replace("_", " ")
+        return f"Binary indicator: {label}"
+
+    # PCA components
+    if fl.startswith("fe_v_pca_") or fl.startswith("fe_V_pca_"):
+        idx = feat.split("_")[-1]
+        return f"PCA component {idx} of Vesta anonymised V-features (V1–V339)"
+
+    # Generic fe_ prefix
+    if fl.startswith("fe_"):
+        label = feat[3:].replace("_", " ")
+        return f"Engineered feature: {label}"
+
+    # 3. Cleaned title-case fallback
+    return feat.replace("_", " ").title()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # ── EDA-based feature engineering recommendations (Data Preparation tab) ──────
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -3144,14 +3512,40 @@ def page_feature_engineering(uc_key: str) -> None:
         feat_list_path = src.get("feat_list")
         train_fe_path  = src.get("train_fe")
 
+        def _enrich_feat_df(df_in: "pd.DataFrame") -> "pd.DataFrame":
+            """Insert a Description column after the feature column."""
+            df_out = df_in.copy()
+            feat_col = df_out.columns[0]  # always 'feature'
+            descriptions = df_out[feat_col].apply(
+                lambda f: _describe_feature(f, uc_key)
+            )
+            df_out.insert(1, "description", descriptions)
+            return df_out
+
         if feat_list_path:
             df_fl = load_csv(feat_list_path)
             if df_fl is not None:
-                st.markdown(f"**{len(df_fl):,} engineered features**")
-                search = st.text_input("Search features", key=f"_fe_search_{uc_key}", placeholder="Type to filter…")
+                df_fl = _enrich_feat_df(df_fl)
+                total = len(df_fl)
+                c_left, c_right = st.columns([3, 1])
+                with c_left:
+                    search = st.text_input(
+                        "Search features or descriptions",
+                        key=f"_fe_search_{uc_key}",
+                        placeholder="e.g. log, missing, velocity, gap …",
+                    )
+                with c_right:
+                    st.markdown(
+                        f"<p style='color:{FONT};font-size:13px;margin-top:28px'>"
+                        f"<b>{total:,}</b> engineered features</p>",
+                        unsafe_allow_html=True,
+                    )
                 if search:
-                    mask = df_fl.apply(lambda col: col.astype(str).str.contains(search, case=False)).any(axis=1)
+                    mask = df_fl.apply(
+                        lambda col: col.astype(str).str.contains(search, case=False)
+                    ).any(axis=1)
                     df_fl = df_fl[mask]
+                    st.caption(f'{len(df_fl):,} of {total:,} features match "{search}"')
                 st.dataframe(df_fl, width='stretch', hide_index=True)
             else:
                 st.info("Engineered features list not found. Run Step 3 — Data Preparation.")
@@ -3160,9 +3554,18 @@ def page_feature_engineering(uc_key: str) -> None:
             df_fe = load_parquet(train_fe_path, nrows=5)
             if df_fe is not None:
                 fe_cols = [c for c in df_fe.columns if c.startswith("fe_")]
-                st.markdown(f"**{len(fe_cols):,} `fe_` prefixed columns found in train_fe.parquet**")
                 if fe_cols:
-                    df_show = pd.DataFrame({"feature": fe_cols, "dtype": [str(df_fe[c].dtype) for c in fe_cols]})
+                    df_show = pd.DataFrame({
+                        "feature":     fe_cols,
+                        "description": [_describe_feature(c, uc_key) for c in fe_cols],
+                        "dtype":       [str(df_fe[c].dtype) for c in fe_cols],
+                    })
+                    st.markdown(
+                        f"<p style='color:{FONT}'><b>{len(fe_cols):,}</b> "
+                        f"<code>fe_</code>-prefixed columns found in "
+                        f"<code>train_fe.parquet</code></p>",
+                        unsafe_allow_html=True,
+                    )
                     st.dataframe(df_show, width='stretch', hide_index=True)
                 else:
                     st.info("No `fe_` columns found. Check pipeline output.")
