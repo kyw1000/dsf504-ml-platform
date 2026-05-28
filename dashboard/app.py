@@ -236,13 +236,29 @@ USE_CASE_SCRIPTS: dict = {
         5: "use_case_F_esg/05_hyperparameter_tuning.py",
         6: "use_case_F_esg/06_ethics_explainability.py",
     },
-    "G": {
+    "B3": {
         1: "use_case_G_advisory/01_data_loading.py",
         2: "use_case_G_advisory/02_eda_analysis.py",
         3: "use_case_G_advisory/03_feature_engineering.py",
         4: "use_case_G_advisory/04_model_training.py",
         5: "use_case_G_advisory/05_hyperparameter_tuning.py",
         6: "use_case_G_advisory/06_ethics_explainability.py",
+    },
+    "G1": {
+        1: "use_case_G1_robo/01_data_loading.py",
+        2: "use_case_G1_robo/02_eda_analysis.py",
+        3: "use_case_G1_robo/03_feature_engineering.py",
+        4: "use_case_G1_robo/04_model_training.py",
+        5: "use_case_G1_robo/05_hyperparameter_tuning.py",
+        6: "use_case_G1_robo/06_ethics_explainability.py",
+    },
+    "G2": {
+        1: "use_case_G2_xai/01_data_loading.py",
+        2: "use_case_G2_xai/02_eda_analysis.py",
+        3: "use_case_G2_xai/03_feature_engineering.py",
+        4: "use_case_G2_xai/04_model_training.py",
+        5: "use_case_G2_xai/05_hyperparameter_tuning.py",
+        6: "use_case_G2_xai/06_ethics_explainability.py",
     },
 }
 
@@ -307,7 +323,7 @@ USE_CASE_META: dict = {
         "report_dir": "use_case_C_nlp",
         "status":     "complete",
         "is_nlp":     True,
-        "champion":   "lgbm_optuna_champion.pkl",
+        "champion":   "Complement_NB_baseline.pkl",
     },
     "C_markets": {
         "title":      "Market Intelligence — Realized Volatility",
@@ -345,7 +361,7 @@ USE_CASE_META: dict = {
         "model_dir":  "use_case_D",
         "data_dir":   "kkbox_churn",
         "report_dir": "use_case_D",
-        "status":     "active",
+        "status":     "complete",
         "champion":   "lgbm_optuna_champion.pkl",
     },
     "F": {
@@ -358,19 +374,45 @@ USE_CASE_META: dict = {
         "model_dir":  "use_case_F",
         "data_dir":   "sec_esg",
         "report_dir": "use_case_F",
-        "status":     "active",
+        "status":     "complete",
         "champion":   "champion.pkl",
     },
-    "G": {
-        "title":      "AmEx Credit Default Prediction",
-        "icon":       "💳",
-        "tag":        "AmEx Default Prediction",
+    "B3": {
+        "title":      "AmEx Loan Default Prediction",
+        "icon":       "🏦",
+        "tag":        "Credit Risk — AmEx Dataset",
         "target":     "target",
         "task":       "Binary Classification",
         "metric":     "AmEx Metric",
         "model_dir":  "use_case_G",
         "data_dir":   "amex_default",
         "report_dir": "use_case_G",
+        "status":     "complete",
+        "champion":   "lgbm_optuna_champion.pkl",
+    },
+    "G1": {
+        "title":      "Robo-Advisory Portfolio Recommendation",
+        "icon":       "📊",
+        "tag":        "FAR-Trans · LambdaRank",
+        "target":     "label",
+        "task":       "Learning to Rank",
+        "metric":     "NDCG@10",
+        "model_dir":  "use_case_G1",
+        "data_dir":   "far_trans",
+        "report_dir": "use_case_G1",
+        "status":     "active",
+        "champion":   "lgbm_optuna_champion.pkl",
+    },
+    "G2": {
+        "title":      "Explainable AI for Analysts & Managers",
+        "icon":       "🔍",
+        "tag":        "SEC EDGAR · SHAP",
+        "target":     "outperform",
+        "task":       "Binary Classification",
+        "metric":     "AUC-ROC",
+        "model_dir":  "use_case_G2",
+        "data_dir":   "sec_edgar",
+        "report_dir": "use_case_G2",
         "status":     "active",
         "champion":   "lgbm_optuna_champion.pkl",
     },
@@ -487,19 +529,51 @@ _DATASET_INFO: dict = {
             "per class and averaged for global feature importance."
         ),
     },
-    "G": {
-        "url":   "https://www.kaggle.com/c/amex-default-prediction",
+    "G1": {
+        "url":   "https://researchdata.gla.ac.uk/1658/",
+        "label": "FAR-Trans — Financial Asset Recommendation Dataset",
+        "intro": (
+            "**FAR-Trans** (University of Glasgow, CC-BY 4.0) is a real-world financial asset "
+            "recommendation dataset from a European financial institution covering Jan 2018 – "
+            "Nov 2022. It contains four linked tables: **customers** (investor profiles with "
+            "risk levels and investment capacity), **assets** (500+ instruments across equities, "
+            "bonds, mutual funds, ETFs, commodities, and crypto), **transactions** (buy/sell "
+            "records per customer–asset pair), and **profitability** (realised ROI per asset).  \n"
+            "The ML task is **learning-to-rank**: given a customer's profile and transaction "
+            "history, rank candidate assets by predicted purchase likelihood. Evaluated using "
+            "**NDCG@10**, Precision@10, Recall@10, and MRR."
+        ),
+    },
+    "G2": {
+        "url":   "https://www.sec.gov/dera/data/financial-statements",
+        "label": "SEC EDGAR Financial Statements + Yahoo Finance — Stock Outperformance",
+        "intro": (
+            "The **G2 dataset** combines SEC EDGAR 10-K/10-Q financial ratio data with Yahoo "
+            "Finance forward return data to create an analyst-screening task. Each observation "
+            "is a company–fiscal-year pair described by **17 financial ratios** across five "
+            "categories: valuation (PE, PB, PS), profitability (ROE, ROA, margins), leverage "
+            "(D/E, interest coverage), liquidity (current/quick ratio), and growth (revenue, "
+            "EPS, FCF).  \n"
+            "The binary target flags companies that **outperformed the S&P 500** over the "
+            "following 12 months (top 40% → 1, bottom 40% → 0). Feature engineering adds "
+            "cross-sectional percentile ranks, composite factor scores, and macro regime "
+            "flags. SHAP explanations provide analyst-readable attribution for every prediction."
+        ),
+    },
+    "B3": {
+        "url":   "https://www.kaggle.com/competitions/amex-default-prediction",
         "label": "Kaggle — American Express Default Prediction",
         "intro": (
-            "The **American Express Default Prediction** dataset (Kaggle 2022) is one of the largest "
-            "tabular ML datasets publicly available. It contains **~5.5 million rows** representing "
-            "monthly credit card statement snapshots for ~460,000 customers, described by **190 "
-            "anonymised features** across five categories: delinquency (D), spend (S), payment (P), "
-            "balance (B), and risk (R).  \n"
-            "The binary target indicates whether the customer defaulted within 18 months. The "
-            "evaluation metric is the **AmEx Metric** — a weighted combination of Normalized Gini "
-            "(AUC-based) and the default rate captured in the top 4% of predictions, reflecting the "
-            "lender's real-world focus on early identification of the highest-risk customers."
+            "The **AmEx Default Prediction** dataset is one of the largest tabular credit-risk "
+            "challenges ever released, containing aggregated monthly customer statement data from "
+            "American Express. Each customer is described by **189 features** across five "
+            "categories: delinquency variables (D_), spend variables (S_), payment variables (P_), "
+            "balance variables (B_), and risk variables (R_), aggregated from up to 13 monthly "
+            "snapshots into a single customer-level row.  \n"
+            "The binary target flags customers who defaulted within 18 months of the statement "
+            "date. The primary metric is the **AmEx metric** (M = 0.5 × (Gini + D-rate@4%)), "
+            "which combines overall ranking quality with precision in the highest-risk tier that "
+            "credit teams action first."
         ),
     },
 }
@@ -565,7 +639,17 @@ _PROFILING_SRC: dict = {
         "outlier_csv": "reports/use_case_D/outlier_report.csv",
         "target_png":  "reports/use_case_D/target_distribution.png",
     },
-    "G": {
+    "F": {
+        "col_summary": "reports/use_case_F/eda_summary.csv",
+        "raw":         "data/sec_esg/train.parquet",
+        "target":      "greenwashing_risk",
+        "corr_csv":    None,
+        "corr_png":    "reports/use_case_F/correlation_heatmap.png",
+        "missing_png": "reports/use_case_F/missing_heatmap.png",
+        "outlier_csv": None,
+        "target_png":  "reports/use_case_F/target_distribution.png",
+    },
+    "B3": {
         "col_summary": "reports/use_case_G/train_column_summary.csv",
         "raw":         "data/amex_default/train_raw.parquet",
         "target":      "target",
@@ -574,6 +658,26 @@ _PROFILING_SRC: dict = {
         "missing_png": "reports/use_case_G/missing_by_group.png",
         "outlier_csv": "reports/use_case_G/outlier_report.csv",
         "target_png":  "reports/use_case_G/target_distribution.png",
+    },
+    "G1": {
+        "col_summary": "reports/use_case_G1/eda_summary.csv",
+        "raw":         "data/far_trans/train_transactions.parquet",
+        "target":      "label",
+        "corr_csv":    None,
+        "corr_png":    "reports/use_case_G1/interaction_sparsity.png",
+        "missing_png": None,
+        "outlier_csv": None,
+        "target_png":  "reports/use_case_G1/dataset_overview.png",
+    },
+    "G2": {
+        "col_summary": "reports/use_case_G2/train_column_summary.csv",
+        "raw":         "data/sec_edgar/train_ratios.parquet",
+        "target":      "outperform",
+        "corr_csv":    "reports/use_case_G2/feature_target_correlation.csv",
+        "corr_png":    "reports/use_case_G2/feature_target_correlation.png",
+        "missing_png": None,
+        "outlier_csv": "reports/use_case_G2/outlier_report.csv",
+        "target_png":  "reports/use_case_G2/target_distribution.png",
     },
 }
 
@@ -638,7 +742,17 @@ _FE_EDA_SRC: dict = {
         "target":        "is_churn",
         "target_labels": {0: "Retained", 1: "Churned"},
     },
-    "G": {
+    "F": {
+        "train_fe":      "data/sec_esg/train_fe.parquet",
+        "raw":           "data/sec_esg/train.parquet",
+        "feat_list":     "data/sec_esg/feature_list.csv",
+        "fe_summary":    "reports/use_case_F/engineered_feature_summary.png",
+        "raw_vs_proc":   "reports/use_case_F/raw_vs_processed_distributions.png",
+        "report_dir":    "reports/use_case_F",
+        "target":        "greenwashing_risk",
+        "target_labels": {"Low": "Low Risk", "Medium": "Medium Risk", "High": "High Risk"},
+    },
+    "B3": {
         "train_fe":      "data/amex_default/train_fe.parquet",
         "raw":           "data/amex_default/train_raw.parquet",
         "feat_list":     "reports/use_case_G/engineered_features_list.csv",
@@ -647,6 +761,26 @@ _FE_EDA_SRC: dict = {
         "report_dir":    "reports/use_case_G",
         "target":        "target",
         "target_labels": {0: "No Default", 1: "Default"},
+    },
+    "G1": {
+        "train_fe":      "data/far_trans/train_pairs.parquet",
+        "raw":           "data/far_trans/train_transactions.parquet",
+        "feat_list":     "reports/use_case_G1/data_dictionary.csv",
+        "fe_summary":    "reports/use_case_G1/feature_engineering_summary.png",
+        "raw_vs_proc":   "reports/use_case_G1/temporal_patterns.png",
+        "report_dir":    "reports/use_case_G1",
+        "target":        "label",
+        "target_labels": {0: "Not Purchased", 1: "Purchased"},
+    },
+    "G2": {
+        "train_fe":      "data/sec_edgar/train_fe.parquet",
+        "raw":           "data/sec_edgar/train_ratios.parquet",
+        "feat_list":     "reports/use_case_G2/engineered_features_list.csv",
+        "fe_summary":    "reports/use_case_G2/engineered_feature_summary.png",
+        "raw_vs_proc":   "reports/use_case_G2/ratio_distributions.png",
+        "report_dir":    "reports/use_case_G2",
+        "target":        "outperform",
+        "target_labels": {0: "Under-perform", 1: "Outperform"},
     },
 }
 
@@ -789,28 +923,49 @@ _EDA_RECOMMENDATIONS: dict = {
         "buzzword density are a High-risk pattern. Add `word_count` and "
         "`buzzword_density` as auxiliary features.",
     ],
-    "G": [
-        "**Temporal aggregation across monthly statements:** Each customer has up to 13 "
-        "monthly snapshots. Aggregate to the customer level with summary statistics "
-        "(mean, std, min, max, last value, trend slope) per feature. The **trend** "
-        "(is utilisation rising or falling over the past 3 months?) is often more "
-        "predictive than the level alone.",
-        "**Feature category signals:** The AmEx feature categories encode domain knowledge: "
-        "D-features (delinquency) are the strongest default predictors; "
-        "B-features (balance) capture exposure; P-features (payment) capture behaviour; "
-        "S-features (spend) capture activity. Prioritise D and B features in initial "
-        "feature selection.",
-        "**High missingness in late statements:** Customers who default early have fewer "
-        "statement months — missingness is MNAR (correlated with the target). Add "
-        "`fe_statement_count` and `fe_months_active` as explicit features rather than "
-        "treating them as nuisance missing data.",
-        "**AmEx metric optimisation:** The AmEx metric weights the top 4% of predictions "
-        "heavily (the Gini component captures overall ranking, but the D-rate at top 4% "
-        "captures precision at the decision boundary used by credit risk teams). "
-        "Calibrate the classification threshold to maximise performance in the top decile.",
-        "**n_jobs=1 required:** The bash sandbox hangs with parallel fitting. All sklearn "
-        "estimators and LightGBM must use `n_jobs=1` — this is already enforced in the "
-        "pipeline scripts.",
+    "B3": [
+        "**Temporal aggregation across monthly statements (AmEx Loan Default):** Each customer has up to 13 monthly snapshots. Aggregate to customer level with mean, std, min, max, last, and diff features. Trend direction over the last 3 months is often more predictive than absolute levels.",
+        "**AmEx custom metric:** M = 0.5 × (Gini + D-rate@4%). Optimise for ranking quality AND precision in the top 4% risk tier — the segment credit risk teams act on first.",
+        "**Denoise preprocessing:** Apply np.floor(x×100)/100 before all feature engineering to eliminate floating-point noise that inflates diff and rank features.",
+    ],
+    "G1": [
+        "**Candidate pair generation with negative sampling:** LambdaRank requires "
+        "a query–document structure. Each customer is a query; candidate assets are "
+        "documents. Positive labels come from actual purchases; generate 4× random "
+        "negatives per positive from unobserved assets. The 4:1 ratio is a standard "
+        "trade-off between dataset size and training signal density.",
+        "**User behavioural aggregates matter more than profile:** While risk level "
+        "and investment capacity are useful cold-start signals, behavioural features "
+        "(number of buy transactions, total purchase volume, preferred category) are "
+        "consistently stronger predictors. Customers' revealed preferences via "
+        "transaction history are the most informative feature group.",
+        "**Item popularity creates a rich-get-richer risk:** Popular assets (high "
+        "n_buyers, high n_purchases) dominate the top-10 for all customers. This is "
+        "a known popularity bias in collaborative filtering. Apply post-processing "
+        "re-ranking (MMR) or coverage constraints to ensure diverse recommendations.",
+        "**Temporal split is critical:** The val set uses the last 3 months of "
+        "transactions. Leaking future interactions into training dramatically inflates "
+        "NDCG@10. Always use a strict time-based split — never random.",
+    ],
+    "G2": [
+        "**Cross-sectional ranking removes macro bias:** Raw financial ratios drift "
+        "with market cycles (all P/Es expand in bull markets). Computing within-year "
+        "percentile ranks makes features scale-invariant across years and directly "
+        "comparable across sectors, which is why rank features are among the strongest "
+        "predictors.",
+        "**Composite factor scores encode analyst intuition:** The quality_spread "
+        "(high ROE, low leverage), value_composite (low PE/PB), and "
+        "profitability_composite (ROE + margins) bundle correlated raw ratios into "
+        "single interpretable signals — exactly how fundamental analysts think. These "
+        "engineered features improve both accuracy and SHAP interpretability.",
+        "**Sector fairness must be monitored:** Model AUC varies by GICS sector "
+        "because sector-specific accounting conventions (e.g., D/E for Financials, "
+        "capex cycles for Energy) reduce ratio informativeness. Flag sectors with "
+        "AUC < 0.55 for sector-specific model variants or feature augmentation.",
+        "**Temporal split on fiscal year is mandatory:** The val set is fiscal year "
+        "2022. Any look-ahead (using 2022 data to compute train-set ranks or "
+        "imputation statistics) constitutes data leakage. All train_stats are fit "
+        "on train years only and applied to val.",
     ],
 }
 
@@ -1384,150 +1539,122 @@ _FE_GUIDANCE: dict = {
                        "structured score inflation signals (ESG gap features) and financial context to distinguish "
                        "substantiated environmental commitments from marketing claim inflation.",
     },
-    "G": {
+    "B3": {
         "stages": [
-            ("Denoise Preprocessing",      ["np.floor(x*100)/100 applied to all 190 numeric features"]),
+            ("Denoise Preprocessing",      ["np.floor(x*100)/100 applied to all numeric features"]),
             ("All-Statement Aggregates",   ["D_39__mean", "B_1__last", "P_2__std", "R_1__max", "S_3__sum"]),
-            ("Diff Features",              ["D_39__diff_last_first", "B_1__diff_last_mean", "P_2__diff_last_first"]),
-            ("Last-3/6 Statement Stats",   ["B_1__last3_mean", "D_39__last6_std", "P_2__last3_min"]),
-            ("Rank Features",              ["D_39__user_rank", "B_1__global_rank", "R_1__user_rank"]),
-            ("Categorical Encoding",       ["D_63__ord", "D_64__ord", "D_63__freq", "D_64__freq"]),
-            ("Missingness Flags",          ["fe_stmt_count", "fe_last_miss_count", "fe_all_null_count"]),
+            ("Diff Features",              ["D_39__diff_last_first", "B_1__diff_last_mean"]),
+            ("Last-3/6 Statement Stats",   ["B_1__last3_mean", "D_39__last6_std"]),
+            ("Rank Features",              ["D_39__user_rank", "B_1__global_rank"]),
+            ("Categorical Encoding",       ["D_63__ord", "D_64__ord", "D_63__freq"]),
+            ("Missingness Flags",          ["fe_stmt_count", "fe_last_miss_count"]),
+        ],
+        "stage_notes": {},
+    },
+    "G1": {
+        "stages": [
+            ("User Profile Encoding",    ["user_risk_ord", "user_type_ord", "user_cap_ord"]),
+            ("User Behaviour Aggregates",["user_n_buy_tx", "user_total_buy", "user_avg_buy",
+                                          "user_n_assets", "user_buy_std", "user_pref_cat_enc"]),
+            ("Item Popularity Features", ["item_n_buyers", "item_n_purchases", "item_total_vol",
+                                          "item_avg_vol", "item_pop_rank"]),
+            ("Item Metadata Encoding",   ["item_cat_enc", "item_subcat_enc", "item_market_enc",
+                                          "item_sector_enc"]),
+            ("ROI Features",             ["item_roi", "item_roi_min", "item_roi_max"]),
+            ("Interaction Features",     ["inter_repeat_buys", "inter_days_since_last",
+                                          "inter_cat_Equity", "inter_cat_Bond", "inter_cat_ETF"]),
         ],
         "stage_notes": {
-            "Denoise Preprocessing": (
-                "**Why denoise with np.floor(x×100)/100?**\n\n"
-                "A key finding shared by both the 1st and 3rd place winners: AmEx numeric features "
-                "contain floating-point precision noise — values like 0.12300000000000001 that "
-                "should conceptually be 0.123. This artefact arises from how the data was generated "
-                "and stored.\n\n"
-                "**Impact on downstream features:**\n"
-                "- **Rank features**: without denoising, two nearly-identical values receive different "
-                "ranks, creating spurious distinctions. After floor-rounding, true ties are correctly "
-                "identified.\n"
-                "- **Diff features**: floating-point artefacts create non-zero diffs for features that "
-                "should be unchanged between statements. Denoising makes diff=0 actually mean "
-                "'no change occurred'.\n"
-                "- **Last-3/6 statistics**: reduced variance from removed noise makes these "
-                "window statistics more stable and reliable.\n\n"
-                "*This is a two-line preprocessing step (applied before all other feature engineering) "
-                "that contributed meaningfully to all top-3 solutions' final scores.*"
+            "User Behaviour Aggregates": (
+                "**Why behavioural features outperform profile features?**\n\n"
+                "Investor profile (risk level, investment capacity) provides useful cold-start "
+                "signals but is often self-reported and relatively coarse. Transaction history "
+                "reveals revealed preferences — what a customer actually buys is more predictive "
+                "than what category they self-classify into.\n\n"
+                "Key signals:\n"
+                "- **user_n_buy_tx**: customers with more transactions have clearer preferences "
+                "and stronger collaborative filtering signal.\n"
+                "- **user_pref_cat_enc**: the customer's most frequently purchased asset category "
+                "is the strongest single predictor of the next purchase.\n"
+                "- **user_buy_std**: variance in purchase amounts indicates investment breadth."
             ),
-            "All-Statement Aggregates": (
-                "**Why aggregate the 13-month time series per customer?**\n\n"
-                "The raw AmEx data is a time series: each customer has up to 13 monthly statement rows. "
-                "Machine learning models need a flat feature vector (one row per customer). The "
-                "aggregation step transforms the variable-length sequence into a fixed-length "
-                "representation.\n\n"
-                "**Six statistics per feature (mean, std, min, max, last, sum):**\n"
-                "- **last** (most recent statement): consistently the most predictive statistic — "
-                "it captures the customer's current financial state at the point closest to the "
-                "default outcome. Competition SHAP analysis shows 'last' features dominate importance.\n"
-                "- **mean**: the customer's typical (long-run) financial level — separates "
-                "chronically stressed customers from temporarily stressed ones.\n"
-                "- **std**: financial volatility — high variance in balance or delinquency signals "
-                "unstable financial behaviour independent of the level.\n"
-                "- **min / max**: capture extreme events — a single maximum delinquency event or "
-                "minimum payment may be more predictive than the average.\n"
-                "- **sum**: total accumulated delinquency or total payment over 13 months provides "
-                "a count-based view of behavioural intensity.\n\n"
-                "*This group alone generates 6 × 190 = 1,140 features and forms the foundation "
-                "of all top competition solutions.*"
+            "Item Popularity Features": (
+                "**Popularity vs. personalisation trade-off:**\n\n"
+                "item_n_buyers (number of unique buyers in training) is often the highest-importance "
+                "feature in collaborative filtering models — popular assets are purchased by many "
+                "customers regardless of their profile. This is useful for accuracy but creates "
+                "a popularity bias: niche assets that would suit a customer are under-recommended.\n\n"
+                "**Mitigation strategy:**\n"
+                "- Monitor the popularity distribution of top-10 recommendations vs. actual purchases.\n"
+                "- Apply Maximal Marginal Relevance (MMR) re-ranking as a post-processing step.\n"
+                "- Set minimum coverage thresholds per asset category in production."
             ),
-            "Diff Features": (
-                "**Why compute last−first and last−mean difference features?**\n\n"
-                "The 3rd place solution ('feature engineering is all you need') identified diff features "
-                "as the single largest and most important feature group (2,604 of 5,034 total features). "
-                "The key insight: **trends matter more than levels for predicting imminent default**.\n\n"
-                "- **last − first** = total change over the 13-month window\n"
-                "  - Positive D_39 diff = delinquency days accumulated (deteriorating)\n"
-                "  - Negative P_2 diff = payment amounts declined over time (cash-flow stress)\n"
-                "  - Positive B_1 diff = balance grew over time (increasing debt burden)\n\n"
-                "- **last − mean** = recent deviation from the customer's own average\n"
-                "  - Captures whether the customer's recent behaviour represents a departure from "
-                "their own historical baseline — a personalised anomaly score.\n"
-                "  - A customer who was stable for 10 months but deteriorated in the final 3 "
-                "will show a large positive diff vs their mean for delinquency features.\n\n"
-                "*Economic analogy: the velocity and acceleration of financial distress, not just "
-                "the current position, predict when a customer will reach the default threshold.*"
-            ),
-            "Last-3/6 Statement Stats": (
-                "**Why use only recent statements for a second set of aggregates?**\n\n"
-                "The 1st place solution explicitly separated 'all data' aggregates from "
-                "'last 3 rows data' aggregates, treating them as distinct feature groups. "
-                "The 3rd place solution called these '1,116 last 3/6M features'.\n\n"
-                "**The recency effect in credit:**\n"
-                "- A customer who was delinquent 12 months ago but clean for the past 3 months "
-                "is a different risk profile than one who has been consistently delinquent.\n"
-                "- Last-3 features capture the short-term trend window — if a customer is "
-                "deteriorating, the signal will be stronger in last-3 than in the full 13-month mean.\n"
-                "- Last-6 features provide a medium-term window that smooths noise from the "
-                "last-3 while still emphasising recency.\n\n"
-                "**What these features add over 'last' alone:**\n"
-                "- last-3 std captures volatility in the recent window (erratic recent behaviour)\n"
-                "- last-3 min/max capture recent extremes that may not appear in 13-month stats\n"
-                "- Combined with diff features, these form a complete picture of recent financial trajectory."
-            ),
-            "Rank Features": (
-                "**Why compute rank-based features?**\n\n"
-                "The 1st place solution included both global rank and user-based rank as a "
-                "dedicated feature group alongside standard aggregates.\n\n"
-                "- **Global rank** (percentile in the training population):\n"
-                "  Converts heterogeneous feature scales to a uniform [0,1] space. "
-                "  A balance of $15,000 might be in the 90th percentile of the population, "
-                "  but a raw value of 15,000 isn't directly comparable to a risk score of 0.8. "
-                "  Ranking makes all features comparable and reduces LightGBM's sensitivity "
-                "  to outliers.\n\n"
-                "- **User-based rank** (where is the last value in the customer's own history):\n"
-                "  Personalised anomaly detection — if a customer's last balance is higher "
-                "  than any of their previous 12 balances, their user-rank = 1.0 (maximum). "
-                "  This is a powerful default signal that is invisible in absolute terms "
-                "  but obvious in percentile terms.\n\n"
-                "**Anti-leakage note:** Global rank percentiles are computed from the training set "
-                "and applied to the validation/test set — never fit on combined data."
-            ),
-            "Categorical Encoding": (
-                "**Encoding D_63 and D_64: the two categorical features**\n\n"
-                "The AmEx dataset has 190 numeric features and only 2 categorical: D_63 and D_64. "
-                "These encode account status and product type respectively.\n\n"
-                "**Why use last-value + frequency encoding:**\n"
-                "- **Last value** (ordinal encoding): some customers change category over the "
-                "13 months (e.g., account status transitions). The most recent category "
-                "reflects the current account type, which is most relevant to default prediction.\n"
-                "- **Frequency encoding**: replaces category with its relative frequency in the "
-                "population. Rare category values may represent unusual account types with "
-                "non-typical default rates. A customer in a rare category is an anomaly.\n\n"
-                "**Why not one-hot encode?**\n"
-                "D_63 has 3 levels, D_64 has 2 levels — one-hot would add only 3 binary "
-                "columns. However, frequency + ordinal encoding captures more information "
-                "(rarity signal) in fewer columns, consistent with the competition approach."
-            ),
-            "Missingness Flags": (
-                "**Why are missingness patterns informative for credit default?**\n\n"
-                "AmEx features have structural missing values — not random data gaps but "
-                "systematic patterns tied to account type, product features, and customer behaviour.\n\n"
-                "- **fe_stmt_count**: customers with fewer than 13 statements are either new "
-                "accounts (higher inherent risk) or accounts that closed before the window "
-                "ended (a default signal itself). Statement count is among the simplest yet "
-                "most predictive features.\n"
-                "- **fe_last_miss_count**: number of missing features in the most recent "
-                "statement. A sudden increase in missing values in the last statement may "
-                "indicate account suspension or product change — potential default precursors.\n"
-                "- **fe_all_null_count**: features that are never observed for a customer "
-                "indicate they don't have certain credit products or activities. This profile "
-                "information is meaningful for risk segmentation.\n"
-                "- **fe_nuniq_D_* / fe_nuniq_B_***: number of unique values seen across "
-                "statements. Low unique-value counts suggest the customer has had stable "
-                "(or stagnant) financial activity — the distribution of activity matters.\n\n"
-                "*The 3rd place solution's '132 bin feature unique' group is the competition "
-                "equivalent of these missingness/uniqueness features.*"
+            "Interaction Features": (
+                "**Why interaction features capture personalised affinity?**\n\n"
+                "inter_repeat_buys counts how many times a customer has previously purchased the "
+                "candidate asset — a direct signal of product loyalty. inter_days_since_last measures "
+                "recency of the last purchase in any asset of the same category, capturing "
+                "portfolio-rebalancing behaviour.\n\n"
+                "inter_cat_{category} features encode the customer's cumulative investment in each "
+                "category — effectively a soft collaborative filter that lets the model learn "
+                "category affinity without requiring matrix factorisation."
             ),
         },
-        "description": "AmEx features use winner-inspired time-series aggregation: denoise → "
-                       "all-statement stats (mean/std/min/max/last) → diff features (trend) → "
-                       "last-3/6 recency stats → rank transforms → categorical encoding → "
-                       "missingness flags. Each group contributes unique signal about customer "
-                       "financial health and default trajectory.",
+        "description": "G1 features are grouped as: user profile encoding (risk/type/capacity) → "
+                       "user behavioural aggregates (transaction history) → item popularity "
+                       "(how often the asset is purchased globally) → item metadata (category, "
+                       "market, sector) → ROI signals → interaction features (repeat buys, "
+                       "category affinity). LambdaRank uses these to learn a personalised "
+                       "ranking function optimised for NDCG@10.",
+    },
+    "G2": {
+        "stages": [
+            ("Clip & Impute Raw Ratios",  ["pe_ratio", "pb_ratio", "roe", "net_margin",
+                                            "debt_equity", "interest_coverage", "fcf_yield"]),
+            ("Sector Encoding",           ["sector_enc"]),
+            ("Derived Features",          ["peg_ratio", "interest_burden", "quality_spread",
+                                            "value_composite", "growth_composite",
+                                            "profitability_composite", "leverage_risk"]),
+            ("Cross-Sectional Ranks",     ["pe_ratio__rank", "roe__rank", "revenue_growth__rank",
+                                            "profitability_composite__rank", "quality_spread__rank"]),
+            ("Macro Regime Flags",        ["macro_regime", "is_crisis_year", "is_bull_year"]),
+        ],
+        "stage_notes": {
+            "Clip & Impute Raw Ratios": (
+                "**Why clip at 1st/99th percentile?**\n\n"
+                "Financial ratios contain genuine extreme outliers — a company emerging from "
+                "bankruptcy may have a P/E of −5,000; a high-growth startup may have P/S of 200. "
+                "These extremes are real data points but destabilise tree splits and make "
+                "cross-sectional comparisons meaningless.\n\n"
+                "Clipping to the 1st–99th percentile range preserves 98% of the distribution "
+                "while removing the tail artefacts. Clipping boundaries are fit on the training "
+                "set and applied to validation — no leakage."
+            ),
+            "Cross-Sectional Ranks": (
+                "**Why rank within fiscal year rather than globally?**\n\n"
+                "A P/E of 20 meant different things in 2019 (moderate) vs. 2020 (cheap during "
+                "the COVID crash) vs. 2021 (expensive as multiples expanded). Ranking within "
+                "the fiscal year cohort makes the feature ask: 'Is this company cheap relative "
+                "to its peers THIS year?' — a question that is meaningful regardless of the "
+                "macro environment.\n\n"
+                "This also removes macro-level correlations between features and the target "
+                "that would otherwise inflate apparent model performance on historical data."
+            ),
+            "Macro Regime Flags": (
+                "**Why add macro regime features?**\n\n"
+                "The relationship between financial ratios and outperformance is regime-dependent: "
+                "value stocks (low P/E) outperform in bear markets; growth stocks (high revenue "
+                "growth) outperform in bull markets. The macro_regime flag (crisis/neutral/bull) "
+                "lets the model learn interaction effects between ratio signals and the market "
+                "environment without requiring separate models per regime."
+            ),
+        },
+        "description": "G2 feature engineering follows a factor-investing pipeline: clip and impute "
+                       "raw 10-K/10-Q ratios → encode sector → derive composite factor scores "
+                       "(value, quality, growth, profitability, leverage) → compute cross-sectional "
+                       "percentile ranks within each fiscal year → add macro regime indicators. "
+                       "SHAP explanations are computed on all features for analyst-readable "
+                       "attribution of every prediction.",
     },
 }
 
@@ -2016,80 +2143,64 @@ _EDA_INSIGHTS: dict = {
             "scales that need normalisation before merging with synthetic baselines."
         ),
     },
-    "G": {
+    "B3": {
         "target": (
-            "**📊 Class Balance — AmEx Default Prediction**\n\n"
-            "The AmEx dataset has approximately **25.9% defaulters** — a 2.86:1 imbalance ratio. "
-            "This is far less severe than IEEE-CIS fraud (~3.5%) or Porto Seguro insurance (~3.6%), "
-            "making standard accuracy a less misleading metric here (though still insufficient).\n\n"
-            "**Why the AmEx custom metric instead of AUC?**\n"
-            "AmEx M = 0.5 × (Gini + D-rate@4%) combines two complementary objectives:\n"
-            "- **Gini** (= 2×AUC−1): overall rank ordering quality across all possible thresholds — "
-            "the model's ability to separate defaulters from non-defaulters at any operating point.\n"
-            "- **D-rate@4%**: of all customers ranked highest by the model, what fraction are actual "
-            "defaulters? This captures AmEx's business objective: **identify the highest-risk segment** "
-            "for proactive intervention (limit reduction, collections, early warning alerts).\n\n"
-            "A model can have a good Gini but poor D-rate@4% if it scores the top decile poorly "
-            "(e.g., it ranks a few non-defaulters very high, diluting the top 4%). Both components "
-            "are needed to serve both regulatory compliance and business strategy.\n\n"
-            "**SMOTE is NOT needed here** — the 25.9% default rate is close enough to balanced "
-            "that `is_unbalance=True` in LightGBM or `scale_pos_weight=2.86` in XGBoost is sufficient."
+            "**📊 Class Balance — AmEx Loan Default Prediction (B3)**\n\n"
+            "The AmEx dataset used for UC-B3 has **25.9% defaulters** — a 2.86:1 imbalance. "
+            "The evaluation metric is **AmEx M = 0.5 × (Gini + D-rate@4%)**, combining "
+            "overall ranking quality with precision at the top 4% risk tier."
         ),
         "correlation": (
-            "**🔗 Key Correlation Signals — AmEx Default Prediction**\n\n"
-            "Correlation is computed on the **last statement** values per customer (most predictive).\n\n"
-            "| Feature Group | Key Features | Direction | Interpretation |\n"
-            "|---|---|---|---|\n"
-            "| Delinquency (D_*) | D_39, D_41, D_42 | Strong positive | Accumulated delinquency days — the clearest default signal |\n"
-            "| Balance (B_*) | B_1, B_2, B_3 | Positive | High outstanding balance relative to limit = stress |\n"
-            "| Payment (P_*) | P_2, P_3 | Negative | Higher recent payments = better financial management |\n"
-            "| Risk (R_*) | R_1, R_2 | Positive | Pre-computed risk scores by AmEx internal models |\n"
-            "| Spend (S_*) | S_3, S_7 | Mixed | Spend behaviour varies by account type |\n\n"
-            "**What the winners found:**\n"
-            "- 'last' values (most recent statement) consistently outperform 'mean' in correlation\n"
-            "- Diff features (last−mean) are strongly correlated because they encode deterioration\n"
-            "- D_63 category 'CR' vs others shows meaningfully different default rates\n"
-            "- User-rank features amplify the correlation signal by normalising per-customer"
+            "**🔗 Key Correlation Signals — AmEx Loan Default (B3)**\n\n"
+            "D_* delinquency features are the strongest predictors. "
+            "B_* balance features capture exposure; P_* payment features capture behaviour. "
+            "Last-statement values consistently outperform averages."
         ),
         "missing": (
-            "**❓ Missing Value Patterns — AmEx Default Prediction**\n\n"
-            "AmEx features have **structural missingness** — not random gaps but systematic "
-            "patterns tied to account type and credit product eligibility.\n\n"
-            "| Feature Group | Est. % Missing | Mechanism | Treatment in Step 3 |\n"
-            "|---|---|---|---|\n"
-            "| D_* delinquency | 0–30% | MAR — only reported when delinquency occurs; 0 = no event | Treat as 0 (no event), add missingness flag |\n"
-            "| B_* balance | 0–15% | MAR — tied to credit product type | Median imputation within group, flag high-miss features |\n"
-            "| P_* payment | 0–10% | MAR — no payment if no balance | Treat as 0, flag |\n"
-            "| S_* spend | 5–25% | MAR — spend features depend on card usage | Median imputation, flag |\n"
-            "| R_* risk | 5–20% | MAR — internal scores not always computed | Median imputation |\n\n"
-            "**Key insight:** `fe_all_null_count` — the count of features that are NEVER populated "
-            "for a customer across all 13 statements — is a powerful feature. Customers with many "
-            "never-populated features have simpler accounts with less credit activity, which "
-            "correlates with default risk differently than complex multi-product customers.\n\n"
-            "**Critical anti-leakage rule:** The denoised aggregate step applies imputation "
-            "implicitly through groupby aggregations (NaN values are excluded from mean/std/min/max). "
-            "No explicit imputation statistics need to be fitted and transferred — but the rank "
-            "feature global-rank arrays MUST be computed on train data only."
+            "**❓ Missing Value Patterns — AmEx Loan Default (B3)**\n\n"
+            "Missingness is structural (MAR), tied to account type and credit product eligibility. "
+            "`fe_all_null_count` (features never populated for a customer) is itself predictive."
         ),
         "outlier": (
-            "**🔺 Outlier Handling — AmEx Default Prediction**\n\n"
-            "| Feature Group | Issue | Treatment |\n"
-            "|---|---|---|\n"
-            "| D_39 (delinquency days) | Values up to 180 days — extreme delinquents | No cap: extreme values are genuine high-risk signals |\n"
-            "| B_1 (balance) | Wide range $0–$30,000+ | Captured by std/rank features; log not needed (LGB handles it) |\n"
-            "| P_2 (payment amount) | Zero-payment months are valid events | Preserve 0s; they signal payment skips |\n"
-            "| Diff features | Extreme diffs possible for long-history customers | Clipped at 99th percentile in rank features |\n\n"
-            "**The denoise step** (np.floor(x×100)/100) is the primary outlier treatment "
-            "for floating-point artefacts. For genuine extreme values:\n\n"
-            "- **Tree-based models (LightGBM)** are inherently robust to outliers — they split "
-            "on thresholds, not distances. The extreme delinquency customer gets correctly "
-            "placed in the high-risk leaf without needing winsorisation.\n"
-            "- **Rank features** transform all values to [0,1] percentiles, automatically "
-            "handling outliers by capping their influence at the distribution extremes.\n"
-            "- **Diff features** with extreme values are naturally bounded because the "
-            "denoised data reduces precision artefacts that create spurious extreme diffs.\n\n"
-            "*Competition lesson: removing or capping outliers in this dataset reduced model "
-            "performance — extreme delinquency and balance events are genuine signals, not noise.*"
+            "**⚠️ Outlier Analysis — AmEx Loan Default (B3)**\n\n"
+            "D_42 has ~23% outlier rows (delinquency spikes). "
+            "Denoising via floor-rounding reduces spurious outliers from float precision noise."
+        ),
+    },
+    "G1": {
+        "target": (
+            "**📊 Label Distribution — FAR-Trans Recommendation**\n\n"
+            "In the candidate-pair training set, approximately **20% of pairs are positive** "
+            "(actual purchases) and 80% are negative samples — a 4:1 ratio by design. This "
+            "imbalance reflects the real-world sparsity of the recommendation interaction "
+            "matrix: customers purchase a tiny fraction of available assets.\n\n"
+            "**Why 4× negative sampling?**\n"
+            "LambdaRank requires both positive and negative examples per query (customer). "
+            "Too few negatives → model doesn't learn to discriminate well. Too many negatives "
+            "→ the positive signal is overwhelmed and training slows. 4:1 is a widely used "
+            "trade-off in industrial recommender systems.\n\n"
+            "**Evaluation note:** NDCG@10 and Precision@10 evaluate ranked lists, not "
+            "classification decisions, so the threshold-based precision/recall interpretation "
+            "does not apply. The model is asked to rank, not classify."
+        ),
+    },
+    "G2": {
+        "target": (
+            "**📊 Class Balance — SEC EDGAR Stock Outperformance**\n\n"
+            "The dataset is approximately **balanced** by construction: the top 40% of "
+            "12-month forward returners are labelled 1 (outperform) and the bottom 40% "
+            "are labelled 0 (under-perform). The middle 20% are excluded to create a "
+            "cleaner signal boundary.\n\n"
+            "**Why this labelling strategy?**\n"
+            "Absolute return thresholds (e.g., return > 0%) are noisy due to varying "
+            "market conditions across years. A company with +5% in a +30% market is a "
+            "significant under-performer; the same +5% in a −10% market is exceptional. "
+            "Cross-sectional rank labelling normalises for market conditions and produces "
+            "stable class proportions across fiscal years.\n\n"
+            "**Implication for metrics:** With near-balanced classes, AUC-ROC is a reliable "
+            "primary metric. AUC-PR adds value because analysts care about precision in the "
+            "top-ranked stocks (screened for buy recommendations), which mirrors the "
+            "precision-focused operating point of real investment workflows."
         ),
     },
 }
@@ -2227,7 +2338,7 @@ def _prereq_warning(page: str, uc_key: str) -> str | None:
                     "Switch to **▶️  Run Pipeline** and run Steps 4–5 to train the champion model.")
     if page in _needs_step6:
         r_dir = ROOT / "reports" / uc.get("report_dir", "")
-        if not (r_dir / "shap_feature_importance.csv").exists():
+        if not any((r_dir / n).exists() for n in ["shap_feature_importance.csv", "shap_importance.csv"]):
             return ("**Step 6 — Ethics & Explainability** has not been run yet.  \n"
                     "Switch to **▶️  Run Pipeline** and run Step 6 to generate SHAP / fairness reports.")
     return None
@@ -2586,15 +2697,22 @@ def page_data_profiling(uc_key: str) -> None:
         _ds_label = _ds_info.get("label", "Dataset")
         _ds_intro = _ds_info.get("intro", "")
         st.markdown(
-            f"<div style='background:#1A237E22;border-left:4px solid {ACCENT};"
-            f"padding:10px 16px;border-radius:0 6px 6px 0;margin-bottom:14px;'>"
-            f"<p style='margin:0 0 6px 0;font-size:0.85rem;color:{BLUE};'>"
-            f"📂 <a href='{_ds_url}' target='_blank' style='color:{BLUE};text-decoration:underline;'>"
-            f"{_ds_label}</a></p>"
-            f"<p style='margin:0;font-size:0.9rem;color:{FONT};'>{_ds_intro}</p>"
-            f"</div>",
+            f"<div style='display:flex;align-items:center;gap:8px;"
+            f"padding:6px 12px;background:{GRID};border-radius:6px;"
+            f"margin-bottom:10px;'>"
+            f"<span style='font-size:0.8rem;color:{BLUE};white-space:nowrap;'>📂 Source dataset:</span>"
+            f"<a href='{_ds_url}' target='_blank' "
+            f"style='font-size:0.8rem;color:{BLUE};text-decoration:underline;"
+            f"white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>"
+            f"{_ds_label}</a></div>",
             unsafe_allow_html=True,
         )
+        if _ds_intro:
+            with st.expander("📖 Dataset overview", expanded=False):
+                st.markdown(
+                    f"<p style='color:{FONT};font-size:0.88rem;margin:0;'>{_ds_intro}</p>",
+                    unsafe_allow_html=True,
+                )
 
     _is_markets = (uc_key == "C_markets")
 
@@ -3181,7 +3299,12 @@ def page_post_processing_eda(uc_key: str) -> None:
             ]
 
             if not shared_num:
-                st.info("No numeric columns shared between raw and processed data.")
+                st.info(
+                    "No numeric columns shared between raw and processed data. "
+                    "This is expected when all features were renamed during engineering "
+                    "(e.g. `D_39` → `D_39__mean`, `D_39__last`). "
+                    "Use the **New Features** tab to inspect engineered column distributions."
+                )
             else:
                 with st.expander("\U0001f4da Teaching Note \u2014 What to look for", expanded=False):
                     st.markdown("""
@@ -3197,6 +3320,11 @@ def page_post_processing_eda(uc_key: str) -> None:
 - Skew increased after a log transform \u2192 verify correct column was transformed
                     """)
 
+                st.caption(
+                    "ℹ️ Only columns present in **both** raw and processed data are shown. "
+                    "Columns with identical distributions were not transformed — this is normal. "
+                    "To see engineered features, switch to the **New Features** tab."
+                )
                 n_bins  = st.slider("Histogram bins", 20, 100, 40, key=f"_ppe_bins_{uc_key}")
                 max_col = min(20, len(shared_num))
                 picked  = st.multiselect(
@@ -3306,7 +3434,9 @@ def page_post_processing_eda(uc_key: str) -> None:
         if target and target in df_fe.columns:
             vc = df_fe[target].value_counts().reset_index()
             vc.columns = ["Class", "Count"]
-            vc["Label"] = vc["Class"].map(lambda x: target_labels.get(int(x), str(x)))
+            vc["Label"] = vc["Class"].map(
+                lambda x: target_labels.get(x, target_labels.get(
+                    int(x) if str(x).lstrip("-").isdigit() else x, str(x))))
             vc["Pct"]   = (vc["Count"] / vc["Count"].sum() * 100).round(2)
             col_a, col_b = st.columns([1, 2])
             with col_a:
@@ -3503,7 +3633,9 @@ one across 50+ trials.
         """)
 
     st.markdown("---")
-    _run_step_action(4, uc_key, "\u25b6 Run Step 4 \u2014 Algorithm Comparison  (goes to Run Pipeline)", suffix="md_s4")
+    _mc_check = ROOT / "reports" / USE_CASE_META.get(uc_key, {}).get("report_dir", "") / "model_comparison.csv"
+    if not _mc_check.exists():
+        _run_step_action(4, uc_key, "\u25b6 Run Step 4 \u2014 Algorithm Comparison  (goes to Run Pipeline)", suffix="md_s4")
     st.markdown("---")
 
     tab_cv, tab_compare, tab_hp = st.tabs([
@@ -3571,7 +3703,19 @@ estimate of generalisation performance.
                     st.markdown(f"**{model_name}**")
                     st.image(str(png), width="stretch")
         else:
-            st.info("Feature importance plots not found. Run Step 4.")
+            # Fallback: look for model_comparison.png or shap_feature_importance.png
+            _fi_fallbacks = ["model_comparison.png", "shap_feature_importance.png",
+                             "feature_target_correlation.png"]
+            _fi_shown = False
+            for _fb in _fi_fallbacks:
+                _fb_path = r_dir / _fb
+                if _fb_path.exists():
+                    st.markdown("#### Model Comparison")
+                    st.image(str(_fb_path), width="stretch")
+                    _fi_shown = True
+                    break
+            if not _fi_shown:
+                st.info("Feature importance plots not found. Run Step 4.")
 
         # Confusion matrices
         conf_png = r_dir / "confusion_matrices.png"
@@ -3701,10 +3845,16 @@ def page_model_performance(uc_key: str) -> None:
             else:
                 st.info("Prediction plots not found. Run Step 5.")
         else:
-            png_path = r_dir / "model_roc_pr_curves.png"
-            if png_path.exists():
-                st.image(str(png_path), width='stretch')
-            else:
+            _roc_candidates = ["model_roc_pr_curves.png", "roc_pr_curves.png",
+                               "roc_curves.png", "champion_evaluation.png"]
+            _roc_shown = False
+            for _rc in _roc_candidates:
+                _rc_path = r_dir / _rc
+                if _rc_path.exists():
+                    st.image(str(_rc_path), width='stretch')
+                    _roc_shown = True
+                    break
+            if not _roc_shown:
                 st.info("ROC/PR curves not found. Run Step 4.")
 
     # ── Confusion matrix ───────────────────────────────────────────────────────
@@ -3712,7 +3862,8 @@ def page_model_performance(uc_key: str) -> None:
         if is_regr:
             st.info("Confusion matrix is not applicable for regression tasks.")
         else:
-            for png_name in ["confusion_matrices.png"]:
+            for png_name in ["confusion_matrices.png", "confusion_matrix.png",
+                             "champion_evaluation.png"]:
                 png_path = r_dir / png_name
                 if png_path.exists():
                     st.image(str(png_path), width='stretch')
@@ -3808,8 +3959,8 @@ def page_explainability(uc_key: str) -> None:
 
     # ── Global importance ──────────────────────────────────────────────────────
     with tab_global:
-        shap_csv = r_dir / "shap_feature_importance.csv"
-        if not shap_csv.exists():
+        shap_csv = next((r_dir / n for n in ["shap_feature_importance.csv", "shap_importance.csv"] if (r_dir / n).exists()), None)
+        if shap_csv is None:
             st.warning(
                 "SHAP importance CSV not found. Run **Step 6 — Ethics & Explainability** to generate SHAP visualisations."
             )
@@ -3850,7 +4001,7 @@ def page_explainability(uc_key: str) -> None:
     # ── SHAP Plots ─────────────────────────────────────────────────────────────
     with tab_plots:
         found_plots = False
-        for png_name in ["shap_bar_importance.png", "shap_beeswarm.png"]:
+        for png_name in ["shap_bar_importance.png", "shap_beeswarm.png", "shap_summary.png"]:
             png_path = r_dir / png_name
             if png_path.exists():
                 st.image(str(png_path), width='stretch')
@@ -3864,8 +4015,8 @@ def page_explainability(uc_key: str) -> None:
 
     # ── Local Explanation ──────────────────────────────────────────────────────
     with tab_local:
-        shap_csv = r_dir / "shap_feature_importance.csv"
-        if not shap_csv.exists():
+        shap_csv = next((r_dir / n for n in ["shap_feature_importance.csv", "shap_importance.csv"] if (r_dir / n).exists()), None)
+        if shap_csv is None:
             st.info("Run Step 6 first to generate SHAP data.")
             return
 
@@ -4147,8 +4298,8 @@ def page_prediction_demo(uc_key: str) -> None:
 
         # Show top SHAP features for this sample
         r_dir = ROOT / "reports" / uc.get("report_dir", "")
-        shap_csv = r_dir / "shap_feature_importance.csv"
-        if shap_csv.exists():
+        shap_csv = next((r_dir / n for n in ["shap_feature_importance.csv", "shap_importance.csv"] if (r_dir / n).exists()), None)
+        if shap_csv is not None:
             df_shap  = pd.read_csv(shap_csv)
             top_feats = df_shap.iloc[:, 0].head(20).tolist()
             row_display = row.T.reset_index()
