@@ -4150,6 +4150,133 @@ bias audit tells you <em>who</em> the model treats differently.
 # ── PAGE: Prediction Demo (regression) ───────────────────────────────────────
 # ══════════════════════════════════════════════════════════════════════════════
 
+# ══════════════════════════════════════════════════════════════════════════════
+# ── PAGE: Prediction Demo — helpers ──────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _demo_render_result(proba, target_labels: dict, champion_name: str) -> None:
+    """Render prediction probabilities with coloured metric cards and a risk bar."""
+    n_classes = len(proba)
+    if n_classes == 2:
+        p_pos    = float(proba[1])
+        neg_lbl  = target_labels.get(0, "Negative")
+        pos_lbl  = target_labels.get(1, "Positive")
+        colour   = RED if p_pos >= 0.7 else ORG if p_pos >= 0.4 else GRN
+        pred_lbl = pos_lbl if p_pos >= 0.5 else neg_lbl
+        c1, c2, c3 = st.columns([1, 1, 2])
+        with c1:
+            st.metric(f"P({pos_lbl})",  f"{p_pos:.1%}")
+        with c2:
+            st.metric(f"P({neg_lbl})", f"{proba[0]:.1%}")
+        with c3:
+            bar_html = (
+                f"<div style='margin-top:6px'>"
+                f"<div style='display:flex;align-items:center;gap:8px'>"
+                f"<span style='color:{FONT};font-size:11px;width:72px'>{neg_lbl}</span>"
+                f"<div style='flex:1;background:{GRID};border-radius:6px;height:18px'>"
+                f"<div style='width:{p_pos*100:.1f}%;background:{colour};"
+                f"height:100%;border-radius:6px'></div></div>"
+                f"<span style='color:{FONT};font-size:11px;width:72px;text-align:right'>{pos_lbl}</span>"
+                f"</div>"
+                f"<p style='text-align:center;color:{colour};font-size:13px;margin:4px 0 0'>"
+                f"<b>Predicted: {pred_lbl}</b> &nbsp;({p_pos:.1%} confidence)</p>"
+                f"</div>"
+            )
+            st.markdown(bar_html, unsafe_allow_html=True)
+    else:
+        pred_class = int(proba.argmax())
+        cols_m = st.columns(n_classes)
+        for i, (col_m, p) in enumerate(zip(cols_m, proba)):
+            lbl = target_labels.get(i, str(i))
+            col_m.metric(f"P({lbl})", f"{float(p):.1%}",
+                         delta="← Predicted" if i == pred_class else None)
+
+
+# ── NLP text-input prediction demo ────────────────────────────────────────────
+
+def _page_prediction_demo_nlp(uc_key: str) -> None:
+    """Financial sentence → Bearish / Neutral / Bullish via TF-IDF + Complement NB."""
+    m_dir      = ROOT / "models" / "use_case_C_nlp"
+    model_path = m_dir / "Complement_NB_baseline.pkl"
+    vec_path   = m_dir / "tfidf_vectorizer.pkl"
+
+    if not model_path.exists():
+        st.info("NLP model not found. Run Steps 4–5.")
+        _run_step_action(5, uc_key, "▶ Run Step 5", suffix="nlp_demo")
+        return
+    if not vec_path.exists():
+        st.info("TF-IDF vectorizer not found. Run Step 3.")
+        return
+
+    model      = load_model(model_path)
+    vectorizer = load_model(vec_path)
+    if model is None or vectorizer is None:
+        st.error("Could not load model or vectorizer.")
+        return
+
+    tgt_labels = _FE_EDA_SRC.get(uc_key, {}).get("target_labels", {})
+
+    st.markdown("#### 💬 Financial Sentiment Prediction")
+    st.markdown(
+        f"<p style='color:{FONT}'>Enter any financial headline or sentence. "
+        f"The Complement Naïve Bayes classifier will label it "
+        f"<b>Bearish</b>, <b>Neutral</b>, or <b>Bullish</b>.</p>",
+        unsafe_allow_html=True,
+    )
+
+    examples = [
+        "The company reported record revenues with a 25% increase in net income.",
+        "Operating costs exceeded expectations, resulting in a significant net loss.",
+        "The board approved the merger; details remain pending regulatory review.",
+        "Quarterly earnings were largely in line with analyst consensus estimates.",
+        "The firm faces bankruptcy proceedings after defaulting on its bond payments.",
+    ]
+
+    col_txt, col_ex = st.columns([3, 1])
+    with col_ex:
+        st.markdown(
+            f"<p style='color:{FONT};font-size:12px;margin-bottom:4px'>Try an example:</p>",
+            unsafe_allow_html=True,
+        )
+        for ex in examples:
+            short = ex[:46] + "…"
+            if st.button(short, key=f"_nlp_ex_{abs(hash(ex))}_{uc_key}",
+                         use_container_width=True):
+                st.session_state[f"_nlp_text_{uc_key}"] = ex
+
+    with col_txt:
+        text_input = st.text_area(
+            "Financial text",
+            value=st.session_state.get(f"_nlp_text_{uc_key}", ""),
+            height=130,
+            placeholder=(
+                "e.g. The company’s profits rose 15% this quarter, "
+                "beating analyst expectations."
+            ),
+            key=f"_nlp_textarea_{uc_key}",
+        )
+
+    if st.button("\U0001f52e Classify Sentiment", type="primary",
+                 key=f"_nlp_pred_{uc_key}"):
+        if not text_input.strip():
+            st.warning("Please enter some text first.")
+        else:
+            try:
+                X     = vectorizer.transform([text_input.strip()])
+                proba = model.predict_proba(X)[0]
+                st.divider()
+                _demo_render_result(proba, tgt_labels, "Complement_NB_baseline.pkl")
+            except Exception as e:
+                st.error(f"Prediction failed: {e}")
+
+    with st.expander("\U0001f4ca Model performance summary", expanded=False):
+        comp_csv = ROOT / "reports" / "use_case_C_nlp" / "model_comparison.csv"
+        if comp_csv.exists():
+            st.dataframe(pd.read_csv(comp_csv), width='stretch', hide_index=True)
+
+
+# ── Regression prediction demo ─────────────────────────────────────────────────
+
 def _page_prediction_demo_regression(uc_key: str) -> None:
     uc    = USE_CASE_META.get(uc_key, {})
     m_dir = ROOT / "models" / uc.get("model_dir", "")
@@ -4162,26 +4289,24 @@ def _page_prediction_demo_regression(uc_key: str) -> None:
         st.info("Champion model not found. Run Step 5.")
         _run_step_action(5, uc_key, "▶ Run Step 5  (goes to Run Pipeline)", suffix="rdemo")
         return
-
     if feat_cols is None:
         st.info("Feature columns not found. Run Steps 4–5.")
         return
 
     st.markdown("#### Live Regression Prediction Demo")
     st.markdown(
-        f"Adjust feature values below and click **Predict** to get a real-time "
-        f"prediction from the champion model (`{champion_name}`)."
+        f"<p style='color:{FONT}'>Adjust feature values below and click <b>Predict</b> "
+        f"for a real-time prediction from the champion model "
+        f"(<code>{champion_name}</code>).</p>",
+        unsafe_allow_html=True,
     )
 
-    # Load val data for default values and ranges
     data_dir = ROOT / "data" / uc.get("data_dir", "")
     val_path = data_dir / "val_fe.parquet"
-    df_ref   = None
-    if val_path.exists():
-        df_ref = pd.read_parquet(val_path)
+    df_ref   = pd.read_parquet(val_path) if val_path.exists() else None
 
-    feat_cols_use = feat_cols[:20]  # Show top 20 for UI simplicity
-    input_vals = {}
+    feat_cols_use = feat_cols[:20]
+    input_vals: dict = {}
 
     with st.form(key=f"_regr_form_{uc_key}"):
         n_per_row = 4
@@ -4192,11 +4317,8 @@ def _page_prediction_demo_regression(uc_key: str) -> None:
                 default_val = 0.0
                 if df_ref is not None and feat in df_ref.columns:
                     default_val = float(df_ref[feat].median())
-                input_vals[feat] = col.number_input(
-                    feat, value=default_val,
-                    format="%.6f",
-                )
-        submitted = st.form_submit_button("🔮 Predict", type="primary")
+                input_vals[feat] = col.number_input(feat, value=default_val, format="%.6f")
+        submitted = st.form_submit_button("\U0001f52e Predict", type="primary")
 
     if submitted:
         X_pred = pd.DataFrame([{f: input_vals.get(f, 0.0) for f in feat_cols_use}])
@@ -4209,18 +4331,95 @@ def _page_prediction_demo_regression(uc_key: str) -> None:
                 if df_ref is not None:
                     target_col = uc.get("target", "target")
                     if target_col in df_ref.columns:
-                        mean_val = df_ref[target_col].mean()
-                        st.metric("Val-set mean", f"{mean_val:.6f}")
+                        st.metric("Val-set mean", f"{df_ref[target_col].mean():.6f}")
             st.success(f"Champion `{champion_name}` predicted: **{pred:.6f}**")
         except Exception as _e:
             st.error(f"Prediction failed: {_e}")
 
-    # ── Reference statistics ────────────────────────────────────────────────
     if df_ref is not None:
-        with st.expander("📊 Validation set feature statistics", expanded=False):
+        with st.expander("\U0001f4ca Validation-set feature statistics", expanded=False):
             show_cols = [c for c in feat_cols_use if c in df_ref.columns]
             st.dataframe(df_ref[show_cols].describe().T.round(4),
                          width='stretch', hide_index=False)
+
+
+# ── Smart feature form for classification ─────────────────────────────────────
+
+def _cls_build_input_form(
+    feat_cols_show: list,
+    df_ref,
+    form_key: str,
+    champion_name: str,
+) -> "dict | None":
+    """Render a per-feature input form; returns {feat: value} dict on submit, else None."""
+    input_vals: dict = {}
+
+    st.markdown(
+        f"<p style='color:{FONT};font-size:13px'>"
+        f"Defaults are validation-set medians. Binary flags show Yes/No selectors; "
+        f"low-cardinality integers show a dropdown; continuous values use a numeric input.</p>",
+        unsafe_allow_html=True,
+    )
+
+    with st.form(key=f"_cls_form_{form_key}"):
+        n_per_row = 3
+        rows = [feat_cols_show[i:i+n_per_row]
+                for i in range(0, len(feat_cols_show), n_per_row)]
+        for row_feats in rows:
+            grid_cols = st.columns(len(row_feats))
+            for gc, feat in zip(grid_cols, row_feats):
+                default_val: float = 0.0
+                col_vals = None
+                if df_ref is not None and feat in df_ref.columns:
+                    col_vals    = df_ref[feat].dropna()
+                    default_val = float(col_vals.median())
+
+                # Determine widget type from column statistics
+                if col_vals is not None and len(col_vals):
+                    unique_vals = sorted(col_vals.unique())
+                    n_unique    = len(unique_vals)
+                    all_int     = all(
+                        float(v) == int(float(v))
+                        for v in unique_vals if pd.notna(v)
+                    )
+                    is_binary = (
+                        n_unique == 2
+                        and set(float(v) for v in unique_vals).issubset({0.0, 1.0})
+                    )
+
+                    if is_binary:
+                        chosen = gc.selectbox(
+                            feat, options=[0, 1],
+                            index=int(round(default_val)),
+                            format_func=lambda v: f"Yes (1)" if v else f"No (0)",
+                        )
+                        input_vals[feat] = float(chosen)
+                        continue
+
+                    if n_unique <= 8 and all_int:
+                        opts = [int(float(v)) for v in unique_vals]
+                        def_int = int(round(default_val))
+                        def_idx = opts.index(def_int) if def_int in opts else 0
+                        chosen = gc.selectbox(feat, options=opts, index=def_idx)
+                        input_vals[feat] = float(chosen)
+                        continue
+
+                # Continuous numeric input with val-set bounds
+                mn = float(col_vals.min()) if col_vals is not None and len(col_vals) else None
+                mx = float(col_vals.max()) if col_vals is not None and len(col_vals) else None
+                input_vals[feat] = gc.number_input(
+                    feat,
+                    value=default_val,
+                    min_value=mn,
+                    max_value=mx,
+                    format="%.4f",
+                )
+
+        submitted = st.form_submit_button(
+            f"\U0001f52e Predict  ({champion_name})", type="primary"
+        )
+
+    return input_vals if submitted else None
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -4230,90 +4429,274 @@ def _page_prediction_demo_regression(uc_key: str) -> None:
 def page_prediction_demo(uc_key: str) -> None:
     uc = USE_CASE_META.get(uc_key, {})
     section_header(
-        f"🎯 Prediction Demo — {uc['icon']} {uc['title']}",
+        f"\U0001f3af Prediction Demo — {uc['icon']} {uc['title']}",
         "Live inference on the tuned champion model.",
     )
-    warn = _prereq_warning("🎯 Prediction Demo", uc_key)
+    warn = _prereq_warning("\U0001f3af Prediction Demo", uc_key)
     if warn:
         st.warning(warn)
-        _run_step_action(5, uc_key, "▶ Run Steps 4–5  (goes to Run Pipeline)", suffix="pdemo_warn")
+        _run_step_action(5, uc_key, "▶ Run Steps 4–5  (goes to Run Pipeline)",
+                         suffix="pdemo_warn")
         return
 
-    is_regr = "Regression" in uc.get("task", "")
+    task     = uc.get("task", "")
+    is_regr  = "Regression" in task
+    is_nlp   = uc.get("is_nlp", False)
+    is_rank  = "Rank" in task
+
     if is_regr:
         _page_prediction_demo_regression(uc_key)
         return
+    if is_nlp:
+        _page_prediction_demo_nlp(uc_key)
+        return
+    if is_rank:
+        st.info(
+            "Learning-to-rank predictions operate over candidate-portfolio sets rather "
+            "than single input vectors. See \U0001f4ca **Model Evaluation** for NDCG@10 "
+            "scores and ranked portfolio previews."
+        )
+        return
 
-    # ── Classification path ────────────────────────────────────────────────
-    m_dir = ROOT / "models" / uc.get("model_dir", "")
-    champion_name = uc.get("champion", "champion.pkl")
-    model = load_model(m_dir / champion_name)
-    feat_pkl = m_dir / "feature_cols.pkl"
-    feat_cols = joblib.load(feat_pkl) if feat_pkl.exists() else None
+    # ── Classification path ──────────────────────────────────────────────────
+    m_dir         = ROOT / "models" / uc.get("model_dir", "")
+    champion_name = uc.get("champion", "lgbm_optuna_champion.pkl")
+    model         = load_model(m_dir / champion_name)
+    feat_pkl      = m_dir / "feature_cols.pkl"
+    feat_cols     = joblib.load(feat_pkl) if feat_pkl.exists() else None
+
+    # Fallback: some UCs (E, F) register features in a CSV instead of a pkl
+    if feat_cols is None:
+        _fl_src = _FE_EDA_SRC.get(uc_key, {}).get("feat_list")
+        if _fl_src:
+            _fl_p = ROOT / _fl_src
+            if _fl_p.exists():
+                try:
+                    feat_cols = pd.read_csv(_fl_p).iloc[:, 0].tolist()
+                except Exception:
+                    pass
 
     if model is None:
         st.info("Champion model not found. Run Step 5.")
-        _run_step_action(5, uc_key, "▶ Run Step 5  (goes to Run Pipeline)", suffix="pdemo_cls")
+        _run_step_action(5, uc_key, "▶ Run Step 5  (goes to Run Pipeline)",
+                         suffix="pdemo_cls")
         return
-
     if feat_cols is None:
         st.info("Feature columns list not found. Run Steps 4–5.")
         return
 
-    st.markdown("#### Live Classification Prediction Demo")
-    st.markdown(
-        f"Select a sample from the validation set to see the champion model "
-        f"(`{champion_name}`) prediction and top SHAP feature contributions."
-    )
-
     data_dir = ROOT / "data" / uc.get("data_dir", "")
-    val_path  = data_dir / "val_fe.parquet"
+    val_path = data_dir / "val_fe.parquet"
     if not val_path.exists():
         st.info("Validation data not found. Run Step 3.")
         return
 
-    df_val = pd.read_parquet(val_path)
+    df_val        = pd.read_parquet(val_path)
     feat_cols_use = [c for c in feat_cols if c in df_val.columns]
     if not feat_cols_use:
-        st.info("Feature columns not found in validation data.")
+        st.info("No feature columns found in validation data.")
         return
 
-    X_val = df_val[feat_cols_use]
+    X_val      = df_val[feat_cols_use]
+    target_col = uc.get("target", "target")
+    tgt_labels = _FE_EDA_SRC.get(uc_key, {}).get("target_labels", {})
 
-    sample_idx = st.number_input(
-        "Sample index (row in val set)", min_value=0,
-        max_value=len(X_val) - 1, value=0, step=1,
-        key=f"_cls_idx_{uc_key}",
+    # Rank features by SHAP importance; fall back to first N
+    r_dir    = ROOT / "reports" / uc.get("report_dir", "")
+    shap_csv = next(
+        (r_dir / n
+         for n in ["shap_feature_importance.csv", "shap_importance.csv"]
+         if (r_dir / n).exists()),
+        None,
     )
-    row = X_val.iloc[[sample_idx]]
+    feat_cols_show = feat_cols_use[:12]
+    if shap_csv is not None:
+        try:
+            shap_top = pd.read_csv(shap_csv).iloc[:, 0].tolist()
+            ordered  = [f for f in shap_top if f in feat_cols_use]
+            if ordered:
+                feat_cols_show = ordered[:12]
+        except Exception:
+            pass
 
-    try:
-        proba = model.predict_proba(row)[0]
-        if len(proba) == 2:
-            st.metric("Predicted probability (positive class)", f"{proba[1]:.4f}")
+    # ── Page subtitle ──────────────────────────────────────────────────────
+    n_shown = len(feat_cols_show)
+    feat_src = "SHAP-ranked" if shap_csv else "first"
+    st.markdown(
+        f"<p style='color:{FONT};font-size:13px'>"
+        f"Model: <code>{champion_name}</code> &nbsp;|&nbsp; "
+        f"Task: <b>{task}</b> &nbsp;|&nbsp; "
+        f"Showing {feat_src} {n_shown} of {len(feat_cols_use)} features</p>",
+        unsafe_allow_html=True,
+    )
+
+    tab_custom, tab_sample = st.tabs([
+        "\U0001f4dd  Custom Input",
+        "\U0001f500  Sample Explorer",
+    ])
+
+    # ════════════════════════════════════════════════════════════════════════
+    # Tab 1 — Custom Input: user fills in feature values directly
+    # ════════════════════════════════════════════════════════════════════════
+    with tab_custom:
+        result_vals = _cls_build_input_form(
+            feat_cols_show, df_val,
+            form_key=f"ci_{uc_key}",
+            champion_name=champion_name,
+        )
+        if result_vals is not None:
+            # Fill any non-shown features with val-set medians
+            X_pred = pd.DataFrame([{
+                f: result_vals.get(f,
+                   float(df_val[f].median()) if f in df_val.columns else 0.0)
+                for f in feat_cols
+            }])
+            try:
+                proba = model.predict_proba(X_pred)[0]
+                st.divider()
+                _demo_render_result(proba, tgt_labels, champion_name)
+            except Exception as e:
+                st.error(f"Prediction failed: {e}")
+
+    # ════════════════════════════════════════════════════════════════════════
+    # Tab 2 — Sample Explorer: pick a row from the validation set
+    # ════════════════════════════════════════════════════════════════════════
+    with tab_sample:
+        st.markdown(
+            f"<p style='color:{FONT};font-size:13px'>"
+            f"Select a real record from the validation set to see "
+            f"what the champion model predicts vs. the ground truth label.</p>",
+            unsafe_allow_html=True,
+        )
+
+        n_cls = len(tgt_labels) if tgt_labels else 2
+        has_target = target_col in df_val.columns
+
+        if n_cls == 2:
+            # Binary: three pick buttons in one row
+            pos_lbl = tgt_labels.get(1, "Positive")
+            neg_lbl = tgt_labels.get(0, "Negative")
+            b1, b2, b3, _pad = st.columns([1, 1.2, 1.2, 3])
+
+            if b1.button("\U0001f3b2 Any Sample",
+                         key=f"_rnd_any_{uc_key}", use_container_width=True):
+                idx = X_val.sample(1).index[0]
+                st.session_state[f"_demo_idx_{uc_key}"]   = idx
+                st.session_state[f"_demo_truth_{uc_key}"] = (
+                    df_val.loc[idx, target_col] if has_target else None
+                )
+
+            if b2.button(f"✅ {pos_lbl}",
+                         key=f"_rnd_pos_{uc_key}", use_container_width=True):
+                if has_target:
+                    pool = df_val[df_val[target_col] == 1]
+                    if len(pool):
+                        idx = pool.sample(1).index[0]
+                        st.session_state[f"_demo_idx_{uc_key}"]   = idx
+                        st.session_state[f"_demo_truth_{uc_key}"] = 1
+
+            if b3.button(f"❌ {neg_lbl}",
+                         key=f"_rnd_neg_{uc_key}", use_container_width=True):
+                if has_target:
+                    pool = df_val[df_val[target_col] == 0]
+                    if len(pool):
+                        idx = pool.sample(1).index[0]
+                        st.session_state[f"_demo_idx_{uc_key}"]   = idx
+                        st.session_state[f"_demo_truth_{uc_key}"] = 0
+
         else:
-            cols_m = st.columns(len(proba))
-            for i, (col_m, p) in enumerate(zip(cols_m, proba)):
-                col_m.metric(f"Class {i} probability", f"{p:.4f}")
+            # Multi-class: dropdown + single pick button
+            class_opts = ["Any"] + [str(k) for k in tgt_labels]
+            sel_cls    = st.selectbox("Filter by class", class_opts,
+                                      key=f"_cls_sel_{uc_key}")
+            if st.button("\U0001f3b2 Pick Random Sample",
+                         key=f"_rnd_mc_{uc_key}"):
+                if sel_cls == "Any" or not has_target:
+                    idx = X_val.sample(1).index[0]
+                else:
+                    try:
+                        cls_key = (int(sel_cls)
+                                   if sel_cls.lstrip("-").isdigit()
+                                   else sel_cls)
+                    except Exception:
+                        cls_key = sel_cls
+                    pool = df_val[df_val[target_col] == cls_key]
+                    idx  = (pool.sample(1).index[0]
+                            if len(pool) else X_val.sample(1).index[0])
+                st.session_state[f"_demo_idx_{uc_key}"]   = idx
+                st.session_state[f"_demo_truth_{uc_key}"] = (
+                    df_val.loc[idx, target_col] if has_target else None
+                )
 
-        # Show top SHAP features for this sample
-        r_dir = ROOT / "reports" / uc.get("report_dir", "")
-        shap_csv = next((r_dir / n for n in ["shap_feature_importance.csv", "shap_importance.csv"] if (r_dir / n).exists()), None)
-        if shap_csv is not None:
-            df_shap  = pd.read_csv(shap_csv)
-            top_feats = df_shap.iloc[:, 0].head(20).tolist()
-            row_display = row.T.reset_index()
-            row_display.columns = ["Feature", "Value"]
-            row_top = row_display[row_display["Feature"].isin(top_feats)]
-            st.markdown("**Top SHAP features for this sample (values only)**")
-            st.dataframe(row_top, width='stretch', hide_index=True)
-    except Exception as _e:
-        st.warning(f"Could not compute prediction: {_e}")
+        # ── Show the selected sample ───────────────────────────────────────
+        stored_idx = st.session_state.get(f"_demo_idx_{uc_key}")
+        truth      = st.session_state.get(f"_demo_truth_{uc_key}")
 
+        if stored_idx is not None:
+            truth_lbl   = tgt_labels.get(truth, str(truth)) if truth is not None else "Unknown"
+            # Colour code: positive/high-risk = red, negative/low-risk = green
+            if truth in (1, "High"):
+                t_colour = RED
+            elif truth in (2, "Medium", "Neutral"):
+                t_colour = ORG
+            elif truth in (0, "Low", "Bearish"):
+                t_colour = GRN
+            else:
+                t_colour = BLUE
 
-# ══════════════════════════════════════════════════════════════════════════════
-# ── Top-level navigation & routing ───────────────────────────────────────────
-# ══════════════════════════════════════════════════════════════════════════════
+            st.markdown(
+                f"<p style='color:{FONT};margin:6px 0'>Ground truth: "
+                f"<span style='background:{t_colour}22;color:{t_colour};"
+                f"padding:2px 12px;border-radius:12px;font-weight:700'>"
+                f"{truth_lbl}</span></p>",
+                unsafe_allow_html=True,
+            )
+
+            # Table of SHAP-ranked feature values for this sample
+            row      = X_val.loc[[stored_idx]]
+            disp_cols = [c for c in feat_cols_show if c in row.columns]
+            feat_df   = row[disp_cols].T.reset_index()
+            feat_df.columns = ["Feature", "Value"]
+            feat_df["Value"] = feat_df["Value"].apply(
+                lambda v: f"{v:.4f}" if isinstance(v, (int, float)) else str(v)
+            )
+            st.dataframe(feat_df, width='stretch', hide_index=True)
+
+            if st.button("\U0001f52e Predict this Sample",
+                         key=f"_pred_sample_{uc_key}", type="primary"):
+                X_pred = pd.DataFrame([{
+                    f: (float(X_val.loc[stored_idx, f])
+                        if f in X_val.columns
+                        else float(df_val[f].median())
+                        if f in df_val.columns
+                        else 0.0)
+                    for f in feat_cols
+                }])
+                try:
+                    proba = model.predict_proba(X_pred)[0]
+                    st.divider()
+                    _demo_render_result(proba, tgt_labels, champion_name)
+                except Exception as e:
+                    st.error(f"Prediction failed: {e}")
+
+        else:
+            st.markdown(
+                f"<p style='color:{FONT};opacity:0.55;font-style:italic'>"
+                f"Click one of the buttons above to load a sample from the "
+                f"validation set.</p>",
+                unsafe_allow_html=True,
+            )
+
+    # ── Global SHAP reference (collapsible) ───────────────────────────────
+    if shap_csv is not None:
+        with st.expander("\U0001f4ca Global SHAP feature importance (reference)",
+                         expanded=False):
+            try:
+                st.dataframe(pd.read_csv(shap_csv).head(20),
+                             width='stretch', hide_index=True)
+            except Exception:
+                pass
+
 
 PAGES: dict = {
     "▶️  Run Pipeline":          page_run_pipeline,
