@@ -1052,6 +1052,109 @@ _FEATURE_GLOSSARY: dict = {
                      "eps_growth","fcf_yield","market_cap_log","peg_ratio","quality_spread",
                      "growth_composite","profitability_composite"]},
     },
+
+    # ── UC-B : Give Me Some Credit (renamed raw + engineered) ──────────────────
+    "B": {
+        "RevolvingUtil":      "Revolving credit utilisation: total balance / total credit limit across all cards",
+        "DPD_30_59":          "Times 30–59 days past due (not worse) in the last 2 years",
+        "DPD_60_89":          "Times 60–89 days past due (not worse) in the last 2 years",
+        "DPD_90plus":         "Times 90+ days past due on any account in the last 2 years",
+        "NumOpenLoans":       "Number of open credit lines and installment loans",
+        "NumRealEstate":      "Number of mortgage and real estate loans or lines",
+        "NumDependents":      "Number of dependents in the household (excluding borrower)",
+        "fe_miss_income":     "Missing-value indicator for MonthlyIncome",
+        "fe_miss_dependents": "Missing-value indicator for NumDependents",
+        "fe_log_MonthlyIncome": "Log of gross monthly income (reduces right skew)",
+        "fe_log_DebtRatio":   "Log of debt ratio (handles extreme values)",
+        "fe_total_dpd":       "Total delinquency count: sum of 30–59, 60–89, and 90+ day events",
+        "fe_dpd_severity":    "Weighted delinquency severity (30-59 × 1 + 60-89 × 2 + 90+ × 3)",
+        "fe_any_delinquency": "Binary: borrower has any late-payment history",
+        "fe_chronic_default": "Binary: 3 or more 90-day delinquency events (chronic defaulter signal)",
+        "fe_age_sq":          "Age squared — captures non-linear U-shape in age vs. default risk",
+        "fe_prime_earner":    "Binary: age 35–55 (peak earning / lowest default risk bracket)",
+        "fe_senior":          "Binary: age > 65",
+        "fe_young":           "Binary: age < 25 (higher default risk cohort)",
+        "fe_age_bucket":      "Ordinal age category: 0=young (<25), 1=prime (25–35), 2=middle (35–55), 3=senior (55+)",
+        "fe_util_sq":         "Revolving utilisation squared — penalises extreme over-utilisation",
+        "fe_high_util":       "Binary: revolving utilisation > 80% (near credit limit)",
+        "fe_zero_util":       "Binary: revolving utilisation = 0 (all balances paid off or unused credit)",
+        "fe_dti_proxy":       "Debt-to-income proxy: DebtRatio / (MonthlyIncome / 1000 + 1)",
+        "fe_income_per_dep":  "Monthly income per dependent (financial buffer proxy)",
+        "fe_loans_per_estate":"Ratio: open loans / real estate count (leverage signal)",
+        "fe_util_x_dpd":      "Interaction: revolving utilisation × total delinquency count (combined stress signal)",
+    },
+
+    # ── UC-G1 : Robo-Advisory Portfolio Recommendation (LambdaRank) ─────────────
+    "G1": {
+        # User features
+        "user_cap_score":     "User investment capacity score (derived from capacity tier: Low/Medium/High/Very High)",
+        "user_risk_score":    "User risk tolerance score (derived from risk level: Very Low … Very High)",
+        "user_type_score":    "User customer-type encoded score (Retail / Institutional / etc.)",
+        "user_n_buy_tx":      "Total number of buy transactions by this user across all time",
+        "user_total_buy":     "Total value of all buy transactions by this user (USD)",
+        "user_avg_buy":       "Average buy transaction value for this user",
+        "user_n_assets":      "Number of distinct assets this user has ever traded",
+        "user_buy_std":       "Standard deviation of user's buy transaction values (size variability)",
+        "user_n_sell_tx":     "Total number of sell transactions by this user",
+        "user_pref_cat_enc":  "Target-encoded: user's preferred asset category (historical purchase rate)",
+        # Item (asset) features
+        "item_category_enc":  "Target-encoded: asset category (Bond / Equity / ETF / Commodity / Crypto / Mutual Fund)",
+        "item_subcategory_enc":"Target-encoded: asset subcategory",
+        "item_market_enc":    "Target-encoded: asset market (NYSE / LSE / TSX / etc.)",
+        "item_sector_enc":    "Target-encoded: asset GICS sector",
+        "item_n_buyers":      "Number of distinct customers who have bought this asset",
+        "item_n_purchases":   "Total number of purchase transactions for this asset (popularity proxy)",
+        "item_total_vol":     "Total trading volume (sum of transaction values) for this asset",
+        "item_avg_vol":       "Average transaction value for this asset",
+        "item_pop_rank":      "Popularity rank of this asset (1 = most purchased; lower = more popular)",
+        "item_roi":           "Historical mean return on investment for this asset (from profitability data)",
+        "item_roi_range":     "Range of ROI values for this asset (max − min; volatility proxy)",
+        "item_positive_roi":  "Binary: this asset has positive historical ROI",
+        # Interaction (user × item) features
+        "inter_cat_Bond":     "Interaction score: match between user's purchase history and Bond asset category",
+        "inter_cat_Equity":   "Interaction score: user affinity for Equity assets",
+        "inter_cat_ETF":      "Interaction score: user affinity for ETF assets",
+        "inter_cat_Commodity":"Interaction score: user affinity for Commodity assets",
+        "inter_cat_Crypto":   "Interaction score: user affinity for Crypto assets",
+        "inter_cat_Mutual Fund": "Interaction score: user affinity for Mutual Fund assets",
+        "inter_days_since_last_buy": "Days since this user last purchased an asset in this category (recency signal)",
+        "inter_repeat_buys":  "Number of times this user has previously bought this specific asset (loyalty signal)",
+    },
+
+    # ── UC-C_markets : Optiver Realized Volatility (Regression) ─────────────────
+    "C_markets": {
+        "fe_book_rv":              "Realized volatility (RV) computed from order book WAP log-returns",
+        "fe_log_book_rv":          "Log of book-based realized volatility",
+        "fe_book_rv_l2":           "L2-norm of order book log-returns (alternative RV estimator)",
+        "fe_rv_l2_ratio":          "Ratio of L2-norm RV to standard RV (measures return distribution shape)",
+        "fe_spread_mean":          "Mean bid-ask spread across the 10-minute auction window",
+        "fe_log_spread":           "Log of mean bid-ask spread",
+        "fe_spread_max":           "Maximum bid-ask spread observed in the window",
+        "fe_spread_spike":         "Spike indicator: max spread / mean spread (liquidity stress signal)",
+        "fe_vol_imb_mean":         "Mean order-flow imbalance: (bid_vol − ask_vol) / (bid_vol + ask_vol)",
+        "fe_vol_imb_abs":          "Mean absolute order-flow imbalance (directionality of pressure)",
+        "fe_vol_imb_std":          "Standard deviation of order-flow imbalance (pressure variability)",
+        "fe_wap_std":              "Standard deviation of weighted average price (WAP) across book updates",
+        "fe_log_wap_std":          "Log of WAP standard deviation",
+        "fe_wap_range":            "WAP range: (max − min) / mean WAP in the window",
+        "fe_lr_std":               "Standard deviation of log-returns (direct volatility estimate)",
+        "fe_lr_max_abs":           "Maximum absolute log-return in the window (tail-risk signal)",
+        "fe_bid_ask_size_ratio":   "Mean ratio: total bid size / total ask size (supply-demand balance)",
+        "fe_total_book_volume":    "Total order book volume (bid + ask) across all updates",
+        "fe_log_total_volume":     "Log of total book volume",
+        "fe_n_ticks":              "Number of book update events (message rate; market activity proxy)",
+        "fe_trade_rv":             "Realized volatility computed from actual trade prices",
+        "fe_log_trade_rv":         "Log of trade-based realized volatility",
+        "fe_rv_book_trade_ratio":  "Ratio: book RV / trade RV (measures book-vs-trade divergence)",
+        "fe_trade_volume":         "Total traded volume (sum of trade sizes × prices)",
+        "fe_log_trade_volume":     "Log of total traded volume",
+        "fe_trade_count":          "Number of individual trades executed in the window",
+        "fe_spread_x_imb":         "Interaction: mean spread × abs order-flow imbalance (combined liquidity-pressure signal)",
+        "fe_volatility_spread_ratio": "Ratio: book RV / mean spread (vol per unit of spread cost)",
+        "fe_stock_id":             "Stock identifier (integer encoded; used as a grouping key)",
+        "fe_stock_mean_rv":        "Cross-sectional mean realized volatility for this stock (historical baseline)",
+        "fe_rv_vs_stock_mean":     "Current book RV minus stock's historical mean RV (relative volatility)",
+    },
 }
 
 
@@ -3515,64 +3618,122 @@ def page_feature_engineering(uc_key: str) -> None:
         def _enrich_feat_df(df_in: "pd.DataFrame") -> "pd.DataFrame":
             """Insert a Description column after the feature column."""
             df_out = df_in.copy()
-            feat_col = df_out.columns[0]  # always 'feature'
+            # Detect feature column: prefer 'feature', then 'column', else return as-is
+            feat_col = None
+            for _cand in ("feature", "column"):
+                if _cand in df_out.columns:
+                    feat_col = _cand
+                    break
+            if feat_col is None:
+                return df_out  # can't identify feature column
             descriptions = df_out[feat_col].apply(
                 lambda f: _describe_feature(f, uc_key)
             )
-            df_out.insert(1, "description", descriptions)
+            _ins_pos = list(df_out.columns).index(feat_col) + 1
+            df_out.insert(_ins_pos, "description", descriptions)
             return df_out
 
+        def _feat_search_widget(df_in: "pd.DataFrame", total: int,
+                                placeholder: str = "e.g. log, missing, ratio …") -> "pd.DataFrame":
+            """Render search box + filtered dataframe; returns (possibly filtered) df."""
+            c_left, c_right = st.columns([3, 1])
+            with c_left:
+                _search = st.text_input(
+                    "Search features or descriptions",
+                    key=f"_fe_search_{uc_key}",
+                    placeholder=placeholder,
+                )
+            with c_right:
+                st.markdown(
+                    f"<p style='color:{FONT};font-size:13px;margin-top:28px'>"
+                    f"<b>{total:,}</b> features</p>",
+                    unsafe_allow_html=True,
+                )
+            if _search:
+                _mask = df_in.apply(
+                    lambda col: col.astype(str).str.contains(_search, case=False)
+                ).any(axis=1)
+                df_in = df_in[_mask]
+                st.caption(f'{len(df_in):,} of {total:,} features match "{_search}"')
+            st.dataframe(df_in, width='stretch', hide_index=True)
+            return df_in
+
         if feat_list_path:
+            _fl_path_full = ROOT / feat_list_path
             df_fl = load_csv(feat_list_path)
             if df_fl is not None:
-                df_fl = _enrich_feat_df(df_fl)
-                total = len(df_fl)
-                c_left, c_right = st.columns([3, 1])
-                with c_left:
-                    search = st.text_input(
-                        "Search features or descriptions",
-                        key=f"_fe_search_{uc_key}",
-                        placeholder="e.g. log, missing, velocity, gap …",
-                    )
-                with c_right:
+                # ── G1 special case: data_dictionary.csv has table schema, not feature list ──
+                if "table" in df_fl.columns and "column" in df_fl.columns:
+                    st.markdown("#### 📋 Source Data Schema")
                     st.markdown(
-                        f"<p style='color:{FONT};font-size:13px;margin-top:28px'>"
-                        f"<b>{total:,}</b> engineered features</p>",
+                        f"<p style='color:{FONT}'><b>{len(df_fl):,}</b> columns "
+                        "across all source tables in this use case.</p>",
                         unsafe_allow_html=True,
                     )
-                if search:
-                    mask = df_fl.apply(
-                        lambda col: col.astype(str).str.contains(search, case=False)
-                    ).any(axis=1)
-                    df_fl = df_fl[mask]
-                    st.caption(f'{len(df_fl):,} of {total:,} features match "{search}"')
-                st.dataframe(df_fl, width='stretch', hide_index=True)
+                    st.dataframe(df_fl, width='stretch', hide_index=True)
+                    # Also surface SHAP-ranked engineered features if available
+                    _shap_path = ROOT / "reports" / f"use_case_{uc_key}" / "shap_feature_importance.csv"
+                    if _shap_path.exists():
+                        st.markdown("---")
+                        st.markdown("#### 🔬 Engineered Features (SHAP-ranked)")
+                        _df_shap = pd.read_csv(_shap_path)
+                        if "feature" in _df_shap.columns:
+                            _df_shap = _enrich_feat_df(_df_shap)
+                            _feat_search_widget(
+                                _df_shap, len(_df_shap),
+                                placeholder="e.g. user, item, inter, days …",
+                            )
+                    else:
+                        st.info(
+                            "Run Steps 4–5 to generate SHAP feature importance "
+                            "and populate the engineered feature list.",
+                        )
+                else:
+                    # ── Standard path: CSV with a 'feature' column ──────────────────
+                    df_fl = _enrich_feat_df(df_fl)
+                    _feat_search_widget(
+                        df_fl, len(df_fl),
+                        placeholder="e.g. log, missing, velocity, gap …",
+                    )
             else:
                 st.info("Engineered features list not found. Run Step 3 — Data Preparation.")
 
         elif train_fe_path:
+            # ── Parquet fallback: show ALL model-input columns (not just fe_) ──────
             df_fe = load_parquet(train_fe_path, nrows=5)
             if df_fe is not None:
-                fe_cols = [c for c in df_fe.columns if c.startswith("fe_")]
-                if fe_cols:
+                _uc_target = src.get("target", "").lower()
+                _skip = {"target", "label", "y", "is_default", "is_fraud", "y_true",
+                         "churn", "default", "fraud", _uc_target}
+                all_cols = [c for c in df_fe.columns if c.lower() not in _skip]
+                if all_cols:
                     df_show = pd.DataFrame({
-                        "feature":     fe_cols,
-                        "description": [_describe_feature(c, uc_key) for c in fe_cols],
-                        "dtype":       [str(df_fe[c].dtype) for c in fe_cols],
+                        "feature":     all_cols,
+                        "description": [_describe_feature(c, uc_key) for c in all_cols],
+                        "dtype":       [str(df_fe[c].dtype) for c in all_cols],
                     })
-                    st.markdown(
-                        f"<p style='color:{FONT}'><b>{len(fe_cols):,}</b> "
-                        f"<code>fe_</code>-prefixed columns found in "
-                        f"<code>train_fe.parquet</code></p>",
-                        unsafe_allow_html=True,
+                    _feat_search_widget(
+                        df_show, len(df_show),
+                        placeholder="e.g. revolving, DPD, age, ratio …",
                     )
-                    st.dataframe(df_show, width='stretch', hide_index=True)
                 else:
-                    st.info("No `fe_` columns found. Check pipeline output.")
+                    st.info("No feature columns found. Check pipeline output.")
             else:
                 st.info("train_fe.parquet not found. Run Step 3 — Data Preparation.")
+
         else:
-            st.info("No feature list configured for this use case.")
+            # ── No feat_list and no train_fe (e.g. C_nlp) ─────────────────────────
+            if uc_key == "C_nlp":
+                st.info(
+                    "**C_nlp uses a TF-IDF + Complement Naïve Bayes pipeline.**\n\n"
+                    "Features are dynamically generated text n-gram weights — there is no "
+                    "fixed feature list. The vocabulary (top terms ranked by χ² score) can "
+                    "be inspected via the trained `tfidf_vectorizer.pkl` in "
+                    "`models/use_case_C_nlp/`. Run Steps 3–5 to train the pipeline.",
+                    icon="ℹ️",
+                )
+            else:
+                st.info("No feature list configured for this use case.")
 
     # ── FE Summary ─────────────────────────────────────────────────────────────
     with tab_summary:
@@ -3693,40 +3854,57 @@ def page_post_processing_eda(uc_key: str) -> None:
 
     with tab_compare:
         if df_raw is None:
-            st.info("Raw data not found \u2014 cannot compare distributions.")
+            st.info("Raw data not found — cannot compare distributions.")
         else:
+            # —— Exclude ID / timestamp cols — meaningless to compare ——
+            _ID_ENDSWITH  = ("ID", "_id", "DT", "_dt", "_ts", "_key")
+            _ID_STARTSWITH = ("id_", "ID_")
             _raw_num = set(df_raw.select_dtypes(include="number").columns)
             shared_num = [
                 c for c in df_fe.select_dtypes(include="number").columns
-                if c in _raw_num and c != target
+                if c in _raw_num
+                and c != target
+                and not any(c.endswith(s)   for s in _ID_ENDSWITH)
+                and not any(c.startswith(s) for s in _ID_STARTSWITH)
             ]
+
+            # —— Row-count banner ——
+            _n_raw = len(df_raw)
+            _n_fe  = len(df_fe)
+            if _n_raw != _n_fe:
+                st.caption(
+                    f"ℹ️ Raw dataset: **{_n_raw:,} rows** (full) — "
+                    f"Processed: **{_n_fe:,} rows** (train split). "
+                    "Row-count differences are expected — focus on distribution shape and null%."
+                )
 
             if not shared_num:
                 st.info(
-                    "No numeric columns shared between raw and processed data. "
+                    "No comparable numeric feature columns found in both raw and processed data. "
                     "This is expected when all features were renamed during engineering "
                     "(e.g. `D_39` → `D_39__mean`, `D_39__last`). "
                     "Use the **New Features** tab to inspect engineered column distributions."
                 )
             else:
-                with st.expander("\U0001f4da Teaching Note \u2014 What to look for", expanded=False):
+                with st.expander("📚 Teaching Note — What to look for", expanded=False):
                     st.markdown("""
 **Distribution shifts after preprocessing are expected and desirable:**
-- **Standardisation / MinMax scaling** \u2192 mean shifts to 0, range compresses to [0,1] or similar
-- **Log / Box-Cox transforms** \u2192 right-skewed distributions become symmetric (skew \u2192 0)
-- **Winsorisation / clipping** \u2192 outlier tails truncated; min/max values change
-- **Missing value imputation** \u2192 null% drops to 0; mean may shift toward imputed value
+- **Standardisation / MinMax scaling** → mean shifts to 0, range compresses to [0,1] or similar
+- **Log / Box-Cox transforms** → right-skewed distributions become symmetric (skew → 0)
+- **Winsorisation / clipping** → outlier tails truncated; min/max values change
+- **Missing value imputation** → null% drops to 0; mean may shift toward imputed value
 
-**\u26a0\ufe0f Red flags:**
-- Mean or std that changed drastically without a transform \u2192 check for data leakage
-- New null% > 0 in processed file \u2192 imputation may have failed
-- Skew increased after a log transform \u2192 verify correct column was transformed
+**⚠️ Red flags:**
+- Mean or std that changed drastically without a transform → check for data leakage
+- New null% > 0 in processed file → imputation may have failed
+- Skew increased after a log transform → verify correct column was transformed
                     """)
 
                 st.caption(
-                    "ℹ️ Only columns present in **both** raw and processed data are shown. "
+                    "ℹ️ Only feature columns present in **both** raw and processed data are shown "
+                    "(ID/timestamp columns excluded). "
                     "Columns with identical distributions were not transformed — this is normal. "
-                    "To see engineered features, switch to the **New Features** tab."
+                    "To see new engineered features, switch to the **New Features** tab."
                 )
                 n_bins  = st.slider("Histogram bins", 20, 100, 40, key=f"_ppe_bins_{uc_key}")
                 max_col = min(20, len(shared_num))
@@ -3741,30 +3919,35 @@ def page_post_processing_eda(uc_key: str) -> None:
                     _rv = df_raw[col].dropna()
                     _fv = df_fe[col].dropna()
 
-                    def _stats(s):
-                        sf = s.astype("float64")  # cast to float64 to avoid int overflow
+                    def _stats(s, n_total):
+                        """Summary stats. n_total = total rows in source df (before dropna)."""
+                        sf = s.astype("float64")
                         def _safe(fn):
                             try:
                                 v = fn(sf)
                                 return float(v) if (v == v and abs(v) < 1e18) else float("nan")
                             except Exception:
                                 return float("nan")
+                        null_count = n_total - len(s)
                         return {
-                            "n":     len(sf),
-                            "mean":  _safe(lambda x: x.mean()),
-                            "std":   _safe(lambda x: x.std()),
-                            "min":   _safe(lambda x: x.min()),
-                            "median":_safe(lambda x: x.median()),
-                            "max":   _safe(lambda x: x.max()),
-                            "skew":  _safe(lambda x: x.skew()) if len(sf) > 2 else 0.0,
-                            "null%": round((1 - len(s) / max(len(df_raw), 1)) * 100, 2),
+                            "total rows": n_total,
+                            "non-null":   len(sf),
+                            "null count": null_count,
+                            "null%":      round(null_count / max(n_total, 1) * 100, 2),
+                            "mean":       _safe(lambda x: x.mean()),
+                            "std":        _safe(lambda x: x.std()),
+                            "min":        _safe(lambda x: x.min()),
+                            "median":     _safe(lambda x: x.median()),
+                            "max":        _safe(lambda x: x.max()),
+                            "skew":       _safe(lambda x: x.skew()) if len(sf) > 2 else 0.0,
                         }
 
-                    rs, fs = _stats(_rv), _stats(_fv)
+                    rs = _stats(_rv, _n_raw)
+                    fs = _stats(_fv, _n_fe)
 
                     fig_pair = make_subplots(
                         rows=1, cols=2,
-                        subplot_titles=[f"<b>RAW</b> \u2014 {col}", f"<b>PROCESSED</b> \u2014 {col}"],
+                        subplot_titles=[f"<b>RAW</b> — {col}", f"<b>PROCESSED</b> — {col}"],
                         horizontal_spacing=0.06,
                     )
                     fig_pair.add_trace(
@@ -3789,19 +3972,25 @@ def page_post_processing_eda(uc_key: str) -> None:
                         plot_bgcolor=BG, paper_bgcolor=BG, font_color=FONT,
                         height=240, margin=dict(t=40, b=10, l=30, r=10),
                     )
-                    st.plotly_chart(fig_pair, width="stretch")
+                    st.plotly_chart(fig_pair, width='stretch')
 
-                    _metrics = ["n", "mean", "std", "min", "median", "max", "skew", "null%"]
+                    # Δ only meaningful for distribution metrics, not row-count rows
+                    _dist_metrics = ["null%", "mean", "std", "min", "median", "max", "skew"]
+                    _row_metrics  = ["total rows", "non-null", "null count"]
+                    _all_metrics  = _row_metrics + _dist_metrics
+                    _deltas = [
+                        round(float(fs[k]) - float(rs[k]), 4) if k in _dist_metrics else "—"
+                        for k in _all_metrics
+                    ]
                     delta_df = pd.DataFrame({
-                        "Metric":               _metrics,
-                        "Raw":                  [rs[k] for k in _metrics],
-                        "Processed":            [fs[k] for k in _metrics],
+                        "Metric":         _all_metrics,
+                        "Raw":            [rs[k] for k in _all_metrics],
+                        "Processed":      [fs[k] for k in _all_metrics],
+                        "Δ (Proc − Raw)": _deltas,
                     })
-                    delta_df["\u0394 (Proc \u2212 Raw)"] = delta_df["Processed"] - delta_df["Raw"]
-                    st.dataframe(delta_df.round(4), width="stretch", hide_index=True)
+                    st.dataframe(delta_df, width='stretch', hide_index=True)
                     st.markdown("<hr style='border:none;border-top:1px solid #2A2A4A;margin:6px 0;'>",
                                 unsafe_allow_html=True)
-
     # \u2500\u2500 NEW FEATURES \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     with tab_new_feats:
         raw_cols = set(df_raw.columns) if df_raw is not None else set()
@@ -4644,7 +4833,7 @@ def _page_prediction_demo_nlp(uc_key: str) -> None:
         for ex in examples:
             short = ex[:46] + "…"
             if st.button(short, key=f"_nlp_ex_{abs(hash(ex))}_{uc_key}",
-                         use_container_width=True):
+                         width='stretch'):
                 st.session_state[f"_nlp_text_{uc_key}"] = ex
 
     with col_txt:
@@ -4982,7 +5171,7 @@ def page_prediction_demo(uc_key: str) -> None:
             b1, b2, b3, _pad = st.columns([1, 1.2, 1.2, 3])
 
             if b1.button("\U0001f3b2 Any Sample",
-                         key=f"_rnd_any_{uc_key}", use_container_width=True):
+                         key=f"_rnd_any_{uc_key}", width='stretch'):
                 idx = X_val.sample(1).index[0]
                 st.session_state[f"_demo_idx_{uc_key}"]   = idx
                 st.session_state[f"_demo_truth_{uc_key}"] = (
@@ -4990,7 +5179,7 @@ def page_prediction_demo(uc_key: str) -> None:
                 )
 
             if b2.button(f"✅ {pos_lbl}",
-                         key=f"_rnd_pos_{uc_key}", use_container_width=True):
+                         key=f"_rnd_pos_{uc_key}", width='stretch'):
                 if has_target:
                     pool = df_val[df_val[target_col] == 1]
                     if len(pool):
@@ -4999,7 +5188,7 @@ def page_prediction_demo(uc_key: str) -> None:
                         st.session_state[f"_demo_truth_{uc_key}"] = 1
 
             if b3.button(f"❌ {neg_lbl}",
-                         key=f"_rnd_neg_{uc_key}", use_container_width=True):
+                         key=f"_rnd_neg_{uc_key}", width='stretch'):
                 if has_target:
                     pool = df_val[df_val[target_col] == 0]
                     if len(pool):
