@@ -57,7 +57,7 @@ from sklearn.metrics import (
     confusion_matrix, roc_curve, precision_recall_curve,
 )
 from sklearn.preprocessing import StandardScaler
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE, ADASYN
 from imblearn.pipeline import Pipeline as ImbPipeline
 
 try:
@@ -207,7 +207,7 @@ def build_models(random_state: int = RANDOM_STATE) -> dict:
             max_depth=10,
             min_samples_leaf=20,
             class_weight="balanced_subsample",
-            n_jobs=-1,
+            n_jobs=1,
             random_state=random_state,
         )),
     ])
@@ -215,7 +215,7 @@ def build_models(random_state: int = RANDOM_STATE) -> dict:
     # ── Advanced 2: XGBoost ───────────────────────────────────────────────────
     if XGB_AVAILABLE:
         models["XGBoost"] = ImbPipeline([
-            ("smote", SMOTE(random_state=random_state, sampling_strategy=0.20)),
+            ("sampler", ADASYN(random_state=random_state, sampling_strategy=0.20)),
             ("clf",   xgb.XGBClassifier(
                 n_estimators=500,
                 max_depth=6,
@@ -233,7 +233,7 @@ def build_models(random_state: int = RANDOM_STATE) -> dict:
     # ── Advanced 3: LightGBM ──────────────────────────────────────────────────
     if LGB_AVAILABLE:
         models["LightGBM"] = ImbPipeline([
-            ("smote", SMOTE(random_state=random_state, sampling_strategy=0.20)),
+            ("sampler", ADASYN(random_state=random_state, sampling_strategy=0.20)),
             ("clf",   lgb.LGBMClassifier(
                 n_estimators=500,
                 max_depth=7,

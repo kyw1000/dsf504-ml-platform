@@ -169,7 +169,7 @@ def get_models(random_state: int = RANDOM_STATE) -> dict[str, Pipeline | ImbPipe
             max_iter=500,
             random_state=random_state,
             solver="saga",
-            n_jobs=-1,
+            n_jobs=1,
         )),
     ])
 
@@ -179,7 +179,7 @@ def get_models(random_state: int = RANDOM_STATE) -> dict[str, Pipeline | ImbPipe
         max_depth=8,
         class_weight="balanced",
         random_state=random_state,
-        n_jobs=-1,
+        n_jobs=1,
     )
 
     # ── XGBoost ───────────────────────────────────────────────────────────────
@@ -196,7 +196,7 @@ def get_models(random_state: int = RANDOM_STATE) -> dict[str, Pipeline | ImbPipe
             use_label_encoder=False,
             eval_metric="auc",
             random_state=random_state,
-            n_jobs=-1,
+            n_jobs=1,
             verbosity=0,
         )
 
@@ -388,7 +388,7 @@ def plot_roc_curves(
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.plot([0, 1], [0, 1], "k--", linewidth=0.8, label="Random (AUC=0.50)")
 
-    cmap = plt.get_cmap("tab10")
+    cmap = matplotlib.colormaps["tab10"]
     for i, (name, model) in enumerate(trained_models.items()):
         try:
             y_proba = model.predict_proba(X_val)[:, 1]

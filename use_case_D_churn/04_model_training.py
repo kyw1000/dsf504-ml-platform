@@ -128,7 +128,7 @@ def build_candidates(churn_rate: float) -> list[tuple[str, object]]:
              ("smote", SMOTE(random_state=RANDOM_STATE, k_neighbors=5)),
              ("clf",   RandomForestClassifier(
                  n_estimators=200, max_depth=10, class_weight="balanced",
-                 n_jobs=-1, random_state=RANDOM_STATE)),
+                 n_jobs=1, random_state=RANDOM_STATE)),
          ])),
         ("MLP Neural Network",
          ImbPipeline([
@@ -148,7 +148,7 @@ def build_candidates(churn_rate: float) -> list[tuple[str, object]]:
                  ("clf",   xgb.XGBClassifier(
                      n_estimators=300, max_depth=6, learning_rate=0.05,
                      scale_pos_weight=pos_weight, eval_metric="auc",
-                     use_label_encoder=False, n_jobs=-1,
+                     use_label_encoder=False, n_jobs=1,
                      random_state=RANDOM_STATE, verbosity=0)),
              ]))
         )

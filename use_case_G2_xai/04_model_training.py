@@ -106,7 +106,7 @@ def train_logistic(X_tr, y_tr, X_va):
     X_tr_s = scaler.fit_transform(X_tr)
     X_va_s = scaler.transform(X_va)
     model = LogisticRegression(max_iter=1000, C=1.0, random_state=RANDOM_STATE,
-                                class_weight="balanced", n_jobs=-1)
+                                class_weight="balanced", n_jobs=1)
     model.fit(X_tr_s, y_tr)
     return model, scaler, model.predict_proba(X_va_s)[:, 1]
 
@@ -114,7 +114,7 @@ def train_logistic(X_tr, y_tr, X_va):
 def train_random_forest(X_tr, y_tr, X_va):
     model = RandomForestClassifier(n_estimators=200, max_depth=8,
                                     min_samples_leaf=10, class_weight="balanced",
-                                    random_state=RANDOM_STATE, n_jobs=-1)
+                                    random_state=RANDOM_STATE, n_jobs=1)
     model.fit(X_tr, y_tr)
     return model, model.predict_proba(X_va)[:, 1]
 

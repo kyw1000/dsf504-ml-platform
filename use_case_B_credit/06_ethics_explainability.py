@@ -175,7 +175,7 @@ def main():
 
     fc_path = MODEL_DIR / "feature_cols.pkl"
     fe_cols = (joblib.load(fc_path) if fc_path.exists()
-               else (model.feature_name_() if hasattr(model, "feature_name_")
+               else (list(model.feature_name_) if hasattr(model, "feature_name_")
                      else list(model.feature_names_in_)))
 
     val_path = DATA_PATH / "val_fe.parquet"

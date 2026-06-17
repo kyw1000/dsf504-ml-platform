@@ -11,7 +11,7 @@ Implements the full DSF504 minimum model requirement:
   ✓ Advanced model 3  : LightGBM
   ✓ Advanced model 4  : MLP Neural Network
   ✓ Cross-validation  : Stratified K-Fold (k=5)
-  ✓ Imbalance handling: SMOTE (training fold only — no leakage)
+  ✓ Imbalance handling: ADASYN 0.20 for LightGBM/XGBoost; SMOTE 0.15 for baselines
   ✓ Metrics           : ROC-AUC, PR-AUC, F1, Precision, Recall, Threshold
 
 All models are saved to data/ieee_fraud/models/ for use in the dashboard
@@ -57,7 +57,7 @@ from sklearn.metrics import (
 )
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE, ADASYN
 from imblearn.pipeline import Pipeline as ImbPipeline
 
 try:
@@ -182,7 +182,7 @@ def build_models(random_state: int = RANDOM_STATE) -> dict:
 
     # ── Baseline 1: Logistic Regression ─────────────────────────────────────
     models["Logistic Regression (baseline)"] = ImbPipeline([
-        ("smote",  SMOTE(random_state=random_state, sampling_strategy=0.10)),
+        ("smote",  SMOTE(random_state=random_state, sampling_strategy=0.15)),
         ("scaler", StandardScaler()),
         ("clf",    LogisticRegression(
             class_weight="balanced",
@@ -195,7 +195,7 @@ def build_models(random_state: int = RANDOM_STATE) -> dict:
 
     # ── Baseline 2: Decision Tree ────────────────────────────────────────────
     models["Decision Tree (baseline)"] = ImbPipeline([
-        ("smote", SMOTE(random_state=random_state, sampling_strategy=0.10)),
+        ("smote", SMOTE(random_state=random_state, sampling_strategy=0.15)),
         ("clf",   DecisionTreeClassifier(
             max_depth=5,
             class_weight="balanced",
@@ -205,13 +205,13 @@ def build_models(random_state: int = RANDOM_STATE) -> dict:
 
     # ── Advanced 1: Random Forest ─────────────────────────────────────────────
     models["Random Forest"] = ImbPipeline([
-        ("smote", SMOTE(random_state=random_state, sampling_strategy=0.10)),
+        ("smote", SMOTE(random_state=random_state, sampling_strategy=0.15)),
         ("clf",   RandomForestClassifier(
             n_estimators=300,
             max_depth=10,
             min_samples_leaf=20,
             class_weight="balanced_subsample",
-            n_jobs=-1,
+            n_jobs=1,
             random_state=random_state,
         )),
     ])
@@ -219,7 +219,7 @@ def build_models(random_state: int = RANDOM_STATE) -> dict:
     # ── Advanced 2: XGBoost ───────────────────────────────────────────────────
     if XGB_AVAILABLE:
         models["XGBoost"] = ImbPipeline([
-            ("smote", SMOTE(random_state=random_state, sampling_strategy=0.10)),
+            ("sampler", ADASYN(sampling_strategy=0.20, random_state=random_state)),
             ("clf",   xgb.XGBClassifier(
                 n_estimators=500,
                 max_depth=6,
@@ -238,7 +238,7 @@ def build_models(random_state: int = RANDOM_STATE) -> dict:
     # ── Advanced 3: LightGBM ──────────────────────────────────────────────────
     if LGB_AVAILABLE:
         models["LightGBM"] = ImbPipeline([
-            ("smote", SMOTE(random_state=random_state, sampling_strategy=0.10)),
+            ("sampler", ADASYN(sampling_strategy=0.20, random_state=random_state)),
             ("clf",   lgb.LGBMClassifier(
                 n_estimators=500,
                 max_depth=7,
@@ -255,7 +255,7 @@ def build_models(random_state: int = RANDOM_STATE) -> dict:
 
     # ── Advanced 4: MLP Neural Network ───────────────────────────────────────
     models["MLP Neural Network"] = ImbPipeline([
-        ("smote",  SMOTE(random_state=random_state, sampling_strategy=0.10)),
+        ("smote",  SMOTE(random_state=random_state, sampling_strategy=0.15)),
         ("scaler", StandardScaler()),
         ("clf",    MLPClassifier(
             hidden_layer_sizes=(256, 128, 64),

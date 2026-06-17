@@ -94,7 +94,7 @@ def main() -> None:
 
     # ESG gap by risk tier boxplot
     gap_data = [full.loc[full[TARGET]==r, "avg_gap"].values for r in ORDER]
-    bp = axes[1,0].boxplot(gap_data, patch_artist=True, labels=ORDER, widths=0.5)
+    bp = axes[1,0].boxplot(gap_data, patch_artist=True, tick_labels=ORDER, widths=0.5)
     for patch, r in zip(bp["boxes"], ORDER):
         patch.set_facecolor(PALETTE[r])
         patch.set_alpha(0.8)

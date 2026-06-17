@@ -49,6 +49,8 @@ import joblib
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB, ComplementNB
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import LinearSVC
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import (
     f1_score, accuracy_score, classification_report,
@@ -168,6 +170,9 @@ def build_models() -> dict:
     ---------------
     Logistic Regression  : Linear text baseline; widely used in finance NLP;
                            coefficients directly interpretable as term weights.
+    LinearSVC (calibrated): Maximum-margin classifier on sparse TF-IDF;
+                           consistently top performer on short text tasks
+                           (Joachims, 2006). Sigmoid calibration adds proba.
     Complement NB        : Improved version of MultinomialNB for imbalanced
                            text data (Rennie et al., 2003). Strong on short
                            financial sentences.
@@ -193,6 +198,24 @@ def build_models() -> dict:
         "features": "combined",
     }
 
+    # ── Baseline 1b: LinearSVC (strong text baseline) ────────────────────────
+    # LinearSVC with TF-IDF is a top-performing text classifier across
+    # benchmarks (Joachims, 2006; Manning et al., 2008). CalibratedClassifierCV
+    # wraps it to provide probability estimates (required by evaluate()).
+    models["LinearSVC (calibrated)"] = {
+        "model": CalibratedClassifierCV(
+            LinearSVC(
+                C=0.5,
+                class_weight="balanced",
+                max_iter=3000,
+                random_state=RANDOM_STATE,
+            ),
+            cv=3,
+            method="sigmoid",
+        ),
+        "features": "combined",
+    }
+
     # ── Baseline 2: Complement Naive Bayes ───────────────────────────────────
     models["Complement NB (baseline)"] = {
         "model": ComplementNB(alpha=0.1),
@@ -206,7 +229,7 @@ def build_models() -> dict:
             max_depth=10,
             min_samples_leaf=5,
             class_weight="balanced_subsample",
-            n_jobs=-1,
+            n_jobs=1,
             random_state=RANDOM_STATE,
         ),
         "features": "combined",

@@ -28,9 +28,11 @@ from __future__ import annotations
 import sys
 import logging
 from pathlib import Path
+from typing import Optional, Tuple
 
 import numpy as np
 import pandas as pd
+from sklearn.impute import KNNImputer
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -61,25 +63,43 @@ ERROR_CODES = {96, 98}
 # ── Feature group 1: Clean error codes ────────────────────────────────────────
 
 def clean_error_codes(df: pd.DataFrame) -> pd.DataFrame:
-    """Replace 96/98 error codes in delinquency columns with NaN, then cap at 10."""
+    """
+    Replace 96/98 error codes in delinquency columns with NaN, then cap at 10.
+
+    Also creates fe_dpd_unknown: binary flag indicating that at least one DPD
+    column had a 96/98 error code. These codes likely mean 'missing / unknown'
+    rather than 'no delinquency' — borrowers with unknown DPD history tend to
+    default at higher rates than those confirmed clean.
+    """
     df = df.copy()
+    any_unknown = pd.Series(False, index=df.index)
     for col in DELINQ:
         if col not in df.columns:
             continue
-        df[col] = df[col].where(~df[col].isin(ERROR_CODES), other=np.nan)
+        unknown_mask = df[col].isin(ERROR_CODES)
+        any_unknown  = any_unknown | unknown_mask
+        df[col] = df[col].where(~unknown_mask, other=np.nan)
         df[col] = df[col].clip(upper=10)
         # Fill NaN with 0 (no delinquency info → assume performing)
         df[col] = df[col].fillna(0).astype(np.float32)
-    log.info("✓ Error codes cleaned (96/98 → NaN → 0)")
+    df["fe_dpd_unknown"] = any_unknown.astype(np.int8)
+    n_unknown = int(any_unknown.sum())
+    log.info(f"✓ Error codes cleaned (96/98 → NaN → 0); fe_dpd_unknown={n_unknown} rows")
     return df
 
 
 # ── Feature group 2: Winsorise extreme values ─────────────────────────────────
 
 def winsorise(df: pd.DataFrame) -> pd.DataFrame:
-    """Cap extreme values to domain-valid or 99th-percentile ranges."""
+    """
+    Cap extreme values to domain-valid or 99th-percentile ranges.
+    Also captures fe_over_limit BEFORE capping (RevolvingUtil > 1.0 = debt
+    exceeds credit limit — a distinct high-risk signal, not a data error).
+    """
     df = df.copy()
     if "RevolvingUtil" in df.columns:
+        # Flag BEFORE capping: borrowers with util > 1.0 are over-limit — distinct risk tier
+        df["fe_over_limit"] = (df["RevolvingUtil"] > 1.0).astype(np.int8)
         df["RevolvingUtil"] = df["RevolvingUtil"].clip(0, 1).astype(np.float32)
     if "DebtRatio" in df.columns:
         p99 = df["DebtRatio"].quantile(0.999)
@@ -93,15 +113,47 @@ def winsorise(df: pd.DataFrame) -> pd.DataFrame:
 
 # ── Feature group 3: Missing indicators + imputation ─────────────────────────
 
-def add_missing_indicators(df: pd.DataFrame) -> pd.DataFrame:
-    """Flag missingness then impute."""
+def add_missing_indicators(
+    df: pd.DataFrame,
+    knn_imputer: Optional[KNNImputer] = None,
+    fit: bool = True,
+) -> Tuple[pd.DataFrame, Optional[KNNImputer]]:
+    """
+    Flag missingness then impute.
+
+    MonthlyIncome (19% missing) is imputed with KNN (k=5) using
+    DebtRatio, NumOpenLoans, NumRealEstate, age as neighbour features.
+    This preserves variance better than median imputation and avoids
+    creating an artificial income cluster at the median.
+
+    Parameters
+    ----------
+    knn_imputer : fitted KNNImputer from training set (None → fit new one)
+    fit         : if True, fit a new imputer on this data (use for train only)
+
+    Returns
+    -------
+    (df_imputed, fitted_knn_imputer)
+    """
     df = df.copy()
     indicators = {}
 
     if "MonthlyIncome" in df.columns:
         indicators["fe_miss_income"] = df["MonthlyIncome"].isna().astype(np.int8)
-        median_income = df["MonthlyIncome"].median()
-        df["MonthlyIncome"] = df["MonthlyIncome"].fillna(median_income).astype(np.float32)
+
+        # KNN imputation — use correlated financial features as neighbours
+        knn_features = [c for c in ["DebtRatio", "NumOpenLoans",
+                                    "NumRealEstate", "age",
+                                    "NumDependents"]
+                        if c in df.columns]
+        knn_input = df[["MonthlyIncome"] + knn_features].copy()
+        if fit or knn_imputer is None:
+            knn_imputer = KNNImputer(n_neighbors=5, weights="distance")
+            imputed = knn_imputer.fit_transform(knn_input)
+        else:
+            imputed = knn_imputer.transform(knn_input)
+        df["MonthlyIncome"] = imputed[:, 0].astype(np.float32)
+        log.info("✓ MonthlyIncome imputed via KNN (k=5)")
 
     if "NumDependents" in df.columns:
         indicators["fe_miss_dependents"] = df["NumDependents"].isna().astype(np.int8)
@@ -111,7 +163,7 @@ def add_missing_indicators(df: pd.DataFrame) -> pd.DataFrame:
         df = pd.concat([df, pd.DataFrame(indicators, index=df.index)], axis=1)
 
     log.info(f"✓ Missing indicators added ({len(indicators)} flags)")
-    return df
+    return df, knn_imputer
 
 
 # ── Feature group 4: Log transforms ──────────────────────────────────────────
@@ -242,15 +294,31 @@ def add_credit_features(df: pd.DataFrame) -> pd.DataFrame:
 
 # ── Pipeline ──────────────────────────────────────────────────────────────────
 
-def run_feature_pipeline(df: pd.DataFrame) -> pd.DataFrame:
+def run_feature_pipeline(
+    df: pd.DataFrame,
+    knn_imputer: Optional[KNNImputer] = None,
+    fit_imputer: bool = True,
+) -> Tuple[pd.DataFrame, Optional[KNNImputer]]:
+    """
+    Full feature engineering pipeline.
+
+    Parameters
+    ----------
+    knn_imputer  : pre-fitted KNNImputer (None → fit from data, train-set only)
+    fit_imputer  : set False when processing validation/test data
+
+    Returns
+    -------
+    (df_engineered, knn_imputer)
+    """
     df = clean_error_codes(df)
     df = winsorise(df)
-    df = add_missing_indicators(df)
+    df, knn_imputer = add_missing_indicators(df, knn_imputer=knn_imputer, fit=fit_imputer)
     df = add_log_transforms(df)
     df = add_delinquency_features(df)
     df = add_age_features(df)
     df = add_credit_features(df)
-    return df
+    return df, knn_imputer
 
 
 # ── Visualisation ─────────────────────────────────────────────────────────────

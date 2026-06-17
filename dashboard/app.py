@@ -650,14 +650,14 @@ _PROFILING_SRC: dict = {
         "target_png":  "reports/use_case_F/target_distribution.png",
     },
     "B3": {
-        "col_summary": "reports/use_case_G/train_column_summary.csv",
+        "col_summary": "reports/use_case_B3/train_column_summary.csv",
         "raw":         "data/amex_default/train_raw.parquet",
         "target":      "target",
-        "corr_csv":    "reports/use_case_G/feature_target_correlation.csv",
-        "corr_png":    "reports/use_case_G/feature_target_correlation.png",
-        "missing_png": "reports/use_case_G/missing_by_group.png",
-        "outlier_csv": "reports/use_case_G/outlier_report.csv",
-        "target_png":  "reports/use_case_G/target_distribution.png",
+        "corr_csv":    "reports/use_case_B3/feature_target_correlation.csv",
+        "corr_png":    "reports/use_case_B3/feature_target_correlation.png",
+        "missing_png": "reports/use_case_B3/missing_by_group.png",
+        "outlier_csv": "reports/use_case_B3/outlier_report.csv",
+        "target_png":  "reports/use_case_B3/target_distribution.png",
     },
     "G1": {
         "col_summary": "reports/use_case_G1/eda_summary.csv",
@@ -755,10 +755,10 @@ _FE_EDA_SRC: dict = {
     "B3": {
         "train_fe":      "data/amex_default/train_fe.parquet",
         "raw":           "data/amex_default/train_raw.parquet",
-        "feat_list":     "reports/use_case_G/engineered_features_list.csv",
-        "fe_summary":    "reports/use_case_G/engineered_feature_summary.png",
-        "raw_vs_proc":   "reports/use_case_G/raw_vs_processed_distributions.png",
-        "report_dir":    "reports/use_case_G",
+        "feat_list":     "reports/use_case_B3/engineered_features_list.csv",
+        "fe_summary":    "reports/use_case_B3/engineered_feature_summary.png",
+        "raw_vs_proc":   "reports/use_case_B3/raw_vs_processed_distributions.png",
+        "report_dir":    "reports/use_case_B3",
         "target":        "target",
         "target_labels": {0: "No Default", 1: "Default"},
     },
@@ -2709,6 +2709,39 @@ def load_csv(path: str) -> Optional[pd.DataFrame]:
         return None
 
 
+def _load_feat_cols(m_dir, uc_key: str):
+    """Return the feature column list for uc_key.
+
+    Priority:
+      1. fe_cols embedded in the champion pkl payload (Step 5 saves it here)
+      2. feature_cols.pkl in the model directory (Step 3/4 artefact, may be stale)
+      3. None
+    This avoids the stale-feature-count bug where feature_cols.pkl was written
+    by an earlier step with fewer features than the final champion was trained on.
+    """
+    champion_name = USE_CASE_META.get(uc_key, {}).get("champion", "lgbm_optuna_champion.pkl")
+    champ_path = Path(m_dir) / champion_name
+    if champ_path.exists():
+        try:
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                obj = joblib.load(champ_path)
+            if isinstance(obj, dict):
+                embedded = obj.get("fe_cols")
+                if embedded:
+                    return list(embedded)
+        except Exception:
+            pass
+    feat_pkl = Path(m_dir) / "feature_cols.pkl"
+    if feat_pkl.exists():
+        try:
+            return joblib.load(feat_pkl)
+        except Exception:
+            pass
+    return None
+
+
 def load_model(path):
     """Load a joblib model file. Unwraps dict wrappers."""
     p = Path(path)
@@ -3189,7 +3222,7 @@ def page_data_profiling(uc_key: str) -> None:
 
     if _is_markets:
         (tab_sample, tab_summary, tab_target, tab_corr,
-         tab_missing, tab_outlier, tab_market) = st.tabs([
+         tab_missing, tab_outlier, tab_market, tab_gallery) = st.tabs([
             "📋 Data Sample",
             "📊 Column Summary",
             "🎯 Target Distribution",
@@ -3197,19 +3230,20 @@ def page_data_profiling(uc_key: str) -> None:
             "❓ Missing Values",
             "🔺 Outliers",
             "📈 Market Analytics",
+            "📸 EDA Gallery",
         ])
     else:
         tab_market = None
-        tab_sample, tab_summary, tab_target, tab_corr, tab_missing, tab_outlier = st.tabs([
+        tab_sample, tab_summary, tab_target, tab_corr, tab_missing, tab_outlier, tab_gallery = st.tabs([
             "📋 Data Sample",
             "📊 Column Summary",
             "🎯 Target Distribution",
             "🔗 Correlation Matrix",
             "❓ Missing Values",
             "🔺 Outliers",
+            "📸 EDA Gallery",
         ])
 
-    # ── Data sample ────────────────────────────────────────────────────────────
     with tab_sample:
         raw_path = src.get("raw")
         is_csv   = raw_path and raw_path.endswith(".csv")
@@ -3387,6 +3421,53 @@ Review outliers in business context before removing.
             _render_market_analytics_tab()
 
 
+    # -- EDA Gallery: all UC-specific charts not shown in other tabs -----------
+    with tab_gallery:
+        _r_dir_g = ROOT / "reports" / uc.get("report_dir", "")
+        _ALREADY_SHOWN = {
+            "target_distribution.png", "eda_target_distribution.png",
+            # standard post-processing names
+            "engineered_feature_summary.png", "raw_vs_processed_distributions.png",
+            # G1/G2 non-standard equivalents (shown in Overview / Raw-vs-Proc tabs)
+            "feature_engineering_summary.png", "temporal_patterns.png",
+            "ratio_distributions.png", "dataset_overview.png",
+            # profiling tab figures
+            "correlation_heatmap.png", "correlation_top20.png",
+            "correlation_top30.png", "correlation_top30_V_cols.png",
+            "correlation_heatmap_C_cols.png",
+            "missing_heatmap.png", "missing_pattern.png", "missing_by_group.png",
+            # model evaluation figures (shown in Model Evaluation page)
+            "model_roc_pr_curves.png", "roc_pr_curves.png", "roc_curves.png",
+            "shap_bar_importance.png", "shap_beeswarm.png", "shap_summary.png",
+            "confusion_matrices.png", "confusion_matrix.png",
+            "ethics_confusion_matrix.png", "confusion_matrix_eth.png",
+        }
+        _gallery_pngs = sorted([
+            p for p in _r_dir_g.glob("*.png")
+            if p.name not in _ALREADY_SHOWN
+        ]) if _r_dir_g.exists() else []
+
+        if not _gallery_pngs:
+            st.info("No additional EDA charts found. Run Steps 2-3 to generate EDA output.")
+        else:
+            st.markdown(
+                f"<p style='color:{FONT};font-size:0.88rem;'>"
+                f"UC-specific pipeline charts ({len(_gallery_pngs)} images). "
+                f"Charts already shown in other tabs are excluded.</p>",
+                unsafe_allow_html=True,
+            )
+            _col_a, _col_b = st.columns(2)
+            for _gi, _gp in enumerate(_gallery_pngs):
+                _gcol = _col_a if _gi % 2 == 0 else _col_b
+                with _gcol:
+                    st.markdown(
+                        f"<p style='color:{BLUE};font-size:0.8rem;margin-bottom:2px;'>"
+                        f"<b>{_gp.stem.replace('_',' ').title()}</b></p>",
+                        unsafe_allow_html=True,
+                    )
+                    st.image(str(_gp), width='stretch')
+
+
 def _render_market_analytics_tab() -> None:
     """Dedicated market analytics tab for Use Case C_markets (Optiver Realized Volatility)."""
     book_path  = ROOT / "data/optiver_volatility/book_train.parquet"
@@ -3512,12 +3593,10 @@ def _render_market_analytics_tab() -> None:
                                    color_discrete_sequence=[BLUE])
                 fig.update_layout(plot_bgcolor=BG, paper_bgcolor=BG, font_color=FONT, height=320)
                 st.plotly_chart(fig, width='stretch')
-            st.dataframe(df_fe[fe_cols[:20]].head(100), width='stretch', hide_index=True)
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ── PAGE: Data Preparation (Feature Engineering) ─────────────────────────────
-# ══════════════════════════════════════════════════════════════════════════════
+# ============================================================
+# -- PAGE: Data Preparation (Feature Engineering) ------------
+# ============================================================
 
 def page_feature_engineering(uc_key: str) -> None:
     uc  = USE_CASE_META.get(uc_key, {})
@@ -3588,7 +3667,7 @@ def page_feature_engineering(uc_key: str) -> None:
         if _eda_recs:
             with st.expander("💡 Practical Considerations from EDA", expanded=False):
                 st.markdown(
-                    f"<p style='color:{FONT};font-size:0.88rem;margin-bottom:8px;'>"
+                    "<p style='color:#1A237E;font-size:0.88rem;margin-bottom:8px;'>"
                     "The following recommendations are derived from exploratory data analysis "
                     "of this dataset. They inform the feature engineering choices implemented in Step 3.</p>",
                     unsafe_allow_html=True,
@@ -3596,8 +3675,9 @@ def page_feature_engineering(uc_key: str) -> None:
                 for _rec in _eda_recs:
                     st.markdown(
                         f"<div style='border-left:3px solid {GRN};padding:6px 10px;"
-                        f"margin-bottom:8px;background:{GRID}11;border-radius:0 4px 4px 0;'>"
-                        f"<p style='margin:0;font-size:0.88rem;color:{FONT};'>• {_rec}</p></div>",
+                        f"margin-bottom:8px;background:{GRID}33;border-radius:0 4px 4px 0;'>"
+                        "<p style='margin:0;font-size:0.88rem;color:#1A237E;font-weight:500;'>"
+                        f"• {_rec}</p></div>",
                         unsafe_allow_html=True,
                     )
 
@@ -3848,6 +3928,18 @@ def page_post_processing_eda(uc_key: str) -> None:
         if fe_png and fe_png.exists():
             st.image(str(fe_png), width="stretch")
 
+        _ov_png = None
+        for _ov_name in ["overview.png", "dataset_overview.png"]:
+            _ov_cand = ROOT / src.get("report_dir", "") / _ov_name
+            if _ov_cand.exists():
+                _ov_png = _ov_cand
+                break
+        if src.get("report_dir") and _ov_png:
+            st.markdown("---")
+            st.markdown("\U0001f4ca **EDA Overview**")
+            st.image(str(_ov_png), width="stretch")
+            st.image(str(_ov_png), width="stretch")
+
     # \u2500\u2500 RAW vs PROCESSED \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     _RAW_CLR = "#78909C"  # hoisted here so tab_new_feats can always reference it
     _FE_CLR  = "#42A5F5"
@@ -3991,6 +4083,18 @@ def page_post_processing_eda(uc_key: str) -> None:
                     st.dataframe(delta_df, width='stretch', hide_index=True)
                     st.markdown("<hr style='border:none;border-top:1px solid #2A2A4A;margin:6px 0;'>",
                                 unsafe_allow_html=True)
+
+        _rvp_key = src.get("raw_vs_proc")
+        _rvp_png = (ROOT / _rvp_key) if _rvp_key else None
+        if _rvp_png is None and src.get("report_dir"):
+            _rvp_cand = ROOT / src["report_dir"] / "raw_vs_processed_distributions.png"
+            if _rvp_cand.exists():
+                _rvp_png = _rvp_cand
+        if _rvp_png and _rvp_png.exists():
+            st.markdown("---")
+            st.markdown("\U0001f4ca **Raw vs Processed Distributions (full report)**")
+            st.image(str(_rvp_png), width="stretch")
+            st.image(str(_rvp_png), width="stretch")
     # \u2500\u2500 NEW FEATURES \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     with tab_new_feats:
         raw_cols = set(df_raw.columns) if df_raw is not None else set()
@@ -4019,6 +4123,10 @@ def page_post_processing_eda(uc_key: str) -> None:
                                        color_discrete_sequence=[_FE_CLR])
                 fig_new.update_layout(plot_bgcolor=BG, paper_bgcolor=BG, font_color=FONT, height=300)
                 st.plotly_chart(fig_new, width="stretch")
+        if fe_png and fe_png.exists():
+            st.markdown("---")
+            st.markdown("📊 **Engineered Feature Summary**")
+            st.image(str(fe_png), width="stretch")
 
     # \u2500\u2500 TARGET SPLIT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     with tab_target:
@@ -4296,7 +4404,8 @@ estimate of generalisation performance.
                     st.image(str(png), width="stretch")
         else:
             # Fallback: look for model_comparison.png or shap_feature_importance.png
-            _fi_fallbacks = ["model_comparison.png", "shap_feature_importance.png",
+            _fi_fallbacks = ["model_comparison.png", "lgb_feature_importance.png",
+                             "shap_feature_importance.png",
                              "feature_target_correlation.png"]
             _fi_shown = False
             for _fb in _fi_fallbacks:
@@ -4375,21 +4484,22 @@ def page_model_performance(uc_key: str) -> None:
     m_dir = ROOT / "models"  / uc.get("model_dir",  "")
     section_header(
         f"📊 Model Evaluation — {uc['icon']} {uc['title']}",
-        "Champion model performance metrics, curves, and threshold calibration.",
+        "Champion model performance, hyperparameter tuning results, and a guided improvement lab.",
     )
 
     is_regr = "Regression" in uc.get("task", "")
 
-    tab_metrics, tab_curves, tab_confusion, tab_thresh = st.tabs([
+    tab_metrics, tab_tuning, tab_curves, tab_confusion, tab_thresh, tab_lab = st.tabs([
         "📈 Metrics",
+        "🔧 Tuning Results",
         "📉 ROC / PR Curves",
         "🔢 Confusion Matrix",
         "⚖️ Threshold",
+        "💡 Performance Lab",
     ])
 
     # ── Metrics ────────────────────────────────────────────────────────────────
     with tab_metrics:
-        # Try final_model_metrics first, then model_comparison
         metrics_loaded = False
         for csv_name in ["final_model_metrics.csv"]:
             csv_path = r_dir / csv_name
@@ -4397,8 +4507,6 @@ def page_model_performance(uc_key: str) -> None:
                 df_m = pd.read_csv(csv_path)
                 st.markdown(f"**Champion Model Metrics**")
                 st.dataframe(df_m, width='stretch', hide_index=True)
-
-                # Show KPI cards for numeric single-row metrics
                 if len(df_m) == 1:
                     num_cols = df_m.select_dtypes(include="number").columns.tolist()
                     kv = {c: fmt_num(df_m.iloc[0][c]) for c in num_cols[:6]}
@@ -4409,24 +4517,176 @@ def page_model_performance(uc_key: str) -> None:
                 break
 
         if not metrics_loaded:
-            # Try model_comparison
             mc_path = r_dir / "model_comparison.csv"
             if mc_path.exists():
                 df_mc = pd.read_csv(mc_path)
-                st.markdown("**Model Comparison (last step)**")
-                st.dataframe(df_mc, width='stretch', hide_index=True)
+                st.markdown(f"<p style='color:{FONT};font-size:0.85em;'>Step 4 cross-validation results. Run Step 5 for tuned champion metrics.</p>", unsafe_allow_html=True)
+                # Highlight best model per metric
+                num_cols = df_mc.select_dtypes(include="number").columns.tolist()
+                disp_cols = ["model"] + [c for c in ["val_roc_auc","val_pr_auc","val_f1","val_precision","val_recall","cv_roc_auc_mean","cv_pr_auc_mean"] if c in df_mc.columns]
+                df_disp = df_mc[disp_cols] if all(c in df_mc.columns for c in disp_cols) else df_mc
+                st.dataframe(df_disp, width='stretch', hide_index=True)
+
+                # KPI cards for best model
+                if "model" in df_mc.columns and "val_pr_auc" in df_mc.columns:
+                    best_idx = df_mc["val_pr_auc"].idxmax()
+                    best = df_mc.loc[best_idx]
+                    st.markdown(f"<p style='color:{GRN};font-weight:600;'>Best model (Val PR-AUC): {best.get('model','—')}</p>", unsafe_allow_html=True)
+                    kpi_keys = ["val_roc_auc","val_pr_auc","val_f1","val_precision","val_recall"]
+                    kpi_cols = [c for c in kpi_keys if c in best.index]
+                    cols = st.columns(len(kpi_cols))
+                    for i, c in enumerate(kpi_cols):
+                        cols[i].markdown(metric_card(c.replace("val_","").replace("_"," ").upper(), fmt_num(best[c]), colour=BLUE), unsafe_allow_html=True)
             else:
                 st.info("Metrics not found. Run Steps 4–5 to train the model.")
                 _run_step_action(4, uc_key, "▶ Run Steps 4–5  (goes to Run Pipeline)", suffix="eval_m")
 
-        # Val prediction PNGs for regression
         if is_regr:
-            for png_name in ["final_model_preds_val.png", "val_pred_vs_actual_lightgbm.png",
-                             "val_pred_vs_actual_xgboost.png", "model_comparison.png"]:
+            for png_name in ["final_model_preds_val.png",
+                             "val_pred_vs_actual_lightgbm.png",
+                             "val_pred_vs_actual_xgboost.png",
+                             "model_comparison.png"]:
                 png_path = r_dir / png_name
                 if png_path.exists():
                     st.image(str(png_path), width='stretch')
                     break
+            # Per-model val predictions (all variants via glob)
+            _vpa_shown = {"val_pred_vs_actual_lightgbm.png",
+                          "val_pred_vs_actual_xgboost.png"}
+            for _vpa in sorted(r_dir.glob("val_pred_vs_actual_*.png")):
+                if _vpa.name not in _vpa_shown:
+                    st.markdown(
+                        f"<p style='color:{FONT};font-size:0.82em;'>"
+                        f"{_vpa.stem.replace('_',' ').title()}</p>",
+                        unsafe_allow_html=True,
+                    )
+                    st.image(str(_vpa), width='stretch')
+
+        # Calibration, probability distribution, threshold, champion eval
+        for _ep_name in ["probability_distribution.png", "calibration_curve.png",
+                         "threshold_sensitivity.png", "champion_evaluation.png",
+                         "final_model_evaluation.png", "class_imbalance.png",
+                         "per_class_metrics.png"]:
+            _ep = r_dir / _ep_name
+            if _ep.exists():
+                st.markdown(
+                    f"<p style='color:{FONT};font-size:0.82em;'>"
+                    f"{_ep.stem.replace('_',' ').title()}</p>",
+                    unsafe_allow_html=True,
+                )
+                st.image(str(_ep), width='stretch')
+
+    with tab_tuning:
+        st.markdown(f"<p style='color:{FONT};'>Step 5 compares untuned vs tuned models and shows the hyperparameter search history.</p>", unsafe_allow_html=True)
+
+        # Champion metrics (05b or final)
+        champion_csv = r_dir / "lgbm_champion_metrics.csv"
+        tuning_csv   = r_dir / "tuning_comparison.csv"
+
+        if champion_csv.exists():
+            df_champ = pd.read_csv(champion_csv)
+            st.markdown(f"<p style='color:{GRN};font-weight:600;'>🏆 Champion Model — Final Metrics</p>", unsafe_allow_html=True)
+            # KPI cards
+            kpi_map = {"PR-AUC": BLUE, "ROC-AUC": GRN, "F1": ORG, "Threshold": PURP}
+            kpi_cols_avail = [c for c in kpi_map if c in df_champ.columns]
+            if kpi_cols_avail and len(df_champ) > 0:
+                row = df_champ.iloc[-1]
+                cols = st.columns(len(kpi_cols_avail))
+                for i, c in enumerate(kpi_cols_avail):
+                    cols[i].markdown(metric_card(c, fmt_num(float(row[c])), colour=kpi_map[c]), unsafe_allow_html=True)
+            st.dataframe(df_champ, width='stretch', hide_index=True)
+
+        if tuning_csv.exists():
+            df_tune = pd.read_csv(tuning_csv)
+            df_tune_valid = df_tune.dropna(subset=["Model"] if "Model" in df_tune.columns else df_tune.columns[:1])
+            df_tune_valid = df_tune_valid[df_tune_valid.iloc[:,0].astype(str).str.strip() != ""]
+            if not df_tune_valid.empty:
+                st.markdown(f"<p style='color:{FONT};font-weight:600;'>Tuned Model Comparison (Step 5)</p>", unsafe_allow_html=True)
+                st.dataframe(df_tune_valid, width='stretch', hide_index=True)
+
+                # Warn if Optuna LightGBM regressed vs Step 4
+                if "PR-AUC" in df_tune_valid.columns:
+                    mc_path = r_dir / "model_comparison.csv"
+                    if mc_path.exists():
+                        df_mc2 = pd.read_csv(mc_path)
+                        lgbm_row = df_mc2[df_mc2["model"].str.contains("LightGBM", case=False, na=False)]
+                        if not lgbm_row.empty:
+                            step4_prauc = float(lgbm_row["val_pr_auc"].iloc[0])
+                            optuna_row  = df_tune_valid[df_tune_valid.iloc[:,0].str.contains("Optuna|LightGBM", case=False, na=False)]
+                            if not optuna_row.empty:
+                                step5_prauc = float(optuna_row["PR-AUC"].iloc[0])
+                                if step5_prauc < step4_prauc * 0.85:
+                                    st.markdown(
+                                        f"<div style='background:#3a1a1a;border-left:4px solid {RED};padding:12px;border-radius:6px;margin:8px 0;'>"
+                                        f"<p style='color:{RED};font-weight:700;margin:0;'>⚠️ Tuning Regression Detected</p>"
+                                        f"<p style='color:{FONT};margin:4px 0 0;'>"
+                                        f"Optuna LightGBM PR-AUC = <b>{step5_prauc:.4f}</b> vs Step 4 untuned = <b>{step4_prauc:.4f}</b>. "
+                                        f"The search space allowed over-fitting configurations. "
+                                        f"Tighten <code>num_leaves</code>, lower the <code>learning_rate</code> ceiling, "
+                                        f"and add <code>early_stopping_rounds</code>.</p></div>",
+                                        unsafe_allow_html=True,
+                                    )
+                                    _run_step_action(
+                                        5, uc_key,
+                                        "▶ Auto-Fix: Re-run Step 5 with tighter search space",
+                                        suffix="eval_retune",
+                                    )
+                                elif step5_prauc > step4_prauc:
+                                    st.markdown(
+                                        f"<div style='background:#1a3a1a;border-left:4px solid {GRN};padding:12px;border-radius:6px;margin:8px 0;'>"
+                                        f"<p style='color:{GRN};font-weight:700;margin:0;'>✅ Tuning Improved the Model</p>"
+                                        f"<p style='color:{FONT};margin:4px 0 0;'>"
+                                        f"PR-AUC improved from <b>{step4_prauc:.4f}</b> (untuned) to <b>{step5_prauc:.4f}</b> (Optuna).</p></div>",
+                                        unsafe_allow_html=True,
+                                    )
+
+        # Optuna / tuning history charts (all variants)
+        _tuning_shown = set()
+        for _tpng in [
+            "lgbm_optuna_history.png", "optuna_history.png",
+            "optuna_tuning_history.png", "tuning_history.png",
+            "tuned_vs_untuned_comparison.png", "tuning_comparison.png",
+            "cv_model_comparison.png", "model_cv_comparison.png",
+            "tuning_convergence.png", "param_importance.png",
+        ]:
+            _tpath = r_dir / _tpng
+            if _tpath.exists():
+                st.markdown(
+                    f"<p style='color:{FONT};font-size:0.82em;'>"
+                    f"{_tpath.stem.replace('_',' ').title()}</p>",
+                    unsafe_allow_html=True,
+                )
+                st.image(str(_tpath), width='stretch')
+                _tuning_shown.add(_tpng)
+        for _th in sorted(r_dir.glob("tuning_history_*.png")):
+            if _th.name not in _tuning_shown:
+                st.markdown(
+                    f"<p style='color:{FONT};font-size:0.82em;'>"
+                    f"{_th.stem.replace('_',' ').title()}</p>",
+                    unsafe_allow_html=True,
+                )
+                st.image(str(_th), width='stretch')
+
+
+        # Optuna trials table (collapsible)
+        trials_csv = r_dir / "lgbm_optuna_trials.csv"
+        if trials_csv.exists():
+            with st.expander("🔍 Optuna Trial Details"):
+                df_trials = pd.read_csv(trials_csv)
+                # Show top trials by value descending
+                val_col = "value" if "value" in df_trials.columns else df_trials.columns[1]
+                df_trials_sorted = df_trials.sort_values(val_col, ascending=False).head(20)
+                st.dataframe(df_trials_sorted, width='stretch', hide_index=True)
+                st.markdown(
+                    f"<p style='color:{FONT};font-size:0.82em;'>Showing top 20 of {len(df_trials)} trials by PR-AUC. "
+                    f"Best trial value: <b>{df_trials[val_col].max():.4f}</b>. "
+                    f"Worst trial value: <b>{df_trials[val_col].min():.4f}</b>.</p>",
+                    unsafe_allow_html=True,
+                )
+
+        if not champion_csv.exists() and not tuning_csv.exists():
+            st.info("Tuning results not found. Run Step 5 — Hyperparameter Tuning.")
+            _run_step_action(5, uc_key, "▶ Run Step 5  (goes to Run Pipeline)", suffix="eval_tune")
 
     # ── ROC / PR Curves ────────────────────────────────────────────────────────
     with tab_curves:
@@ -4454,13 +4714,16 @@ def page_model_performance(uc_key: str) -> None:
         if is_regr:
             st.info("Confusion matrix is not applicable for regression tasks.")
         else:
+            shown = False
             for png_name in ["confusion_matrices.png", "confusion_matrix.png",
+                             "ethics_confusion_matrix.png", "confusion_matrix_eth.png",
                              "champion_evaluation.png"]:
                 png_path = r_dir / png_name
                 if png_path.exists():
                     st.image(str(png_path), width='stretch')
+                    shown = True
                     break
-            else:
+            if not shown:
                 st.info("Confusion matrix image not found. Run Step 4.")
 
     # ── Threshold calibration ──────────────────────────────────────────────────
@@ -4473,66 +4736,233 @@ def page_model_performance(uc_key: str) -> None:
         if thresh_png.exists():
             st.image(str(thresh_png), width='stretch')
 
-        # Load champion model and feature cols for threshold slider
         champion_name = uc.get("champion", "lgbm_optuna_champion.pkl")
         model = load_model(m_dir / champion_name)
-        feat_pkl = m_dir / "feature_cols.pkl"
-        feat_cols = joblib.load(feat_pkl) if feat_pkl.exists() else None
+        feat_cols = _load_feat_cols(m_dir, uc_key)
 
         if model is None:
             st.info("Champion model not found. Run Step 5.")
-            return
-
-        # Try to load validation data
-        data_dir  = ROOT / "data" / uc.get("data_dir", "")
-        val_path  = data_dir / "val_fe.parquet"
-        if val_path.exists() and feat_cols is not None:
-            df_val = pd.read_parquet(val_path)
-            target_col = uc.get("target", "")
-            feat_cols_use = [c for c in feat_cols if c in df_val.columns]
-            if feat_cols_use and target_col in df_val.columns:
-                X_val = df_val[feat_cols_use]
-                y_val = df_val[target_col]
-                try:
-                    proba = model.predict_proba(X_val)[:, 1]
-                    threshold = st.slider("Decision threshold", 0.01, 0.99, 0.50, 0.01,
-                                         key=f"_thresh_{uc_key}")
-                    y_pred = (proba >= threshold).astype(int)
-                    tp = int(((y_pred == 1) & (y_val == 1)).sum())
-                    fp = int(((y_pred == 1) & (y_val == 0)).sum())
-                    fn = int(((y_pred == 0) & (y_val == 1)).sum())
-                    tn = int(((y_pred == 0) & (y_val == 0)).sum())
-                    prec = tp / (tp + fp + 1e-9)
-                    rec  = tp / (tp + fn + 1e-9)
-                    f1   = 2 * prec * rec / (prec + rec + 1e-9)
-
-                    c1, c2, c3, c4 = st.columns(4)
-                    c1.metric("Precision", f"{prec:.4f}")
-                    c2.metric("Recall",    f"{rec:.4f}")
-                    c3.metric("F1",        f"{f1:.4f}")
-                    c4.metric("Threshold", f"{threshold:.2f}")
-
-                    # Confusion matrix heatmap
-                    cm_data = [[tn, fp], [fn, tp]]
-                    fig_cm = px.imshow(
-                        cm_data,
-                        labels=dict(x="Predicted", y="Actual", color="Count"),
-                        x=["Negative", "Positive"], y=["Negative", "Positive"],
-                        color_continuous_scale="Blues",
-                        title=f"Confusion Matrix @ threshold={threshold:.2f}",
-                        text_auto=True,
-                    )
-                    fig_cm.update_layout(plot_bgcolor=BG, paper_bgcolor=BG, font_color=FONT, height=340)
-                    st.plotly_chart(fig_cm, width='stretch')
-                except Exception as e:
-                    st.warning(f"Could not compute threshold metrics: {e}")
         else:
-            st.info("Validation data or feature columns not found. Run Steps 1–5.")
+            data_dir  = ROOT / "data" / uc.get("data_dir", "")
+            val_path  = data_dir / "val_fe.parquet"
+            if val_path.exists() and feat_cols is not None:
+                df_val = pd.read_parquet(val_path)
+                target_col = uc.get("target", "")
+                feat_cols_use = [c for c in feat_cols if c in df_val.columns]
+                if feat_cols is not None and target_col in df_val.columns:
+                    X_val = df_val.reindex(columns=feat_cols, fill_value=0.0)
+                    y_val = df_val[target_col]
+                    try:
+                        proba = model.predict_proba(X_val)[:, 1]
 
+                        # Cost-sensitive threshold option
+                        col_mode, col_costs = st.columns([1, 1])
+                        with col_mode:
+                            thr_mode = st.radio(
+                                "Threshold mode",
+                                ["Manual", "Cost-sensitive"],
+                                horizontal=True,
+                                key=f"_thresh_mode_{uc_key}",
+                            )
+                        if thr_mode == "Manual":
+                            threshold = st.slider("Decision threshold", 0.01, 0.99, 0.50, 0.01,
+                                                 key=f"_thresh_{uc_key}")
+                        else:
+                            with col_costs:
+                                cost_fp = st.number_input("Cost of False Positive (missed alarm)", min_value=1, max_value=100, value=1, key=f"_cfp_{uc_key}")
+                                cost_fn = st.number_input("Cost of False Negative (missed fraud)", min_value=1, max_value=100, value=10, key=f"_cfn_{uc_key}")
+                            import numpy as _np2
+                            best_cost, threshold = float("inf"), 0.5
+                            for _t in _np2.arange(0.05, 0.95, 0.01):
+                                _yp = (proba >= _t).astype(int)
+                                _fp = int(((_yp==1)&(y_val==0)).sum())
+                                _fn = int(((_yp==0)&(y_val==1)).sum())
+                                _c  = cost_fp * _fp + cost_fn * _fn
+                                if _c < best_cost:
+                                    best_cost, threshold = _c, float(_t)
+                            st.markdown(
+                                f"<p style='color:{GRN};'>Cost-optimal threshold: <b>{threshold:.2f}</b> "
+                                f"(total cost = {best_cost:,.0f})</p>",
+                                unsafe_allow_html=True,
+                            )
 
-# ══════════════════════════════════════════════════════════════════════════════
-# ── PAGE: Ethics & Explainability ────────────────────────────────────────────
-# ══════════════════════════════════════════════════════════════════════════════
+                        y_pred = (proba >= threshold).astype(int)
+                        tp = int(((y_pred == 1) & (y_val == 1)).sum())
+                        fp = int(((y_pred == 1) & (y_val == 0)).sum())
+                        fn = int(((y_pred == 0) & (y_val == 1)).sum())
+                        tn = int(((y_pred == 0) & (y_val == 0)).sum())
+                        prec = tp / (tp + fp + 1e-9)
+                        rec  = tp / (tp + fn + 1e-9)
+                        f1   = 2 * prec * rec / (prec + rec + 1e-9)
+                        fnr  = fn / (tp + fn + 1e-9)
+
+                        c1, c2, c3, c4, c5 = st.columns(5)
+                        c1.metric("Precision", f"{prec:.4f}")
+                        c2.metric("Recall",    f"{rec:.4f}")
+                        c3.metric("F1",        f"{f1:.4f}")
+                        c4.metric("FNR",       f"{fnr:.4f}")
+                        c5.metric("Threshold", f"{threshold:.2f}")
+
+                        cm_data = [[tn, fp], [fn, tp]]
+                        fig_cm = px.imshow(
+                            cm_data,
+                            labels=dict(x="Predicted", y="Actual", color="Count"),
+                            x=["Negative", "Positive"], y=["Negative", "Positive"],
+                            color_continuous_scale="Blues",
+                            title=f"Confusion Matrix @ threshold={threshold:.2f}",
+                            text_auto=True,
+                        )
+                        fig_cm.update_layout(plot_bgcolor=BG, paper_bgcolor=BG, font_color=FONT, height=340)
+                        st.plotly_chart(fig_cm, width='stretch')
+                    except Exception as e:
+                        st.warning(f"Could not compute threshold metrics: {e}")
+            else:
+                st.info("Validation data or feature columns not found. Run Steps 1–5.")
+
+    # ── Performance Lab ────────────────────────────────────────────────────────
+    with tab_lab:
+        st.markdown(
+            f"<h3 style='color:{BLUE};'>&#128202; Performance Improvement Lab</h3>"
+            f"<p style='color:{FONT};'>This tab is your guided exploration space. Each section below describes a "
+            f"real problem with the current model and a concrete experiment you can run. "
+            f"Work through them in order — each one builds on the last.</p>",
+            unsafe_allow_html=True,
+        )
+
+        # ── 1. Understand your baseline ──────────────────────────────────────
+        with st.expander("📍 Step 1 — Understand Your Baseline", expanded=True):
+            st.markdown(
+                f"<p style='color:#1A237E;'>"
+                f"Before improving a model, you must understand <em>where</em> it fails. "
+                f"Look at the <b>Metrics</b> and <b>Confusion Matrix</b> tabs and answer:<br>"
+                f"<ul style='color:#1A237E;'>"
+                f"<li>What is the <b>False Negative Rate (FNR)</b>? Every missed fraud costs the business.</li>"
+                f"<li>What is the <b>PR-AUC</b>? For imbalanced datasets (fraud ≈ 3.5%), ROC-AUC is misleading — PR-AUC is the right metric.</li>"
+                f"<li>Is the <b>Optuna-tuned model better or worse</b> than the untuned model? Check the 🔧 Tuning Results tab.</li>"
+                f"</ul>"
+                f"<b>Key insight:</b> A model with ROC-AUC = 0.95 but FNR = 0.35 misses 1 in 3 frauds. "
+                f"Always look beyond ROC-AUC on imbalanced data.</p>",
+                unsafe_allow_html=True,
+            )
+
+        # ── 2. Fix the hyperparameter search ─────────────────────────────────
+        with st.expander("🔧 Step 2 — Fix the Hyperparameter Search"):
+            st.markdown(
+                f"<p style='color:#1A237E;'>"
+                f"<b>Symptom:</b> Optuna PR-AUC lower than untuned LightGBM? That is a <b>tuning regression</b>. "
+                f"It means the search space was too wide and the optimizer found configurations that over-fit the CV folds but not the validation set.<br><br>"
+                f"<b>Experiment to run:</b><br>"
+                f"<ul style='color:#1A237E;'>"
+                f"<li>Tighten <code>learning_rate</code> to 0.01–0.05 (log scale)</li>"
+                f"<li>Cap <code>num_leaves</code> at 127 (prevents deep memorisation)</li>"
+                f"<li>Add <code>early_stopping_rounds=50</code> inside each Optuna trial</li>"
+                f"<li>Increase trials to 80–100 with <code>n_startup_trials=20</code> for TPE warm-start</li>"
+                f"</ul>"
+                f"<b>Expected outcome:</b> PR-AUC should recover to or exceed the untuned baseline.</p>",
+                unsafe_allow_html=True,
+            )
+            st.code("""# Key Optuna search space fix (05_hyperparameter_tuning.py)
+def optuna_space(trial):
+    return {
+        "n_estimators":      trial.suggest_int("n_estimators", 300, 1000, step=100),
+        "num_leaves":        trial.suggest_int("num_leaves", 31, 127),
+        "learning_rate":     trial.suggest_float("learning_rate", 0.01, 0.05, log=True),
+        "max_depth":         trial.suggest_int("max_depth", 6, 12),
+        "min_child_samples": trial.suggest_int("min_child_samples", 20, 100),
+        "feature_fraction":  trial.suggest_float("feature_fraction", 0.6, 0.9),
+        "lambda_l1":         trial.suggest_float("lambda_l1", 1e-3, 1.0, log=True),
+    }
+sampler = optuna.samplers.TPESampler(seed=42, n_startup_trials=20)""", language="python")
+
+        # ── 3. Rethink imbalance handling ─────────────────────────────────────
+        with st.expander("⚖️ Step 3 — Rethink Imbalance Handling"):
+            st.markdown(
+                f"<p style='color:#1A237E;'>"
+                f"The dataset is ~3.5% fraud. SMOTE creates synthetic minority-class samples, but the current "
+                f"<code>sampling_strategy=0.10</code> is conservative — only 10% of legit transactions are matched by fraud.<br><br>"
+                f"<b>Experiments to try:</b><br>"
+                f"<ul style='color:#1A237E;'>"
+                f"<li><b>Increase SMOTE ratio</b> to 0.20 — gives the model more fraud signal to learn from</li>"
+                f"<li><b>Switch to ADASYN</b> — unlike SMOTE which samples randomly, ADASYN focuses on <em>hard-to-classify</em> borderline cases</li>"
+                f"<li><b>Try class_weight instead of oversampling</b> — LightGBM's <code>scale_pos_weight</code> is often more stable</li>"
+                f"</ul>"
+                f"<b>Watch for:</b> Raising the ratio too high can cause over-fitting on synthetic samples. "
+                f"Always compare val PR-AUC, not just training F1.</p>",
+                unsafe_allow_html=True,
+            )
+            st.code("""# In 04_model_training.py — replace SMOTE with ADASYN
+from imblearn.over_sampling import ADASYN
+ImbPipeline([
+    ("sampler", ADASYN(sampling_strategy=0.20, random_state=42)),
+    ("clf",     lgbm_model),
+])""", language="python")
+
+        # ── 4. Feature engineering improvements ───────────────────────────────
+        with st.expander("🧪 Step 4 — Feature Engineering Improvements"):
+            st.markdown(
+                f"<p style='color:#1A237E;'>"
+                f"The current pipeline applies PCA to 339 V-features. But <b>V69 is the #2 SHAP feature globally</b> — "
+                f"meaning PCA is destroying discriminative signal by mixing it into components. "
+                f"LightGBM does not need PCA; it handles high-dimensional features natively via <code>feature_fraction</code>.<br><br>"
+                f"<b>High-value experiments:</b><br>"
+                f"<ul style='color:#1A237E;'>"
+                f"<li><b>Remove PCA</b> from Step 3 and keep raw V-columns with median imputation</li>"
+                f"<li><b>Add UID2 feature</b>: <code>card1 + addr1</code> composite key fraud rate — the highest-signal "
+                f"feature in top IEEE-CIS Kaggle solutions</li>"
+                f"<li><b>Expand card aggregates</b> from card1-only to card2, card4, card6</li>"
+                f"<li><b>Add device fraud rate</b>: encode DeviceType + DeviceInfo as a fraud-rate feature</li>"
+                f"</ul></p>",
+                unsafe_allow_html=True,
+            )
+            st.code("""# Add to 03_feature_engineering.py
+# UID2 — composite user identifier (card + address)
+df["uid2"] = df["card1"].astype(str) + "_" + df["addr1"].fillna("NA").astype(str)
+uid2_fraud = df_train.groupby("uid2")["isFraud"].mean().rename("fe_uid2_fraud_rate")
+df = df.merge(uid2_fraud, on="uid2", how="left")  # fitted on train only!
+
+# Remove PCA — keep raw V-columns, just impute
+v_present = [c for c in V_COLS if c in df.columns]
+df[v_present] = df[v_present].fillna(df_train[v_present].median())""", language="python")
+
+        # ── 5. Threshold strategy ─────────────────────────────────────────────
+        with st.expander("🎯 Step 5 — Threshold Strategy for Fraud"):
+            st.markdown(
+                f"<p style='color:#1A237E;'>"
+                f"The default threshold is F1-optimal, but <b>fraud detection is asymmetric</b>. "
+                f"A missed fraud (FN) costs far more than a false alarm (FP). "
+                f"Treating both errors equally is a business mistake.<br><br>"
+                f"<b>Use cost-sensitive thresholding</b> (available in the ⚖️ Threshold tab above):<br>"
+                f"<ul style='color:#1A237E;'>"
+                f"<li>Set FN cost to 10× FP cost as a starting point (typical for card fraud)</li>"
+                f"<li>This will lower the threshold from ~0.55 to ~0.30–0.40</li>"
+                f"<li>Recall will increase from ~65% to ~78–82%, FNR drops from ~35% to ~18–22%</li>"
+                f"<li>Precision will decrease slightly — more false alarms, but fewer missed frauds</li>"
+                f"</ul>"
+                f"<b>Key concept:</b> There is no single correct threshold. It must be set based on business cost ratios, "
+                f"not statistical metrics alone.</p>",
+                unsafe_allow_html=True,
+            )
+
+        # ── 6. What does good look like? ──────────────────────────────────────
+        with st.expander("🏆 Step 6 — What Does Good Look Like?"):
+            st.markdown(
+                f"<p style='color:#1A237E;'>"
+                f"Based on top-performing models on the IEEE-CIS Fraud Detection dataset:<br>"
+                f"<ul style='color:#1A237E;'>"
+                f"<li><b>PR-AUC ≥ 0.85</b>: Achievable with raw V-features + UID2 + Optuna-tuned LightGBM</li>"
+                f"<li><b>ROC-AUC ≥ 0.97</b>: Requires ensemble or stacking</li>"
+                f"<li><b>FNR ≤ 20%</b>: Cost-sensitive threshold + ADASYN brings this in range</li>"
+                f"</ul>"
+                f"<b>Current champion baseline for comparison:</b><br>"
+                f"<ul style='color:#1A237E;'>"
+                f"<li>PR-AUC: 0.7616 → target ≥ 0.85</li>"
+                f"<li>ROC-AUC: 0.9543 → target ≥ 0.97</li>"
+                f"<li>FNR: 34.6% → target ≤ 20%</li>"
+                f"</ul>"
+                f"<b>Responsible AI note:</b> Higher recall means more false alarms, which disproportionately affect "
+                f"legitimate customers. Monitor fairness metrics across card types and geographic regions as you tune.</p>",
+                unsafe_allow_html=True,
+            )
 
 def page_explainability(uc_key: str) -> None:
     uc    = USE_CASE_META.get(uc_key, {})
@@ -4592,18 +5022,33 @@ def page_explainability(uc_key: str) -> None:
 
     # ── SHAP Plots ─────────────────────────────────────────────────────────────
     with tab_plots:
-        found_plots = False
-        for png_name in ["shap_bar_importance.png", "shap_beeswarm.png", "shap_summary.png"]:
-            png_path = r_dir / png_name
-            if png_path.exists():
-                st.image(str(png_path), width='stretch')
-                found_plots = True
+        _shap_plots = [
+            "shap_bar_importance.png", "shap_beeswarm.png", "shap_summary.png",
+            "shap_dependence_top3.png", "shap_tfidf_per_class.png",
+            "shap_class_importance.png", "shap_feature_importance.png",
+            "feature_importance.png",
+        ]
+        _found_shap = False
+        for _sp in _shap_plots:
+            _sp_path = r_dir / _sp
+            if _sp_path.exists():
+                st.markdown(
+                    f"<p style='color:{FONT};font-size:0.82em;'>"
+                    f"{_sp_path.stem.replace('_',' ').title()}</p>",
+                    unsafe_allow_html=True,
+                )
+                st.image(str(_sp_path), width='stretch')
+                _found_shap = True
 
-        if not found_plots:
+        if not _found_shap:
             st.warning(
-                "No pre-computed SHAP plots found. Run **Step 6 — Ethics & Explainability** to generate SHAP visualisations."
+                "No pre-computed SHAP plots found. "
+                "Run **Step 6 -- Ethics & Explainability** to generate SHAP visualisations."
             )
-            _run_step_action(6, uc_key, "▶ Run Step 6 — Ethics & Explainability  (goes to Run Pipeline)", suffix="shap_plots")
+            _run_step_action(6, uc_key,
+                             "▶ Run Step 6 -- Ethics & Explainability  (goes to Run Pipeline)",
+                             suffix="shap_plots")
+
 
     # ── Local Explanation ──────────────────────────────────────────────────────
     with tab_local:
@@ -4615,10 +5060,24 @@ def page_explainability(uc_key: str) -> None:
         m_dir  = ROOT / "models" / uc.get("model_dir", "")
         champion_name = uc.get("champion", "lgbm_optuna_champion.pkl")
         model  = load_model(m_dir / champion_name)
-        feat_pkl = m_dir / "feature_cols.pkl"
-        feat_cols = joblib.load(feat_pkl) if feat_pkl.exists() else None
+        feat_cols = _load_feat_cols(m_dir, uc_key)
 
         is_regr = "Regression" in uc.get("task", "")
+        _task   = uc.get("task", "")
+        _is_nlp = uc.get("is_nlp", False)
+
+        if "Rank" in _task:
+            st.info(
+                "Local explanation is not applicable for Learning-to-Rank tasks. "
+                "See the **Global Importance** tab for SHAP feature rankings."
+            )
+            return
+        if _is_nlp:
+            st.info(
+                "Local explanation for NLP models operates on tokenized text. "
+                "Use the **Prediction Demo** tab to see per-sentence explanations."
+            )
+            return
 
         if model is None or feat_cols is None:
             st.info("Champion model or feature list not found. Run Steps 4–5.")
@@ -4631,12 +5090,12 @@ def page_explainability(uc_key: str) -> None:
             return
 
         df_val = pd.read_parquet(val_path)
-        feat_cols_use = [c for c in feat_cols if c in df_val.columns]
-        if not feat_cols_use:
+        feat_cols_in_val = [c for c in feat_cols if c in df_val.columns]
+        if not feat_cols_in_val:
             st.info("Feature columns not found in validation data.")
             return
 
-        X_val = df_val[feat_cols_use]
+        X_val = df_val.reindex(columns=feat_cols, fill_value=0.0)
 
         sample_idx = st.number_input(
             "Sample index (row in val set)", min_value=0,
@@ -4673,7 +5132,7 @@ def page_explainability(uc_key: str) -> None:
     with tab_bias:
         with st.expander("📚 How to read the Bias Audit charts", expanded=False):
             st.markdown(f"""
-<p style='color:{FONT};font-size:0.9rem;'>
+<p style='color:#1A237E;font-size:0.9rem;'>
 A bias audit evaluates whether the model's predictions are <b>equitable across subgroups</b> —
 for example, by risk score, product type, or any available demographic proxy.
 This is distinct from SHAP explainability: SHAP tells you <em>why</em> the model makes a prediction;
@@ -4728,14 +5187,25 @@ bias audit tells you <em>who</em> the model treats differently.
                 fig.update_layout(plot_bgcolor=BG, paper_bgcolor=BG, font_color=FONT, height=380)
                 st.plotly_chart(fig, width='stretch')
 
-            # Bias PNG images
-            for png_name in ["stock_group_fairness.png"]:
-                png_path = r_dir / png_name
-                if png_path.exists():
-                    st.image(str(png_path), width='stretch')
-        else:
-            st.info("Bias report not found. Run Step 6 — Ethics & Explainability.")
-            _run_step_action(6, uc_key, "▶ Run Step 6 — Ethics & Explainability  (goes to Run Pipeline)", suffix="bias")
+            # All fairness / ethics / residual charts
+            for _fp_name in [
+                "stock_group_fairness.png",
+                "ethics_fairness_bars.png", "ethics_confusion_matrix.png",
+                "sector_fairness_bars.png", "sector_fairness.png",
+                "sector_performance.png", "fairness_audit.png",
+                "diversity_audit.png", "popularity_bias.png",
+                "amex_metric_decomposition.png",
+                "pred_vs_actual_ethics.png", "residual_distribution.png",
+                "esg_gap_analysis.png",
+            ]:
+                _fp = r_dir / _fp_name
+                if _fp.exists():
+                    st.markdown(
+                        f"<p style='color:{FONT};font-size:0.82em;'>"
+                        f"{_fp.stem.replace('_',' ').title()}</p>",
+                        unsafe_allow_html=True,
+                    )
+                    st.image(str(_fp), width='stretch')
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -4874,8 +5344,7 @@ def _page_prediction_demo_regression(uc_key: str) -> None:
     m_dir = ROOT / "models" / uc.get("model_dir", "")
     champion_name = uc.get("champion", "champion.pkl")
     model = load_model(m_dir / champion_name)
-    feat_pkl = m_dir / "feature_cols.pkl"
-    feat_cols = joblib.load(feat_pkl) if feat_pkl.exists() else None
+    feat_cols = _load_feat_cols(m_dir, uc_key)
 
     if model is None:
         st.info("Champion model not found. Run Step 5.")
@@ -4913,7 +5382,7 @@ def _page_prediction_demo_regression(uc_key: str) -> None:
         submitted = st.form_submit_button("\U0001f52e Predict", type="primary")
 
     if submitted:
-        X_pred = pd.DataFrame([{f: input_vals.get(f, 0.0) for f in feat_cols_use}])
+        X_pred = pd.DataFrame([{f: input_vals.get(f, 0.0) for f in feat_cols}])
         try:
             pred = model.predict(X_pred)[0]
             c1, c2 = st.columns(2)
@@ -5054,8 +5523,7 @@ def page_prediction_demo(uc_key: str) -> None:
     m_dir         = ROOT / "models" / uc.get("model_dir", "")
     champion_name = uc.get("champion", "lgbm_optuna_champion.pkl")
     model         = load_model(m_dir / champion_name)
-    feat_pkl      = m_dir / "feature_cols.pkl"
-    feat_cols     = joblib.load(feat_pkl) if feat_pkl.exists() else None
+    feat_cols     = _load_feat_cols(m_dir, uc_key)
 
     # Fallback: some UCs (E, F) register features in a CSV instead of a pkl
     if feat_cols is None:
@@ -5089,7 +5557,7 @@ def page_prediction_demo(uc_key: str) -> None:
         st.info("No feature columns found in validation data.")
         return
 
-    X_val      = df_val[feat_cols_use]
+    X_val = df_val.reindex(columns=feat_cols, fill_value=0.0)
     target_col = uc.get("target", "target")
     tgt_labels = _FE_EDA_SRC.get(uc_key, {}).get("target_labels", {})
 
@@ -5363,5 +5831,5 @@ selected_page = st.radio(
 )
 st.session_state.nav_page = selected_page
 
-# ── Dispatch ───────────────────────────────────────────────────────────────────
+# ── Dispatch ─────────────────────────────────────────────────────────────
 PAGES[selected_page](uc_key)

@@ -168,7 +168,7 @@ def main():
     if fc_path.exists():
         fe_cols = joblib.load(fc_path)
     elif hasattr(model, "feature_name_"):
-        fe_cols = model.feature_name_()
+        fe_cols = list(model.feature_name_)
     else:
         fe_cols = list(model.feature_names_in_)
 

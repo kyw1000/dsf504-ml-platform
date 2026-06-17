@@ -174,7 +174,7 @@ STRATIFIED_CV       = True   # Use StratifiedKFold for classification tasks
 # ---------------------------------------------------------------------------
 # Hyperparameter tuning defaults
 # ---------------------------------------------------------------------------
-TUNING_TRIALS       = 50     # Optuna trials
+TUNING_TRIALS       = 80     # Optuna trials
 TUNING_TIMEOUT      = 600    # seconds
 TUNING_CV_FOLDS     = 3      # Folds used during tuning (faster than full CV)
 

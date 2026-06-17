@@ -49,12 +49,17 @@ def rmspe(y_true, y_pred):
 
 
 def load_champion():
+    """Return (model, fname, fe_cols_or_None). fe_cols is extracted from the
+    pkl payload when available (step 05 embeds it); None otherwise."""
     for fname in ["champion.pkl", "lgbm_optuna_champion.pkl"]:
         p = MODEL_DIR / fname
         if p.exists():
             obj = joblib.load(p)
-            return (obj["model"], fname) if isinstance(obj, dict) and "model" in obj else (obj, fname)
-    return None, None
+            if isinstance(obj, dict) and "model" in obj:
+                embedded = obj.get("fe_cols", None)
+                return obj["model"], fname, embedded
+            return obj, fname, None
+    return None, None, None
 
 
 def compute_feature_importance(model, fe_cols, X_val):
@@ -233,18 +238,24 @@ def main():
     log.info("  Phase 6: Ethics & Explainability — C_markets")
     log.info("=" * 62)
 
-    model, mname = load_champion()
+    model, mname, fe_cols = load_champion()
     if model is None:
         raise FileNotFoundError("No champion pkl. Run Steps 4-5 first.")
     log.info("  Loaded: %s  (%s)", type(model).__name__, mname)
 
-    fc_path = MODEL_DIR / "feature_cols.pkl"
-    if fc_path.exists():
-        fe_cols = joblib.load(fc_path)
-    elif hasattr(model, "feature_names_in_"):
-        fe_cols = list(model.feature_names_in_)
-    else:
-        raise FileNotFoundError("feature_cols.pkl not found.")
+    if fe_cols is None:
+        # Fallback: stale feature_cols.pkl or model attribute
+        fc_path = MODEL_DIR / "feature_cols.pkl"
+        if fc_path.exists():
+            fe_cols = joblib.load(fc_path)
+            log.warning("  fe_cols from feature_cols.pkl (%d) -- may not match model", len(fe_cols))
+        elif hasattr(model, "feature_name_") and model.feature_name_:
+            fe_cols = list(model.feature_name_)
+        elif hasattr(model, "feature_names_in_"):
+            fe_cols = list(model.feature_names_in_)
+        else:
+            raise FileNotFoundError("Cannot determine feature list -- re-run Steps 4-5.")
+    log.info("  Feature cols: %d", len(fe_cols))
 
     val_path = DATA_PATH / "val_fe.parquet"
     df_val = pd.read_parquet(val_path)

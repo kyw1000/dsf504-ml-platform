@@ -7,11 +7,16 @@ Step 3: Feature Engineering
 Two feature tracks
 ------------------
 Track 1 — TF-IDF (fast, interpretable, always runs)
-    - Unigrams + bigrams, max 5,000 features
+    - Unigrams + bigrams, max 8,000 features
     - sublinear_tf=True (dampens high-frequency dominance)
     - min_df=2 (exclude hapax legomena)
     - Financial stopword extension (adds domain noise words)
     - Saved as dense numpy arrays (.npy)
+
+Track 1b — Character TF-IDF (morphological patterns)
+    - Character 2-4 grams, max 3,000 features
+    - Captures suffixes like "-ing", "-ed", "-tion", "-loss"
+    - Concatenated with word TF-IDF for the combined track
 
 Track 2 — FinBERT Embeddings (optional, requires torch + transformers)
     - ProsusAI/finbert: finance-domain BERT pretrained on 10K Reuters,
@@ -71,31 +76,103 @@ LABEL_MAP = {0: "negative", 1: "neutral", 2: "positive"}
 
 # ── Loughran-McDonald seed word lists (abbreviated — key terms) ────────────────
 LM_POSITIVE = {
-    "profitable", "profitability", "profit", "gain", "gains", "growth",
-    "improvement", "improved", "increasing", "increase", "higher", "strong",
-    "strength", "record", "robust", "exceeded", "exceed", "growth", "benefit",
-    "efficient", "recovery", "advance", "positive", "good", "better", "best",
-    "outstanding", "excellent", "success", "successful", "opportunity", "optimistic",
+    # Core positive financial terms (Loughran-McDonald, 2011)
+    "able", "abundance", "abundant", "acclaimed", "accomplish", "accomplished",
+    "achievement", "acumen", "adaptable", "adequate", "advance", "advanced",
+    "advantage", "advantaged", "advantageous", "affirm", "affordable", "agile",
+    "agree", "ahead", "ample", "appreciation", "appreciate", "appreciated",
+    "approval", "approved", "apt", "arise", "assure", "attain", "attained",
+    "attractive", "award", "awarded", "balance", "beneficial", "benefit",
+    "best", "better", "bold", "boom", "boost", "breakthrough", "brilliant",
+    "capable", "certain", "certainty", "clear", "climb", "comfort", "commend",
+    "competitive", "confidence", "confident", "consistent", "convenient",
+    "creative", "dedicated", "deliver", "delivered", "demand", "dependable",
+    "desirable", "developed", "dividend", "dominant", "double", "drive",
+    "driven", "durable", "dynamic", "earn", "earned", "earnings", "effective",
+    "efficient", "efficiency", "elevated", "enhance", "enhanced", "enjoy",
+    "enormous", "exceed", "exceeded", "exceeds", "excellent", "exceptional",
+    "exciting", "expand", "expanded", "expansion", "expedient", "experienced",
+    "expert", "extraordinary", "favorable", "flexibility", "flexible", "flourish",
+    "gain", "gains", "good", "great", "grow", "growing", "growth", "healthy",
+    "higher", "highest", "honored", "ideal", "improved", "improvement",
+    "improving", "impressive", "increase", "increased", "increasing", "industry-leading",
+    "innovative", "integrity", "invest", "investment", "leading", "leverage",
+    "loyal", "lucrative", "maintain", "manageable", "maximize", "merit",
+    "momentum", "notable", "obtain", "opportunity", "optimism", "optimistic",
+    "outperform", "outstanding", "overcome", "perform", "performance", "positive",
+    "potential", "power", "premier", "premium", "productive", "profit",
+    "profitable", "profitability", "progress", "promising", "prosper",
+    "prosperity", "proven", "quality", "reach", "recover", "recovery",
+    "reliable", "remarkable", "resilient", "revenue", "reward", "rise",
+    "robust", "satisfactory", "significant", "solid", "sound", "stable",
+    "strength", "strong", "succeed", "success", "successful", "superior",
+    "surge", "sustainability", "sustainable", "trusted", "upward", "value",
+    "versatile", "viable", "yield",
 }
 
 LM_NEGATIVE = {
-    "loss", "losses", "decline", "declined", "decrease", "decreased", "lower",
-    "weak", "weakness", "deficit", "debt", "risk", "risks", "concern", "concerns",
-    "uncertainty", "uncertain", "difficult", "difficulties", "challenging", "challenge",
-    "impairment", "write-off", "writeoff", "downturn", "recession", "default",
-    "bankrupt", "bankruptcy", "restructuring", "layoff", "layoffs", "cut", "cuts",
-    "reduction", "reduced", "miss", "missed", "adverse", "deterioration",
+    # Core negative financial terms (Loughran-McDonald, 2011)
+    "abandon", "abandonment", "abrupt", "absence", "abuse", "accident",
+    "adverse", "adversely", "adversity", "against", "allegation", "allege",
+    "anomaly", "anti", "anxiety", "arbitrary", "assault", "assertion",
+    "bankrupt", "bankruptcy", "barrier", "below", "breach", "broke", "burden",
+    "cancel", "cancellation", "casualty", "cease", "challenged", "challenging",
+    "charge", "claim", "collapse", "complaint", "complexity", "compel",
+    "concern", "concerns", "conflict", "constrain", "constraint", "controversy",
+    "costly", "crisis", "critical", "cut", "cuts", "damage", "damaged",
+    "decline", "declined", "declining", "decrease", "decreased", "default",
+    "defect", "deficit", "delay", "delinquent", "departure", "depressed",
+    "deteriorate", "deterioration", "difficult", "difficulties", "difficulty",
+    "diminish", "disappoint", "disappointing", "disappointment", "disaster",
+    "disclose", "discontinue", "disputed", "disrupt", "disruption", "distress",
+    "downturn", "drop", "eliminated", "enforcement", "error", "excessive",
+    "expensive", "exposure", "fail", "failure", "falling", "fault", "fine",
+    "force", "foreclose", "fraud", "harm", "hazard", "hurt", "impair",
+    "impairment", "inability", "inadequate", "incident", "incur", "inferior",
+    "insolvent", "insufficient", "invalid", "investigation", "issue", "layoff",
+    "layoffs", "liabilities", "liability", "limitation", "liquidation",
+    "litigation", "loss", "losses", "lost", "lower", "miss", "missed",
+    "misstatement", "negative", "noncompliance", "nonperformance", "objection",
+    "obstacle", "offset", "omit", "overdue", "penalty", "poor", "problems",
+    "recession", "reduced", "reduction", "reject", "resigned", "restructure",
+    "restructuring", "revenue loss", "risk", "risks", "severe", "shortage",
+    "slowdown", "suspect", "terminate", "termination", "uncertainty",
+    "underperform", "unfavorable", "unprofitable", "violation", "volatile",
+    "volatility", "vulnerable", "weak", "weakness", "withdraw", "worst",
+    "write-down", "write-off", "writedown", "writeoff",
 }
 
 LM_UNCERTAINTY = {
-    "approximately", "roughly", "may", "might", "could", "possibly", "potential",
-    "uncertain", "uncertainty", "estimate", "estimated", "expect", "expected",
-    "anticipate", "anticipated", "pending", "projected", "projection", "forecast",
+    # Uncertainty/hedging terms (Loughran-McDonald, 2011)
+    "alleged", "almost", "ambiguity", "ambiguous", "anticipate", "anticipated",
+    "appear", "appears", "approximate", "approximately", "arbitrage", "assume",
+    "assumption", "await", "believe", "believes", "cautious", "conditional",
+    "contingent", "could", "depend", "depending", "doubtful", "essentially",
+    "estimate", "estimated", "estimates", "estimating", "evaluation",
+    "evolve", "evolving", "expect", "expected", "expectation", "feasibility",
+    "fluctuate", "forecast", "generally", "historically", "hope", "if",
+    "impending", "indefinite", "indeterminate", "indication", "indicative",
+    "intend", "intention", "likely", "may", "might", "nominal", "ongoing",
+    "ordinarily", "outlook", "partial", "pending", "perceive", "perhaps",
+    "plan", "planned", "planning", "possible", "possibly", "potential",
+    "predominantly", "preliminary", "presumed", "probable", "probably",
+    "projected", "projection", "propose", "proposed", "prospect", "roughly",
+    "seek", "should", "somewhat", "speculate", "subjective", "suggest",
+    "typically", "uncertain", "uncertainty", "unclear", "unresolved", "variable",
+    "whether", "would",
 }
 
 LM_MODAL_STRONG = {
-    "will", "shall", "must", "require", "required", "commit", "committed",
-    "definite", "definitely", "certainly", "certain",
+    # Strong modal / obligation terms (Loughran-McDonald, 2011)
+    "absolve", "binding", "certain", "certainly", "certainty", "commit",
+    "commitment", "committed", "compel", "compelled", "compulsory", "conclude",
+    "conclusive", "conclusively", "confirm", "confirmed", "contractual",
+    "decided", "decisive", "definite", "definitely", "enforce", "established",
+    "final", "finally", "firmly", "guarantee", "guaranteed", "imperative",
+    "mandate", "mandatory", "must", "necessarily", "necessary", "obligate",
+    "obligation", "obligatory", "require", "required", "requirement",
+    "resolve", "resolved", "shall", "unconditional", "undeniable",
+    "undoubtedly", "unequivocal", "unquestionably", "will",
 }
 
 # Financial domain stopwords to add to sklearn's english list
@@ -111,7 +188,7 @@ FIN_STOPWORDS_EXTRA = {
 def build_tfidf(
     train_texts: list[str],
     val_texts:   list[str],
-    max_features: int = 5000,
+    max_features: int = 8000,
 ) -> tuple[np.ndarray, np.ndarray, TfidfVectorizer]:
     """
     Fit TF-IDF on training corpus, transform both splits.
@@ -142,6 +219,42 @@ def build_tfidf(
     X_val   = vectorizer.transform(val_texts).toarray().astype(np.float32)
 
     log.info(f"TF-IDF shape: train={X_train.shape}  val={X_val.shape}")
+    return X_train, X_val, vectorizer
+
+
+# ── Track 1b: Character TF-IDF ───────────────────────────────────────────────
+
+def build_char_tfidf(
+    train_texts: list[str],
+    val_texts:   list[str],
+    max_features: int = 3000,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Character n-gram TF-IDF (analyzer='char_wb', ngram_range=(2,4)).
+
+    Motivation
+    ----------
+    Word TF-IDF misses morphological signals. Character n-grams capture:
+    - Suffixes: "-loss", "-gain", "-ing", "-tion"
+    - Partial stems: "profit", "profitab", "profitable" all share a root
+    - Misspellings and abbreviations common in financial text
+    - Boundary padding (char_wb) avoids cross-word character artifacts
+
+    This is a proven complementary signal to word TF-IDF in text
+    classification tasks (Joulin et al., 2017; fastText inspiration).
+    """
+    log.info(f"Fitting char TF-IDF vectorizer (max_features={max_features})…")
+    vectorizer = TfidfVectorizer(
+        analyzer     = "char_wb",
+        ngram_range  = (2, 4),
+        max_features = max_features,
+        min_df       = 2,
+        max_df       = 0.95,
+        sublinear_tf = True,
+    )
+    X_train = vectorizer.fit_transform(train_texts).toarray().astype(np.float32)
+    X_val   = vectorizer.transform(val_texts).toarray().astype(np.float32)
+    log.info(f"Char TF-IDF shape: train={X_train.shape}  val={X_val.shape}")
     return X_train, X_val, vectorizer
 
 
@@ -226,15 +339,19 @@ def build_finbert_embeddings(
 
 def build_handcrafted(texts: list[str]) -> np.ndarray:
     """
-    Lightweight lexical features:
-    0: word_count
-    1: char_count
-    2: avg_word_length
-    3: lm_positive_count
-    4: lm_negative_count
-    5: lm_uncertainty_count
-    6: lm_modal_strong_count
-    7: positive_negative_ratio  (lm_pos / (lm_neg + 1))
+    Lightweight lexical features (12 features):
+    0:  word_count
+    1:  char_count
+    2:  avg_word_length
+    3:  lm_positive_count
+    4:  lm_negative_count
+    5:  lm_uncertainty_count
+    6:  lm_modal_strong_count
+    7:  positive_negative_ratio  (lm_pos / (lm_neg + 1))
+    8:  has_negation             (contains "not", "no", "never", "n't" etc.)
+    9:  has_numeric              (sentence contains at least one digit)
+    10: uppercase_ratio          (fraction of uppercase chars — signals emphasis)
+    11: exclamation_count        (rare in formal finance; signals strong tone)
     """
     rows = []
     for text in texts:
@@ -248,14 +365,22 @@ def build_handcrafted(texts: list[str]) -> np.ndarray:
         n_unc     = len(word_set & LM_UNCERTAINTY)
         n_modal   = len(word_set & LM_MODAL_STRONG)
         pn_ratio  = n_pos / (n_neg + 1)
-        rows.append([n_words, n_chars, avg_wlen, n_pos, n_neg, n_unc, n_modal, pn_ratio])
+        text_lower   = text.lower()
+        has_neg     = int(any(neg in text_lower for neg in
+                              ("not ", " no ", "never", "n't", "cannot", "neither", "nor")))
+        has_num     = int(any(c.isdigit() for c in text))
+        uc_ratio    = sum(1 for c in text if c.isupper()) / max(len(text), 1)
+        excl_count  = text.count("!")
+        rows.append([n_words, n_chars, avg_wlen, n_pos, n_neg, n_unc, n_modal, pn_ratio,
+                     has_neg, has_num, uc_ratio, excl_count])
     return np.array(rows, dtype=np.float32)
 
 
 HC_FEATURE_NAMES = [
     "word_count", "char_count", "avg_word_length",
     "lm_positive", "lm_negative", "lm_uncertainty", "lm_modal_strong",
-    "lm_pos_neg_ratio",
+    "lm_pos_neg_ratio", "has_negation", "has_numeric",
+    "uppercase_ratio", "exclamation_count",
 ]
 
 
@@ -265,9 +390,12 @@ def combine_features(
     tfidf: np.ndarray,
     hc:    np.ndarray,
     finbert: np.ndarray | None = None,
+    char_tfidf: np.ndarray | None = None,
 ) -> np.ndarray:
-    """Concatenate TF-IDF + hand-crafted (+ optional FinBERT) features."""
+    """Concatenate TF-IDF + hand-crafted (+ optional char TF-IDF + optional FinBERT) features."""
     parts = [tfidf, hc]
+    if char_tfidf is not None:
+        parts.append(char_tfidf)
     if finbert is not None:
         parts.append(finbert)
     return np.concatenate(parts, axis=1)
@@ -369,8 +497,16 @@ def main():
     np.save(DATA_SUBDIR / "X_tfidf_val.npy",   X_tfidf_val)
     print(f"  TF-IDF: {X_tfidf_train.shape[1]} features")
 
+    # ── Track 1b: Character TF-IDF ───────────────────────────────────────────
+    print("\n[2] Building character TF-IDF features…")
+    X_char_train, X_char_val, char_vectorizer = build_char_tfidf(train_texts, val_texts)
+    joblib.dump(char_vectorizer, DATA_SUBDIR / "char_tfidf_vectorizer.pkl")
+    np.save(DATA_SUBDIR / "X_char_train.npy", X_char_train)
+    np.save(DATA_SUBDIR / "X_char_val.npy",   X_char_val)
+    print(f"  Char TF-IDF: {X_char_train.shape[1]} features")
+
     # ── Track 2: Hand-crafted ─────────────────────────────────────────────────
-    print("\n[2] Building hand-crafted features (LM word lists)…")
+    print("\n[3] Building hand-crafted features (LM word lists)…")
     hc_train = build_handcrafted(train_texts)
     hc_val   = build_handcrafted(val_texts)
     np.save(DATA_SUBDIR / "X_hc_train.npy", hc_train)
@@ -378,7 +514,7 @@ def main():
     print(f"  Hand-crafted: {hc_train.shape[1]} features")
 
     # ── Track 3: FinBERT embeddings ───────────────────────────────────────────
-    print("\n[3] Generating FinBERT embeddings…")
+    print("\n[4] Generating FinBERT embeddings…")
     finbert_train, finbert_val = build_finbert_embeddings(train_texts, val_texts)
 
     if finbert_train is not None:
@@ -389,11 +525,13 @@ def main():
         print("  FinBERT skipped — models will use TF-IDF + hand-crafted only")
 
     # ── Combined feature matrices ─────────────────────────────────────────────
-    print("\n[4] Combining features…")
+    print("\n[5] Combining features…")
     X_combined_train = combine_features(X_tfidf_train, hc_train,
-                                         finbert_train if finbert_train is not None else None)
+                                         finbert_train if finbert_train is not None else None,
+                                         char_tfidf=X_char_train)
     X_combined_val   = combine_features(X_tfidf_val,   hc_val,
-                                         finbert_val   if finbert_val   is not None else None)
+                                         finbert_val   if finbert_val   is not None else None,
+                                         char_tfidf=X_char_val)
     np.save(DATA_SUBDIR / "X_combined_train.npy", X_combined_train)
     np.save(DATA_SUBDIR / "X_combined_val.npy",   X_combined_val)
     np.save(DATA_SUBDIR / "y_train.npy", y_train)
@@ -404,21 +542,23 @@ def main():
 
     # ── Feature summary table ─────────────────────────────────────────────────
     summary = {
-        "Feature track":   ["TF-IDF", "Hand-crafted (LM)", "FinBERT (optional)", "Combined"],
+        "Feature track":   ["TF-IDF (word)", "Char TF-IDF", "Hand-crafted (LM)", "FinBERT (optional)", "Combined"],
         "Dimensions":      [
             X_tfidf_train.shape[1],
+            X_char_train.shape[1],
             hc_train.shape[1],
             finbert_train.shape[1] if finbert_train is not None else "N/A",
             X_combined_train.shape[1],
         ],
-        "Train rows":      [X_tfidf_train.shape[0]] * 4,
-        "Saved":           ["X_tfidf_train/val.npy", "X_hc_train/val.npy",
-                            "X_finbert_train/val.npy", "X_combined_train/val.npy"],
+        "Train rows":      [X_tfidf_train.shape[0]] * 5,
+        "Saved":           ["X_tfidf_train/val.npy", "X_char_train/val.npy",
+                            "X_hc_train/val.npy", "X_finbert_train/val.npy",
+                            "X_combined_train/val.npy"],
     }
     pd.DataFrame(summary).to_csv(REPORT_DIR / "feature_summary.csv", index=False)
 
     # ── Visualisations ────────────────────────────────────────────────────────
-    print("\n[5] Generating visualisations…")
+    print("\n[6] Generating visualisations…")
     plot_tfidf_top_terms(vectorizer, X_tfidf_train, y_train)
     plot_handcrafted_dist(hc_train, y_train)
 

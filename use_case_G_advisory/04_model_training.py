@@ -384,7 +384,7 @@ def plot_model_comparison(comparison_rows: list[dict]) -> None:
 def plot_roc_curves(trained_models: dict, X_val: pd.DataFrame, y_val: pd.Series) -> None:
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.plot([0, 1], [0, 1], "k--", linewidth=0.8, label="Random")
-    cmap = plt.get_cmap("tab10")
+    cmap = matplotlib.colormaps["tab10"]
     for i, (name, model) in enumerate(trained_models.items()):
         try:
             y_proba = model.predict_proba(X_val)[:, 1]

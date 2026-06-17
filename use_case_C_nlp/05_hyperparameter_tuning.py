@@ -41,6 +41,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import LinearSVC
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.ensemble import VotingClassifier
 from sklearn.metrics import (
     f1_score, accuracy_score, classification_report,
     confusion_matrix, roc_auc_score,
@@ -200,12 +203,12 @@ def tune_logistic_regression(
     log.info("=" * 60)
 
     param_grid = {
-        "C":            [0.01, 0.1, 1.0, 10.0],
+        "C":            [0.01, 0.1, 0.5, 1.0, 5.0, 10.0],
         "penalty":      ["l2"],
         "solver":       ["saga"],
         "max_iter":     [2000],
         "class_weight": ["balanced"],
-        "multi_class":  ["multinomial"],
+        # NOTE: multi_class was removed in sklearn 1.5 — do NOT include it
     }
     base = LogisticRegression(random_state=RANDOM_STATE)
     cv   = StratifiedKFold(n_splits=CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
@@ -219,7 +222,7 @@ def tune_logistic_regression(
         param_grid = param_grid,
         scoring    = macro_f1_scorer,
         cv         = cv,
-        n_jobs     = -1,
+        n_jobs     = 1,
         verbose    = 1,
         refit      = True,
     )
@@ -235,6 +238,73 @@ def tune_logistic_regression(
     log.info(f"Val Macro-F1={results['Macro-F1']}  Acc={results['Accuracy']}")
 
     pd.DataFrame(gs.cv_results_).to_csv(REPORT_DIR / "lr_grid_search_results.csv", index=False)
+    return best, results
+
+
+# ============================================================================
+# 1b. GridSearchCV — LinearSVC (CalibratedClassifierCV)
+# ============================================================================
+
+def tune_linearsvc(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_val:   np.ndarray,
+    y_val:   np.ndarray,
+) -> Tuple:
+    """
+    GridSearchCV over LinearSVC regularisation strength C.
+
+    Rationale
+    ---------
+    LinearSVC is a maximum-margin classifier that tends to outperform
+    Logistic Regression on high-dimensional, sparse TF-IDF features for
+    short-text tasks. CalibratedClassifierCV (sigmoid) adds probability
+    outputs needed for ROC-AUC computation.
+
+    C controls the margin hardness:
+    - Low C -> wide margin, more misclassifications tolerated (regularised)
+    - High C -> narrow margin, fits training data tighter (less regularised)
+    """
+    log.info("=" * 60)
+    log.info("GridSearchCV — LinearSVC (CalibratedClassifierCV)")
+    log.info("=" * 60)
+
+    param_grid = {
+        "estimator__C":            [0.05, 0.1, 0.3, 0.5, 1.0, 2.0, 5.0],
+        "estimator__class_weight": ["balanced"],
+        "estimator__max_iter":     [3000],
+    }
+    base = CalibratedClassifierCV(
+        LinearSVC(random_state=RANDOM_STATE),
+        cv=3, method="sigmoid",
+    )
+    cv = StratifiedKFold(n_splits=CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
+
+    n_combos = len(param_grid["estimator__C"])
+    log.info(f"Grid: {n_combos} combos x {CV_FOLDS} folds = {n_combos * CV_FOLDS} fits")
+    t0 = time.time()
+
+    gs = GridSearchCV(
+        estimator  = base,
+        param_grid = param_grid,
+        scoring    = macro_f1_scorer,
+        cv         = cv,
+        n_jobs     = 1,
+        verbose    = 1,
+        refit      = True,
+    )
+    gs.fit(X_train, y_train)
+
+    elapsed = time.time() - t0
+    log.info(f"LinearSVC GridSearch complete in {elapsed/60:.1f} min")
+    log.info(f"Best params     : {gs.best_params_}")
+    log.info(f"Best CV Macro-F1: {gs.best_score_:.4f}")
+
+    best = gs.best_estimator_
+    results = evaluate_model("LinearSVC (tuned)", best, X_val, y_val)
+    log.info(f"Val Macro-F1={results['Macro-F1']}  Acc={results['Accuracy']}")
+
+    pd.DataFrame(gs.cv_results_).to_csv(REPORT_DIR / "svc_grid_search_results.csv", index=False)
     return best, results
 
 
@@ -521,6 +591,80 @@ def compute_shap_tfidf(
 
 
 # ============================================================================
+# 4b. Soft-voting ensemble
+# ============================================================================
+
+def build_voting_ensemble(
+    lr_model,
+    svc_model,
+    lgbm_best_params: Optional[dict],
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_val:   np.ndarray,
+    y_val:   np.ndarray,
+) -> Tuple:
+    """
+    Soft-voting ensemble of LR + LinearSVC + LightGBM.
+
+    Why soft voting beats hard voting for text
+    ------------------------------------------
+    Each model has different confidence calibration. Averaging predicted
+    probabilities (soft voting) weights a high-confidence correct prediction
+    more than an uncertain one, reducing variance without increasing bias.
+
+    Stacking LR + LinearSVC + LightGBM combines:
+    - LR: calibrated linear probabilities
+    - LinearSVC (sigmoid): maximum-margin boundaries
+    - LightGBM: non-linear boosted trees over ALL features (TF-IDF + char + HC + FinBERT)
+
+    Each contributes orthogonal errors; their average is more robust.
+
+    IMPORTANT — feature alignment
+    ------------------------------
+    The standalone champion LightGBM is trained on X_fb (FinBERT+HC only).
+    The ensemble always trains a *fresh* LightGBM on X_combined so all three
+    estimators see identical feature shapes. This avoids a dimension mismatch
+    when LightGBM.predict() is called inside VotingClassifier.
+    """
+    log.info("=" * 60)
+    log.info("Soft-Voting Ensemble: LR + LinearSVC + LightGBM (on X_combined)")
+    log.info("=" * 60)
+
+    # Build a fresh LightGBM on X_combined so dimensions match LR and SVC
+    params = lgbm_best_params.copy() if lgbm_best_params else {}
+    params.setdefault("n_estimators", 400)
+    params.setdefault("num_leaves", 63)
+    params.setdefault("learning_rate", 0.05)
+    params.setdefault("feature_fraction", 0.8)
+    params.setdefault("bagging_fraction", 0.8)
+    params.setdefault("bagging_freq", 5)
+    params.update({"class_weight": "balanced", "random_state": RANDOM_STATE,
+                   "verbosity": -1, "n_jobs": -1})
+    lgbm_combined = lgb.LGBMClassifier(**params)
+    lgbm_combined.fit(X_train, y_train)
+
+    estimators = [
+        ("lr",   lr_model),
+        ("svc",  svc_model),
+        ("lgbm", lgbm_combined),
+    ]
+    # Filter out None estimators (if a tuning step failed)
+    estimators = [(name, est) for name, est in estimators if est is not None]
+    if len(estimators) < 2:
+        log.warning("Not enough base models for ensemble (need >= 2). Skipping.")
+        return None, None
+
+    ensemble = VotingClassifier(estimators=estimators, voting="soft", n_jobs=1)
+    t0 = time.time()
+    ensemble.fit(X_train, y_train)
+    elapsed = time.time() - t0
+
+    results = evaluate_model("Ensemble (LR+SVC+LGBM soft vote)", ensemble, X_val, y_val)
+    log.info(f"Ensemble fit in {elapsed:.1f}s  Val Macro-F1={results['Macro-F1']}  Acc={results['Accuracy']}")
+    return ensemble, results
+
+
+# ============================================================================
 # 5. Comparison plots
 # ============================================================================
 
@@ -662,11 +806,12 @@ def main() -> None:
                                  ["Model", "Macro-F1", "Accuracy", "ROC-AUC",
                                   "F1-neg", "F1-neu", "F1-pos"]})
 
-    champion      = None
-    champion_pred = None
-    champion_name = None
-    optuna_study  = None
-    vectorizer    = None
+    champion          = None
+    champion_pred     = None
+    champion_name     = None
+    lgbm_best_params_ = {}
+    optuna_study      = None
+    vectorizer        = None
 
     # ── 1. Logistic Regression — GridSearchCV ───────────────────────────────
     try:
@@ -678,6 +823,17 @@ def main() -> None:
         log.info("Saved: lr_tuned.pkl")
     except Exception as exc:
         log.error(f"LR tuning failed: {exc}")
+
+    # ── 1b. LinearSVC — GridSearchCV ────────────────────────────────────────
+    try:
+        svc_tuned, svc_results = tune_linearsvc(
+            X_combined_train, y_train, X_combined_val, y_val
+        )
+        all_results.append({k: v for k, v in svc_results.items() if not k.startswith("_")})
+        joblib.dump(svc_tuned, MODEL_DIR / "svc_tuned.pkl")
+        log.info("Saved: svc_tuned.pkl")
+    except Exception as exc:
+        log.error(f"LinearSVC tuning failed: {exc}")
 
     # ── 2. XGBoost — RandomizedSearchCV ─────────────────────────────────────
     try:
@@ -708,14 +864,16 @@ def main() -> None:
         joblib.dump(lgb_tuned, MODEL_DIR / "lgbm_optuna_champion.pkl")
         log.info("Saved: lgbm_optuna_champion.pkl")
 
-        champion      = lgb_tuned
-        champion_pred = lgb_results.get("_y_pred")
-        champion_name = lgb_results["Model"]
+        champion           = lgb_tuned
+        champion_pred      = lgb_results.get("_y_pred")
+        champion_name      = lgb_results["Model"]
+        lgbm_best_params_  = lgb_tuned.get_params() if lgb_tuned is not None else {}
         if champion_pred is None:
             champion_pred = champion.predict(X_fb_val)
 
     except Exception as exc:
         log.error(f"LightGBM Optuna tuning failed: {exc}")
+        lgbm_best_params_ = {}
 
     # ── Comparison table ──────────────────────────────────────────────────────
     comparison_cols = ["Model", "Macro-F1", "Accuracy", "ROC-AUC",
@@ -741,6 +899,55 @@ def main() -> None:
     # ── Champion confusion matrix ──────────────────────────────────────────────
     if champion is not None and champion_pred is not None:
         plot_confusion_matrix_champion(y_val, champion_pred, champion_name)
+
+    # ── 4b. Soft-voting ensemble ─────────────────────────────────────────────
+    ensemble_model = None
+    try:
+        _lr  = joblib.load(MODEL_DIR / "lr_tuned.pkl")  if (MODEL_DIR / "lr_tuned.pkl").exists()  else None
+        _svc = joblib.load(MODEL_DIR / "svc_tuned.pkl") if (MODEL_DIR / "svc_tuned.pkl").exists() else None
+        ensemble_model, ensemble_results = build_voting_ensemble(
+            _lr, _svc, lgbm_best_params_,
+            X_combined_train, y_train, X_combined_val, y_val
+        )
+        if ensemble_model is not None:
+            all_results.append({k: v for k, v in ensemble_results.items() if not k.startswith("_")})
+            joblib.dump(ensemble_model, MODEL_DIR / "ensemble_champion.pkl")
+            log.info("Saved: ensemble_champion.pkl")
+    except Exception as exc:
+        log.error(f"Ensemble build failed: {exc}")
+
+    # ── Dynamic champion selection (best val macro-F1 across all tuned models) ──
+    if comparison_df.empty:
+        comparison_cols = ["Model", "Macro-F1", "Accuracy", "ROC-AUC",
+                           "F1-neg", "F1-neu", "F1-pos"]
+        comparison_df = pd.DataFrame([{k: r.get(k, float("nan")) for k in comparison_cols}
+                                       for r in all_results if "Model" in r])
+    if not comparison_df.empty:
+        best_row = comparison_df.dropna(subset=["Macro-F1"]).sort_values("Macro-F1", ascending=False).iloc[0]
+        best_name = best_row["Model"]
+        # Map model name to saved pkl
+        _name_to_pkl = {
+            "LR (tuned)":                       MODEL_DIR / "lr_tuned.pkl",
+            "LinearSVC (tuned)":                MODEL_DIR / "svc_tuned.pkl",
+            "XGB (tuned)":                      MODEL_DIR / "xgb_tuned.pkl",
+            "Ensemble (LR+SVC+LGBM soft vote)": MODEL_DIR / "ensemble_champion.pkl",
+        }
+        # LightGBM Optuna variants
+        for key in _name_to_pkl:
+            pass
+        _lgbm_key = next((r["Model"] for r in all_results
+                          if "LightGBM" in r.get("Model","") and "Optuna" in r.get("Model","")), None)
+
+        best_pkl = _name_to_pkl.get(best_name)
+        if best_pkl is None and _lgbm_key and best_name == _lgbm_key:
+            best_pkl = MODEL_DIR / "lgbm_optuna_champion.pkl"
+
+        if best_pkl and best_pkl.exists():
+            import shutil
+            shutil.copy(best_pkl, MODEL_DIR / "champion.pkl")
+            log.info(f"Champion: {best_name}  Macro-F1={best_row['Macro-F1']:.4f}  -> saved as champion.pkl")
+        else:
+            log.info(f"Champion candidate: {best_name}  (lgbm_optuna_champion.pkl already saved)")
 
     # ── SHAP on TF-IDF LightGBM (interpretable terms) ─────────────────────────
     tfidf_lgbm_path = MODEL_DIR / "LightGBM_TF-IDF_.pkl"
@@ -777,8 +984,10 @@ def main() -> None:
         "shap_feature_importance.csv",
         "lgbm_optuna_champion.pkl",
         "lr_tuned.pkl",
+        "svc_tuned.pkl",
         "xgb_tuned.pkl",
         "lr_grid_search_results.csv",
+        "svc_grid_search_results.csv",
         "xgb_random_search_results.csv",
         "lgbm_optuna_trials.csv",
     ]:

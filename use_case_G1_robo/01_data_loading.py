@@ -259,7 +259,7 @@ def _plot_overviews(
     merged = profitability.merge(assets[["isin", "category"]], on="isin", how="left")
     categories_plot = merged["category"].unique()
     roi_data = [merged[merged["category"] == c]["roi"].values for c in categories_plot]
-    bp = ax.boxplot(roi_data, labels=categories_plot, patch_artist=True)
+    bp = ax.boxplot(roi_data, tick_labels=categories_plot, patch_artist=True)
     for patch, color in zip(bp["boxes"], plt.cm.Set2.colors[:len(categories_plot)]):
         patch.set_facecolor(color)
     ax.axhline(0, color="red", linestyle="--", linewidth=0.8, alpha=0.7)

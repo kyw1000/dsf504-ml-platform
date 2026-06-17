@@ -62,7 +62,7 @@ from sklearn.model_selection import (
 from sklearn.preprocessing import StandardScaler
 
 from imblearn.pipeline import Pipeline as ImbPipeline
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE, ADASYN
 
 import xgboost as xgb
 import lightgbm as lgb
@@ -146,6 +146,27 @@ def find_optimal_threshold(y_true: np.ndarray, y_prob: np.ndarray) -> float:
         if f1 > best_f1:
             best_f1, best_thr = f1, thr
     return best_thr
+
+def find_cost_optimal_threshold(
+    y_true: np.ndarray,
+    y_prob: np.ndarray,
+    cost_fp: float = 1.0,
+    cost_fn: float = 10.0,
+) -> float:
+    """
+    Return the threshold that minimises total business cost.
+    Default 1:10 ratio: a missed default costs ~10x more than a false alarm.
+    """
+    best_cost, best_thr = float("inf"), 0.5
+    for thr in np.arange(0.05, 0.95, 0.01):
+        y_pred = (y_prob >= thr).astype(int)
+        fp = int(((y_pred == 1) & (y_true == 0)).sum())
+        fn = int(((y_pred == 0) & (y_true == 1)).sum())
+        total_cost = cost_fp * fp + cost_fn * fn
+        if total_cost < best_cost:
+            best_cost, best_thr = total_cost, float(thr)
+    return best_thr
+
 
 
 def evaluate_model(
@@ -404,18 +425,16 @@ def tune_lightgbm_optuna(
 
     def objective(trial: "optuna.Trial") -> float:
         params = {
-            "n_estimators":       trial.suggest_int("n_estimators", 300, 1000, step=50),
-            "num_leaves":         trial.suggest_int("num_leaves", 31, 255),
-            "max_depth":          trial.suggest_int("max_depth", 4, 12),
-            "learning_rate":      trial.suggest_float("learning_rate", 0.01, 0.2, log=True),
-            "min_child_samples":  trial.suggest_int("min_child_samples", 10, 100),
-            "feature_fraction":   trial.suggest_float("feature_fraction", 0.4, 1.0),
-            "bagging_fraction":   trial.suggest_float("bagging_fraction", 0.4, 1.0),
+            "n_estimators":       trial.suggest_int("n_estimators", 300, 1000, step=100),
+            "num_leaves":         trial.suggest_int("num_leaves", 31, 127),
+            "max_depth":          trial.suggest_int("max_depth", 6, 12),
+            "learning_rate":      trial.suggest_float("learning_rate", 0.01, 0.05, log=True),
+            "min_child_samples":  trial.suggest_int("min_child_samples", 20, 100),
+            "feature_fraction":   trial.suggest_float("feature_fraction", 0.6, 0.9),
+            "bagging_fraction":   trial.suggest_float("bagging_fraction", 0.6, 0.9),
             "bagging_freq":       trial.suggest_int("bagging_freq", 1, 7),
-            "lambda_l1":          trial.suggest_float("lambda_l1", 1e-4, 10.0, log=True),
-            "lambda_l2":          trial.suggest_float("lambda_l2", 1e-4, 10.0, log=True),
-            "min_split_gain":     trial.suggest_float("min_split_gain", 0.0, 1.0),
-            "max_bin":            trial.suggest_int("max_bin", 63, 511, step=32),
+            "lambda_l1":          trial.suggest_float("lambda_l1", 1e-3, 1.0, log=True),
+            "lambda_l2":          trial.suggest_float("lambda_l2", 1e-3, 1.0, log=True),
             "scale_pos_weight":   scale_pos_weight,
             "random_state":       RANDOM_STATE,
             "verbosity":          -1,
@@ -427,9 +446,13 @@ def tune_lightgbm_optuna(
             X_fold_tr, X_fold_val = X_train[train_idx], X_train[val_idx]
             y_fold_tr, y_fold_val = y_train[train_idx], y_train[val_idx]
 
-            # Apply SMOTE only to fold training data
-            smote = SMOTE(sampling_strategy=0.20, random_state=RANDOM_STATE)
-            X_fold_tr_res, y_fold_tr_res = smote.fit_resample(X_fold_tr, y_fold_tr)
+            # ADASYN focuses on borderline defaulters near the decision boundary
+            adasyn = ADASYN(sampling_strategy=0.20, random_state=RANDOM_STATE)
+            try:
+                X_fold_tr_res, y_fold_tr_res = adasyn.fit_resample(X_fold_tr, y_fold_tr)
+            except Exception:
+                smote = SMOTE(sampling_strategy=0.20, random_state=RANDOM_STATE)
+                X_fold_tr_res, y_fold_tr_res = smote.fit_resample(X_fold_tr, y_fold_tr)
 
             clf = lgb.LGBMClassifier(**params)
             clf.fit(
@@ -439,9 +462,10 @@ def tune_lightgbm_optuna(
                            lgb.log_evaluation(-1)],
             )
 
-            y_prob    = clf.predict_proba(X_fold_val)[:, 1]
-            roc_score = roc_auc_score(y_fold_val, y_prob)
-            fold_scores.append(roc_score)
+            y_prob   = clf.predict_proba(X_fold_val)[:, 1]
+            # PR-AUC objective prevents tuning regression (vs ROC-AUC)
+            pr_score = average_precision_score(y_fold_val, y_prob)
+            fold_scores.append(pr_score)
 
             # Report for pruning
             trial.report(np.mean(fold_scores), step=fold_idx)
@@ -450,13 +474,13 @@ def tune_lightgbm_optuna(
 
         return float(np.mean(fold_scores))
 
-    sampler = TPESampler(seed=RANDOM_STATE)
+    sampler = TPESampler(seed=RANDOM_STATE, n_startup_trials=20)
     pruner  = MedianPruner(n_startup_trials=10, n_warmup_steps=1)
     study   = optuna.create_study(
         direction  = "maximize",
         sampler    = sampler,
         pruner     = pruner,
-        study_name = "lgbm_credit_roc_auc",
+        study_name = "lgbm_credit_pr_auc",
     )
 
     t0 = time.time()
@@ -465,7 +489,7 @@ def tune_lightgbm_optuna(
 
     log.info(f"Optuna complete in {elapsed/60:.1f} min")
     log.info(f"Best trial    : #{study.best_trial.number}")
-    log.info(f"Best CV ROC-AUC : {study.best_value:.4f}")
+    log.info(f"Best CV PR-AUC  : {study.best_value:.4f}")
     log.info(f"Best params   : {study.best_params}")
 
     # Save optimisation history
@@ -479,8 +503,29 @@ def tune_lightgbm_optuna(
     best_params["verbosity"]        = -1
     best_params["n_jobs"]           = -1
 
-    smote        = SMOTE(sampling_strategy=0.20, random_state=RANDOM_STATE)
-    X_res, y_res = smote.fit_resample(X_train, y_train)
+    adasyn_final = ADASYN(sampling_strategy=0.20, random_state=RANDOM_STATE)
+    try:
+        X_res, y_res = adasyn_final.fit_resample(X_train, y_train)
+    except Exception:
+        smote = SMOTE(sampling_strategy=0.20, random_state=RANDOM_STATE)
+        X_res, y_res = smote.fit_resample(X_train, y_train)
+
+    # Monotonic constraints: encode credit domain logic for regulatory defensibility
+    # +1 = higher value -> higher default risk; -1 = higher value -> lower risk
+    feature_names = getattr(X_train, 'columns', None)
+    if feature_names is not None:
+        MONO_MAP = {
+            'RevolvingUtil': 1, 'fe_util_sq': 1, 'fe_high_util': 1, 'fe_over_limit': 1,
+            'fe_total_dpd': 1, 'fe_dpd_severity': 1, 'fe_any_delinquency': 1,
+            'fe_chronic_default': 1, 'fe_dpd_unknown': 1,
+            'DebtRatio': 1, 'NumOpenLoans': 1,
+            'MonthlyIncome': -1, 'fe_log_MonthlyIncome': -1, 'fe_income_per_dep': -1,
+            'age': 0,
+        }
+        mono = [MONO_MAP.get(c, 0) for c in feature_names]
+        best_params['monotone_constraints'] = mono
+        best_params['monotone_constraints_method'] = 'advanced'
+        log.info(f'Monotonic constraints applied ({sum(abs(m) for m in mono)} features constrained)')
 
     champion = lgb.LGBMClassifier(**best_params)
     champion.fit(

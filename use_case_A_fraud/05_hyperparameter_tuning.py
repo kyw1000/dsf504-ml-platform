@@ -59,7 +59,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from imblearn.pipeline import Pipeline as ImbPipeline
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE, ADASYN
 
 import xgboost as xgb
 import lightgbm as lgb
@@ -150,6 +150,38 @@ def find_optimal_threshold(y_true: np.ndarray, y_prob: np.ndarray) -> float:
         f1 = f1_score(y_true, y_pred, zero_division=0)
         if f1 > best_f1:
             best_f1, best_thr = f1, thr
+    return best_thr
+
+
+def find_cost_optimal_threshold(
+    y_true: np.ndarray,
+    y_prob: np.ndarray,
+    cost_fp: float = 1.0,
+    cost_fn: float = 10.0,
+) -> float:
+    """
+    Return the threshold that minimises total business cost.
+
+    Parameters
+    ----------
+    cost_fp : Cost per false positive (false alarm — analyst review time)
+    cost_fn : Cost per false negative (missed fraud — financial loss)
+
+    Default ratio 1:10 reflects that a missed fraud typically costs 10x more
+    than a false alert in card-fraud operations.
+
+    Returns
+    -------
+    Threshold in [0.05, 0.95] that minimises (cost_fp * FP + cost_fn * FN).
+    """
+    best_cost, best_thr = float("inf"), 0.5
+    for thr in np.arange(0.05, 0.95, 0.01):
+        y_pred = (y_prob >= thr).astype(int)
+        fp = int(((y_pred == 1) & (y_true == 0)).sum())
+        fn = int(((y_pred == 0) & (y_true == 1)).sum())
+        total_cost = cost_fp * fp + cost_fn * fn
+        if total_cost < best_cost:
+            best_cost, best_thr = total_cost, float(thr)
     return best_thr
 
 
@@ -424,19 +456,23 @@ def tune_lightgbm_optuna(
     cv = StratifiedKFold(n_splits=CV_FOLDS, shuffle=True, random_state=RANDOM_STATE)
 
     def objective(trial: "optuna.Trial") -> float:
+        # Search space tightened to prevent over-fitting in SMOTE-augmented CV folds.
+        # Key constraints:
+        #   num_leaves <= 127  (prevents deep memorisation of synthetic samples)
+        #   learning_rate <= 0.05  (slow learning = better generalisation)
+        #   feature/bagging_fraction 0.6-0.9  (conservative subsampling)
+        #   lambda_l1/l2 >= 1e-3  (minimum regularisation floor)
         params = {
-            "n_estimators":       trial.suggest_int("n_estimators", 300, 1000, step=50),
-            "num_leaves":         trial.suggest_int("num_leaves", 31, 255),
-            "max_depth":          trial.suggest_int("max_depth", 4, 12),
-            "learning_rate":      trial.suggest_float("learning_rate", 0.01, 0.2, log=True),
-            "min_child_samples":  trial.suggest_int("min_child_samples", 10, 100),
-            "feature_fraction":   trial.suggest_float("feature_fraction", 0.4, 1.0),
-            "bagging_fraction":   trial.suggest_float("bagging_fraction", 0.4, 1.0),
+            "n_estimators":       trial.suggest_int("n_estimators", 300, 1000, step=100),
+            "num_leaves":         trial.suggest_int("num_leaves", 31, 127),
+            "max_depth":          trial.suggest_int("max_depth", 6, 12),
+            "learning_rate":      trial.suggest_float("learning_rate", 0.01, 0.05, log=True),
+            "min_child_samples":  trial.suggest_int("min_child_samples", 20, 100),
+            "feature_fraction":   trial.suggest_float("feature_fraction", 0.6, 0.9),
+            "bagging_fraction":   trial.suggest_float("bagging_fraction", 0.6, 0.9),
             "bagging_freq":       trial.suggest_int("bagging_freq", 1, 7),
-            "lambda_l1":          trial.suggest_float("lambda_l1", 1e-4, 10.0, log=True),
-            "lambda_l2":          trial.suggest_float("lambda_l2", 1e-4, 10.0, log=True),
-            "min_split_gain":     trial.suggest_float("min_split_gain", 0.0, 1.0),
-            "max_bin":            trial.suggest_int("max_bin", 63, 511, step=32),
+            "lambda_l1":          trial.suggest_float("lambda_l1", 1e-3, 1.0, log=True),
+            "lambda_l2":          trial.suggest_float("lambda_l2", 1e-3, 1.0, log=True),
             "scale_pos_weight":   scale_pos_weight,
             "random_state":       RANDOM_STATE,
             "verbosity":          -1,
@@ -448,9 +484,14 @@ def tune_lightgbm_optuna(
             X_fold_tr, X_fold_val = X_train[train_idx], X_train[val_idx]
             y_fold_tr, y_fold_val = y_train[train_idx], y_train[val_idx]
 
-            # Apply SMOTE only to fold training data
-            smote = SMOTE(sampling_strategy=0.10, random_state=RANDOM_STATE)
-            X_fold_tr_res, y_fold_tr_res = smote.fit_resample(X_fold_tr, y_fold_tr)
+            # Apply ADASYN inside fold (focuses on borderline fraud cases)
+            adasyn = ADASYN(sampling_strategy=0.20, random_state=RANDOM_STATE)
+            try:
+                X_fold_tr_res, y_fold_tr_res = adasyn.fit_resample(X_fold_tr, y_fold_tr)
+            except Exception:
+                # ADASYN can fail with very few neighbors; fall back to SMOTE
+                smote = SMOTE(sampling_strategy=0.20, random_state=RANDOM_STATE)
+                X_fold_tr_res, y_fold_tr_res = smote.fit_resample(X_fold_tr, y_fold_tr)
 
             clf = lgb.LGBMClassifier(**params)
             clf.fit(
@@ -471,7 +512,7 @@ def tune_lightgbm_optuna(
 
         return float(np.mean(fold_scores))
 
-    sampler = TPESampler(seed=RANDOM_STATE)
+    sampler = TPESampler(seed=RANDOM_STATE, n_startup_trials=20)
     pruner  = MedianPruner(n_startup_trials=10, n_warmup_steps=1)
     study   = optuna.create_study(
         direction = "maximize",
@@ -500,8 +541,12 @@ def tune_lightgbm_optuna(
     best_params["verbosity"]        = -1
     best_params["n_jobs"]           = -1
 
-    smote      = SMOTE(sampling_strategy=0.10, random_state=RANDOM_STATE)
-    X_res, y_res = smote.fit_resample(X_train, y_train)
+    adasyn_final = ADASYN(sampling_strategy=0.20, random_state=RANDOM_STATE)
+    try:
+        X_res, y_res = adasyn_final.fit_resample(X_train, y_train)
+    except Exception:
+        smote = SMOTE(sampling_strategy=0.20, random_state=RANDOM_STATE)
+        X_res, y_res = smote.fit_resample(X_train, y_train)
 
     champion = lgb.LGBMClassifier(**best_params)
     champion.fit(
@@ -637,6 +682,16 @@ def plot_threshold_calibration(
     ax2.scatter([recalls[op_idx]], [precisions[op_idx]],
                 marker="*", s=200, color="#4CAF50", zorder=5,
                 label=f"F1-opt operating point")
+
+    # Cost-sensitive operating point (FN cost = 10x FP cost)
+    cost_thr = find_cost_optimal_threshold(y_val, y_prob, cost_fp=1.0, cost_fn=10.0)
+    cost_idx  = int(np.argmin(np.abs(thresholds - cost_thr)))
+    if cost_idx < len(recalls):
+        ax2.scatter([recalls[cost_idx]], [precisions[cost_idx]],
+                    marker="D", s=120, color="#FF5722", zorder=5,
+                    label=f"Cost-opt (FN:FP=10:1) thr={cost_thr:.2f}")
+    ax.axvline(cost_thr, linestyle="-.", color="#FF5722", alpha=0.7,
+               label=f"Cost-opt = {cost_thr:.2f}")
     baseline = y_val.mean()
     ax2.axhline(baseline, linestyle="--", color="grey", alpha=0.5,
                 label=f"No-skill baseline ({baseline:.3f})")

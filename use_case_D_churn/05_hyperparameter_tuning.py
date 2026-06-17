@@ -154,11 +154,11 @@ def tune_rf(X_train, y_train) -> object:
     }
     pipe = ImbPipeline([
         ("smote", SMOTE(random_state=RANDOM_STATE, k_neighbors=5)),
-        ("clf",   RandomForestClassifier(class_weight="balanced", n_jobs=-1,
+        ("clf",   RandomForestClassifier(class_weight="balanced", n_jobs=1,
                                          random_state=RANDOM_STATE)),
     ])
     skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
-    gs  = GridSearchCV(pipe, param_grid, scoring="roc_auc", cv=skf, n_jobs=-1, verbose=0)
+    gs  = GridSearchCV(pipe, param_grid, scoring="roc_auc", cv=skf, n_jobs=1, verbose=0)
     gs.fit(X_train, y_train)
     log.info("  Best RF params: %s  ROC-AUC=%.4f", gs.best_params_, gs.best_score_)
     return gs.best_estimator_
@@ -184,12 +184,12 @@ def tune_xgb(X_train, y_train) -> Optional[object]:
         ("smote", SMOTE(random_state=RANDOM_STATE, k_neighbors=5)),
         ("clf",   xgb.XGBClassifier(
             scale_pos_weight=pos_weight, eval_metric="auc",
-            use_label_encoder=False, n_jobs=-1,
+            use_label_encoder=False, n_jobs=1,
             random_state=RANDOM_STATE, verbosity=0)),
     ])
     skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
     rs  = RandomizedSearchCV(pipe, param_dist, n_iter=20, scoring="roc_auc",
-                              cv=skf, n_jobs=-1, random_state=RANDOM_STATE, verbose=0)
+                              cv=skf, n_jobs=1, random_state=RANDOM_STATE, verbose=0)
     rs.fit(X_train, y_train)
     log.info("  Best XGB params: %s  ROC-AUC=%.4f", rs.best_params_, rs.best_score_)
     return rs.best_estimator_

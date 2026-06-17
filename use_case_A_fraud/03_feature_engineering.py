@@ -697,26 +697,222 @@ def plot_engineered_feature_summary(df: pd.DataFrame, save: bool = True) -> None
 # Master pipeline
 # ─────────────────────────────────────────────────────────────────────────────
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FEATURE GROUP 9: UID2 Composite-Key Fraud Rate
+# ─────────────────────────────────────────────────────────────────────────────
+
+def add_uid2_features(
+    df: pd.DataFrame,
+    uid2_fraud_map: dict | None = None,
+    uid3_fraud_map: dict | None = None,
+) -> tuple[pd.DataFrame, dict, dict]:
+    """
+    Encode composite user-identity keys as fraud-rate features.
+
+    Financial rationale
+    -------------------
+    A single card can be used at many addresses, and a single address can
+    host many cards. The combination (card1 + addr1) approximates a unique
+    device/user and captures fraud-ring patterns invisible at the card level.
+    This feature — popularised in top-ranked IEEE-CIS Kaggle solutions — is
+    among the single highest-information features for transactional fraud.
+
+    UID2 = card1 + "_" + addr1   (card number + billing zip)
+    UID3 = card1 + "_" + addr1 + "_" + P_emaildomain  (adds email)
+
+    The fraud rate is fitted ONLY on the training split and merged onto val/test
+    to prevent data leakage.
+
+    Engineered features
+    -------------------
+    fe_uid2_fraud_rate  : Mean isFraud per (card1, addr1) group
+    fe_uid3_fraud_rate  : Mean isFraud per (card1, addr1, P_emaildomain) group
+    fe_uid2_txn_count   : Transaction count per UID2 (velocity proxy)
+    """
+    df = df.copy()
+    is_train = uid2_fraud_map is None
+
+    addr1_col  = "addr1"          if "addr1"          in df.columns else None
+    email_col  = "P_emaildomain"  if "P_emaildomain"  in df.columns else None
+
+    # UID2 = card1 + addr1
+    if addr1_col:
+        df["_uid2"] = (
+            df["card1"].astype(str) + "_" +
+            df[addr1_col].fillna("NA").astype(str)
+        )
+    else:
+        df["_uid2"] = df["card1"].astype(str)
+
+    # UID3 = card1 + addr1 + email
+    if addr1_col and email_col:
+        df["_uid3"] = (
+            df["card1"].astype(str) + "_" +
+            df[addr1_col].fillna("NA").astype(str) + "_" +
+            df[email_col].fillna("NA").astype(str)
+        )
+    else:
+        df["_uid3"] = df["_uid2"]
+
+    if is_train:
+        if "isFraud" in df.columns:
+            uid2_fraud_map = df.groupby("_uid2")["isFraud"].mean().to_dict()
+            uid3_fraud_map = df.groupby("_uid3")["isFraud"].mean().to_dict()
+            uid2_count_map = df.groupby("_uid2")["_uid2"].count().to_dict()
+        else:
+            uid2_fraud_map, uid3_fraud_map, uid2_count_map = {}, {}, {}
+        global_rate = df["isFraud"].mean() if "isFraud" in df.columns else 0.035
+    else:
+        uid2_count_map = None
+        global_rate = 0.035
+
+    df["fe_uid2_fraud_rate"] = (
+        df["_uid2"].map(uid2_fraud_map).fillna(global_rate).astype(np.float32)
+    )
+    df["fe_uid3_fraud_rate"] = (
+        df["_uid3"].map(uid3_fraud_map).fillna(global_rate).astype(np.float32)
+    )
+
+    if uid2_count_map is not None:
+        df["fe_uid2_txn_count"] = (
+            df["_uid2"].map(uid2_count_map).fillna(1).astype(np.float32)
+        )
+    else:
+        df["fe_uid2_txn_count"] = np.float32(1)
+
+    # Clean up temp columns
+    df.drop(columns=["_uid2", "_uid3"], inplace=True, errors="ignore")
+    log.info(f"  UID2/UID3 fraud-rate features added "
+             f"({len(uid2_fraud_map or {}):,} UID2 groups)")
+    return df, uid2_fraud_map, uid3_fraud_map
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FEATURE GROUP 10: Multi-Card Aggregates (card2, card4, card6)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def add_extra_card_aggregates(
+    df: pd.DataFrame,
+    card_stats_map: dict | None = None,
+) -> tuple[pd.DataFrame, dict]:
+    """
+    Extend card-level aggregates beyond card1 to card2, card4, card6.
+
+    Financial rationale
+    -------------------
+    card1  = card number (already encoded in step 4)
+    card2  = card sub-type identifier — cards within the same sub-type share
+             fraud patterns (e.g. prepaid card sub-types have higher fraud rates)
+    card4  = card brand (Visa / Mastercard / Amex / Discover)
+    card6  = card category (credit / debit / debit prepaid)
+
+    Aggregating TransactionAmt and fraud rate over these dimensions captures
+    systemic card-type risk not visible at the individual card1 level.
+
+    Engineered features (per card_col in [card2, card4, card6])
+    -------------------
+    fe_{col}_mean_amt   : Mean transaction amount for that card group
+    fe_{col}_fraud_rate : Historical fraud rate (fitted on train only)
+    fe_{col}_txn_count  : Number of transactions in that group
+    """
+    df = df.copy()
+    is_train = card_stats_map is None
+    if is_train:
+        card_stats_map = {}
+
+    for col in ["card2", "card4", "card6"]:
+        if col not in df.columns:
+            continue
+        if is_train:
+            agg_dict = {"TransactionAmt": ["mean", "count"]}
+            if "isFraud" in df.columns:
+                agg_dict["isFraud"] = "mean"
+            stats = df.groupby(col).agg(agg_dict)
+            stats.columns = [f"fe_{col}_mean_amt", f"fe_{col}_txn_count"] + (
+                [f"fe_{col}_fraud_rate"] if "isFraud" in df.columns else []
+            )
+            stats = stats.reset_index()
+            card_stats_map[col] = stats
+        stats = card_stats_map.get(col)
+        if stats is None:
+            continue
+        df = df.merge(stats, on=col, how="left")
+        # Fill unseen groups with global means
+        for fc in [c for c in stats.columns if c.startswith("fe_")]:
+            if fc in df.columns:
+                df[fc] = df[fc].fillna(df[fc].mean() if df[fc].notna().any() else 0).astype(np.float32)
+
+    log.info(f"  Extra card aggregates added for: card2, card4, card6")
+    return df, card_stats_map
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FEATURE GROUP 11: Raw V-Column Imputation (replaces PCA)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def impute_v_columns(
+    df: pd.DataFrame,
+    v_medians: pd.Series | None = None,
+) -> tuple[pd.DataFrame, pd.Series]:
+    """
+    Impute the 339 Vesta V-features with per-column training medians.
+
+    Why remove PCA?
+    ---------------
+    V69 is the #2 global SHAP feature. PCA mixes all 339 V-columns into 50
+    orthogonal components, diluting the discriminative signal of individual
+    high-importance columns. LightGBM handles high-dimensional sparse features
+    natively via its built-in feature_fraction subsampling — PCA is redundant
+    and actively harmful here.
+
+    The previous PCA step retained ~80-90% of variance, but variance retention
+    is an unsupervised criterion. It does not preserve the supervised signal
+    that makes V69 predictive of fraud.
+
+    This function simply fills missing values with training-set column medians,
+    then lets LightGBM's feature selection do the rest.
+
+    Parameters
+    ----------
+    v_medians : Pre-computed medians from training set (prevent leakage)
+    """
+    v_present = [c for c in V_COLS if c in df.columns]
+    if not v_present:
+        log.warning("No V-columns found — skipping V imputation.")
+        return df, pd.Series(dtype=float)
+
+    df = df.copy()
+    if v_medians is None:
+        v_medians = df[v_present].median()
+        joblib.dump(v_medians, ARTIFACT_DIR / "v_medians.pkl")
+        log.info(f"  V-column median imputation fitted on {len(v_present)} V-cols")
+    df[v_present] = df[v_present].fillna(v_medians)
+    log.info(f"  V-column imputation applied ({len(v_present)} columns)")
+    return df, v_medians
+
+
 def run_feature_engineering(
     df_train: pd.DataFrame,
     df_val:   pd.DataFrame | None = None,
     df_test:  pd.DataFrame | None = None,
-    n_pca_components: int = 50,
 ) -> tuple:
     """
     Apply all feature engineering steps to train (and optionally val/test).
 
     Steps executed in order
     -----------------------
-    1. Missing indicators      (fitted on train)
-    2. Time features
-    3. Velocity features
-    4. Card-level aggregates   (fitted on train)
-    5. Email domain encoding   (fitted on train)
-    6. Amount transforms
-    7. M-column encoding
-    8. V-column PCA            (fitted on train)
-    9. Imputation & cleaning   (fitted on train)
+    1.  Missing indicators            (fitted on train)
+    2.  Time features
+    3.  Velocity features
+    4.  Card-1 aggregates             (fitted on train)
+    4b. UID2/UID3 fraud-rate encoding (fitted on train)  [NEW]
+    4c. Multi-card aggregates         (card2/4/6)         [NEW]
+    5.  Email domain encoding         (fitted on train)
+    6.  Amount transforms
+    7.  M-column encoding
+    8.  V-column median imputation    (replaces PCA)      [IMPROVED]
+    9.  Imputation & cleaning         (fitted on train)
     10. Categorical encoding
 
     Leakage prevention: all statistics/models are fitted on df_train only,
@@ -729,7 +925,7 @@ def run_feature_engineering(
     artifacts is a dict of fitted objects for reproducibility.
     """
     log.info("\n" + "=" * 55)
-    log.info("Running feature engineering pipeline…")
+    log.info("Running feature engineering pipeline (v2 — improved)...")
     log.info("=" * 55)
 
     artifacts = {}
@@ -749,17 +945,15 @@ def run_feature_engineering(
     # 2. Time features
     apply_to_all(add_time_features)
 
-    # 3. Velocity features (cumulative counts — apply to each split separately
-    #    since they're within-split cumulative counts)
+    # 3. Velocity features (cumulative counts — apply to each split separately)
     df_train = add_velocity_features(df_train)
     if df_val is not None:
         df_val  = add_velocity_features(df_val)
     if df_test is not None:
         df_test = add_velocity_features(df_test)
 
-    # 4. Card aggregates (fitted on train, applied to val/test via merge)
+    # 4. Card-1 aggregates (fitted on train, applied to val/test via merge)
     df_train = add_card_aggregate_features(df_train)
-    # For val/test: merge card stats from train
     card_stats_train = df_train[
         ["card1", "fe_card1_mean_amt", "fe_card1_std_amt", "fe_card1_n_txn"]
     ].drop_duplicates("card1")
@@ -768,9 +962,7 @@ def run_feature_engineering(
     for split_name, split_df in [("val", df_val), ("test", df_test)]:
         if split_df is not None:
             split_df = split_df.merge(card_stats_train, on="card1", how="left")
-            # Collect all new columns in a dict, concat once to avoid fragmentation
             _new: dict = {}
-            # Fill for unseen cards with global train stats
             for col in ["fe_card1_mean_amt", "fe_card1_std_amt", "fe_card1_n_txn"]:
                 split_df[col] = split_df[col].fillna(
                     df_train[col].mean()
@@ -797,6 +989,25 @@ def run_feature_engineering(
             else:
                 df_test = split_df
 
+    # 4b. UID2/UID3 fraud-rate encoding (fitted on train) [NEW]
+    log.info("Step 4b: UID2/UID3 fraud-rate features...")
+    df_train, uid2_map, uid3_map = add_uid2_features(df_train)
+    artifacts["uid2_map"] = uid2_map
+    artifacts["uid3_map"] = uid3_map
+    if df_val is not None:
+        df_val, _, _  = add_uid2_features(df_val,  uid2_map, uid3_map)
+    if df_test is not None:
+        df_test, _, _ = add_uid2_features(df_test, uid2_map, uid3_map)
+
+    # 4c. Multi-card aggregates: card2, card4, card6 [NEW]
+    log.info("Step 4c: Multi-card aggregates (card2, card4, card6)...")
+    df_train, extra_card_stats = add_extra_card_aggregates(df_train)
+    artifacts["extra_card_stats"] = extra_card_stats
+    if df_val is not None:
+        df_val, _  = add_extra_card_aggregates(df_val,  extra_card_stats)
+    if df_test is not None:
+        df_test, _ = add_extra_card_aggregates(df_test, extra_card_stats)
+
     # 5. Email domain encoding (fitted on train)
     df_train, email_maps = add_email_features(df_train)
     artifacts["email_maps"] = email_maps
@@ -811,23 +1022,17 @@ def run_feature_engineering(
     # 7. Match features
     apply_to_all(encode_match_features)
 
-    # 8. V-column PCA (fit on train)
-    df_train, pca_model, scaler = add_vesta_pca_features(
-        df_train, n_components=n_pca_components
-    )
-    artifacts["pca_model"] = pca_model
-    artifacts["vesta_scaler"] = scaler
-
+    # 8. V-column median imputation [REPLACES PCA]
+    # Rationale: V69 is the #2 SHAP feature — PCA destroyed its signal by
+    # mixing it into orthogonal components. LightGBM's feature_fraction
+    # handles V-column redundancy natively; PCA is redundant and harmful.
+    log.info("Step 8: V-column median imputation (PCA removed)...")
+    df_train, v_medians = impute_v_columns(df_train)
+    artifacts["v_medians"] = v_medians
     if df_val is not None:
-        df_val, _, _ = add_vesta_pca_features(
-            df_val, n_components=n_pca_components,
-            pca_model=pca_model, scaler=scaler,
-        )
+        df_val, _  = impute_v_columns(df_val,  v_medians)
     if df_test is not None:
-        df_test, _, _ = add_vesta_pca_features(
-            df_test, n_components=n_pca_components,
-            pca_model=pca_model, scaler=scaler,
-        )
+        df_test, _ = impute_v_columns(df_test, v_medians)
 
     # 9. Imputation & cleaning
     apply_to_all(impute_and_clean)
@@ -837,32 +1042,36 @@ def run_feature_engineering(
 
     # Summary
     fe_cols = [c for c in df_train.columns if c.startswith("fe_")]
+    new_groups = {
+        "UID2/UID3 fraud-rate (fe_uid*)": len([c for c in fe_cols if "uid" in c]),
+        "Multi-card agg (fe_card2/4/6*)":  len([c for c in fe_cols if any(f"fe_card{n}" in c for n in [2,4,6])]),
+        "Raw V-cols (imputed, no PCA)":    len([c for c in df_train.columns if c.startswith("V")]),
+    }
     log.info(
         f"\n{'='*55}\n"
-        f"Feature engineering complete:\n"
-        f"  Original columns  : ~433\n"
-        f"  Engineered (fe_*) : {len(fe_cols)}\n"
-        f"  Final df_train    : {df_train.shape}\n"
+        f"Feature engineering v2 complete:\n"
+        f"  Original columns      : ~433\n"
+        f"  Engineered (fe_*)     : {len(fe_cols)}\n"
+        f"  New features added    : UID2={new_groups['UID2/UID3 fraud-rate (fe_uid*)']}, "
+        f"MultiCard={new_groups['Multi-card agg (fe_card2/4/6*)']}, "
+        f"RawV={new_groups['Raw V-cols (imputed, no PCA)']}\n"
+        f"  Final df_train shape  : {df_train.shape}\n"
         f"{'='*55}"
     )
 
     # Feature summary plot
     plot_engineered_feature_summary(df_train)
 
-    # Save feature list for reproducibility / DSF504 audit trail
+    # Save feature list
     feature_list = pd.DataFrame({
         "feature": fe_cols,
         "dtype":   [str(df_train[c].dtype) for c in fe_cols],
     })
     feature_list.to_csv(REPORT_DIR / "engineered_features_list.csv", index=False)
-    log.info(f"Feature list saved → {REPORT_DIR / 'engineered_features_list.csv'}")
+    log.info(f"Feature list saved -> {REPORT_DIR / 'engineered_features_list.csv'}")
 
     return df_train, df_val, df_test, artifacts
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Main
-# ─────────────────────────────────────────────────────────────────────────────
 
 def main():
     print("\n" + "=" * 65)
@@ -901,7 +1110,6 @@ def main():
     df_tr_fe, df_val_fe, _, artifacts = run_feature_engineering(
         df_train=df_tr,
         df_val=df_val,
-        n_pca_components=50,
     )
 
     # Save engineered datasets as parquet

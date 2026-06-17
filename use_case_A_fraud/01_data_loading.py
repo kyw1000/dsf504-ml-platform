@@ -361,7 +361,7 @@ def plot_transaction_amount(df: pd.DataFrame, save: bool = True) -> None:
 
     # Box plots
     data = [legit, fraud]
-    bp = axes[1].boxplot(data, labels=["Legitimate", "Fraud"], patch_artist=True,
+    bp = axes[1].boxplot(data, tick_labels=["Legitimate", "Fraud"], patch_artist=True,
                          showfliers=False)
     for patch, color in zip(bp["boxes"], ["#1976D2", "#D32F2F"]):
         patch.set_facecolor(color)

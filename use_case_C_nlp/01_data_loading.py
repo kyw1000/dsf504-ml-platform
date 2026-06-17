@@ -342,7 +342,7 @@ def plot_sentence_lengths(df):
         ["Word Count by Sentiment", "Character Count by Sentiment"],
     ):
         data_by_class = [df[df["label_name"] == c][col].values for c in order]
-        bp = ax.boxplot(data_by_class, labels=order, patch_artist=True)
+        bp = ax.boxplot(data_by_class, tick_labels=order, patch_artist=True)
         for patch, c in zip(bp["boxes"], order):
             patch.set_facecolor(colours[c])
             patch.set_alpha(0.7)
